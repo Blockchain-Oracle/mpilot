@@ -35,7 +35,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Validate workflow YAML (actionlint)
-        uses: raven-actions/actionlint@v2
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -color
       - run: pnpm run check
 
   typecheck:
