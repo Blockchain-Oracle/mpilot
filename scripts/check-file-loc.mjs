@@ -6,7 +6,12 @@
 // Exit codes
 //   0 — all files within budget
 //   1 — one or more files over budget (paths + counts printed to stderr)
-//   2 — config error (missing root dir, non-UTF-8 file, unknown flag) — NEVER silent
+//   2 — config error (missing-all roots, non-UTF-8 file, unknown flag, unexpected
+//       positional arg) — NEVER silent. Permission errors on declared roots
+//       (EACCES, ELOOP, EIO, ENAMETOOLONG) also surface here.
+//   3 — internal error (uncaught exception in the walker itself). Distinct from
+//       2 so a future maintainer / CI parser can tell "the walker is broken" from
+//       "the project is misconfigured."
 //
 // Named exclude sets (NOT substring match — substring silently misexcludes
 // `apps/foo/rebuild/widget.ts` because it contains `build`). Per
@@ -45,14 +50,21 @@ const EXCLUDE_DIR_COMPONENTS = new Set([
   'abi',
 ]);
 
-const KNOWN_FLAGS = new Set(['--strict']);
+const KNOWN_FLAGS = new Set();
 const COMMENT_PREFIXES = ['//', '#', '/*', '*', '<!--'];
 
 function parseArgs(argv) {
-  const unknown = argv.filter((a) => a.startsWith('--') && !KNOWN_FLAGS.has(a));
-  if (unknown.length > 0) {
-    console.error(`check-file-loc: unknown flag(s): ${unknown.join(', ')}`);
-    console.error(`Known flags: ${[...KNOWN_FLAGS].join(', ')}`);
+  const rejected = argv.filter((a) => !KNOWN_FLAGS.has(a));
+  if (rejected.length > 0) {
+    const flags = rejected.filter((a) => a.startsWith('--'));
+    const positionals = rejected.filter((a) => !a.startsWith('--'));
+    if (flags.length > 0) {
+      console.error(`check-file-loc: unknown flag(s): ${flags.join(', ')}`);
+    }
+    if (positionals.length > 0) {
+      console.error(`check-file-loc: unexpected positional arg(s): ${positionals.join(', ')}`);
+      console.error('This script scans a fixed set of roots; pass no args.');
+    }
     process.exit(2);
   }
 }
@@ -123,14 +135,20 @@ function main(argv) {
   parseArgs(argv);
 
   // Roots check — at least one declared root must exist. Missing-all = config error.
+  // ENOENT is the only "tolerated" error here: spec allows declared-but-not-yet-created
+  // roots (e.g. apps/ exists before contracts/ is Foundry-inited in story-03). Other
+  // codes (EACCES, ELOOP, EIO, ENAMETOOLONG, ENOTDIR) are real failures and must surface.
   const existingRoots = [];
   for (const r of ROOTS) {
     const full = resolve(REPO_ROOT, r);
     try {
       const s = statSync(full);
       if (s.isDirectory()) existingRoots.push(full);
-    } catch {
-      // missing — that's OK as long as at least one root exists
+    } catch (e) {
+      if (e && e.code !== 'ENOENT') {
+        console.error(`check-file-loc: cannot stat root ${r}: ${e.message}`);
+        process.exit(2);
+      }
     }
   }
   if (existingRoots.length === 0) {
@@ -172,6 +190,10 @@ function main(argv) {
 try {
   main(process.argv.slice(2));
 } catch (e) {
-  console.error(`check-file-loc: ${e instanceof Error ? e.message : String(e)}`);
-  process.exit(2);
+  // Uncaught exception in the walker itself — distinct from config-error (exit 2).
+  // Exit 3 lets CI distinguish "walker is broken" from "project is misconfigured."
+  console.error(
+    `check-file-loc: internal error: ${e instanceof Error ? (e.stack ?? e.message) : String(e)}`,
+  );
+  process.exit(3);
 }
