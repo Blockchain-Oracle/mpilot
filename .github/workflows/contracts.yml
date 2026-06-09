@@ -1,0 +1,100 @@
+# Contracts CI — Foundry build / test / coverage / static analysis.
+# Workflow-level path filter (per-job paths: unsupported in GH Actions).
+# Rename a job here only if you also update branch-protection rules.
+
+name: Contracts
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v6
+      - uses: foundry-rs/foundry-toolchain@v1.8.0
+        with:
+          version: v1.7.1
+      - name: Install Foundry dependencies
+        run: bash scripts/install-deps.sh
+      - name: forge fmt --check
+        run: forge fmt --check
+      - name: forge build --sizes
+        run: forge build --sizes
+      - name: forge test -vvv
+        run: forge test -vvv
+      - name: forge coverage --report summary
+        # Coverage step asserts output shape so a forge bump that changes
+        # the summary format fails loudly instead of silently exiting 0.
+        # 80% gate activates when story-10+ lands real src/ source.
+        run: |
+          set -euo pipefail
+          forge coverage --report summary 2>&1 | tee /tmp/forge-coverage.txt
+          grep -qE "\bTotal\b" /tmp/forge-coverage.txt || {
+            echo "::error::forge coverage output shape changed — no Total row found"
+            exit 1
+          }
+
+  contracts-security:
+    # Runs on every contracts/** push (NOT PR-only). Earlier `if: github
+    # .event_name == pull_request` skipped on push, and branch protection
+    # treats skipped required-checks as success — a direct main push would
+    # have bypassed Slither entirely (silent-failure-hunter PR #7).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: foundry-rs/foundry-toolchain@v1.8.0
+        with:
+          version: v1.7.1
+      - name: Install Foundry dependencies
+        run: bash contracts/scripts/install-deps.sh
+      # Pre-flight: skip slither when contracts/src/ is empty. slither-action
+      # internally runs `forge build --skip ./test/** --force` which produces
+      # no build-info on empty src/ and crytic-compile then errors with
+      # "out/build-info is not a directory". We don't want that to look like
+      # a real security failure — and we don't want to look-like-success when
+      # there's truly nothing analyzed either. So: explicit skip + warning
+      # annotation until story-10+ lands the first src/ contract.
+      - name: Pre-flight — count contracts/src/ Solidity files
+        id: srccheck
+        run: |
+          set -euo pipefail
+          sol_count=$(find contracts/src -name '*.sol' 2>/dev/null | wc -l | tr -d ' ')
+          echo "count=$sol_count" >> "$GITHUB_OUTPUT"
+          if [ "$sol_count" -eq 0 ]; then
+            echo "::warning::contracts/src/ has no .sol files yet — Slither skipped until story-10+ lands real source. The security gate is INTENTIONALLY vacuous-green for now; it becomes real the moment src/ is populated."
+          fi
+      - name: Slither static analysis
+        if: steps.srccheck.outputs.count != '0'
+        uses: crytic/slither-action@v0.4.2
+        with:
+          target: contracts/
+          slither-config: contracts/.slither.config.json
+          fail-on: high
+          slither-version: 0.11.5

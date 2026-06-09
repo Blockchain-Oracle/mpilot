@@ -18,18 +18,20 @@
 
 ## File modification map
 
-- `.github/workflows/ci.yml` — UPDATE — add `contracts` job with: timeout-minutes 15, `permissions: { contents: read }`, install Foundry, run `install-deps.sh`, `forge fmt --check`, `forge build --sizes` (size guard), `forge test -vvv`, `forge coverage --report summary` (gate ≥ 80% on `src/`). Path-filter so it only runs when `contracts/**` or the workflow file change. **Add `contracts-security` job** (runs only on PR + nightly schedule): Slither + Aderyn with `fail-on-high: true`.
-- `.slither.config.json` — NEW — Slither config (exclude `node_modules`, `lib`, `out`; fail on HIGH severity)
-- `aderyn.toml` — NEW — Aderyn config: src=src, exclude=test, fail-on-high=true
+- `.github/workflows/contracts.yml` — NEW (was: UPDATE ci.yml). Separate workflow file because per-job `paths:` filters are unsupported in GH Actions; workflow-level path filter is the canonical way to skip the contracts pipeline on TS-only PRs. Contains: `contracts` job (Foundry toolchain + install-deps + `forge fmt --check` + `forge build --sizes` + `forge test -vvv` + `forge coverage --report summary`). `contracts-security` job (PR-only): Slither via `crytic/slither-action@v0.4.2` with `fail-on: high`. Top-level path filter on `contracts/**` + `.github/workflows/contracts.yml`.
+- `contracts/.slither.config.json` — NEW — Slither config (filter `lib/|out/|cache/|broadcast/|test/`; exclude informational/low/optimization; fail on HIGH severity; `solc_remaps` matching the @-prefixed canonical remappings).
+- ~~`contracts/aderyn.toml` — NEW~~ — DROPPED 2026-06-09 in PR #7 follow-up. Three reviewers converged (simplification + silent-failure + type-design): a config file that declares semantics (`fail-on-high`) the CI never enforces is worse than absent — it implies a gate that doesn't exist. When Cyfrin ships an official Aderyn action (or we vendor the binary post-hackathon), `aderyn init` regenerates a default `aderyn.toml` in seconds. Slither covers the same HIGH-severity static analysis ground.
+
+Spec correction folded in (2026-06-09 PR #7): coverage gate at 80% is **informational only** in story-05 — `forge coverage --report summary` reports `100.00% (0/0)` on today's empty `src/`. The hard gate activates when story-10+ lands real source. The `forge coverage` step still runs (exercises the toolchain end-to-end), it just doesn't block.
 
 ---
 
 ## Acceptance criteria (BDD)
 
 ```
-Given .github/workflows/ci.yml has a contracts job
-When `node -e "const yaml = require('js-yaml'); const c = yaml.load(require('fs').readFileSync('.github/workflows/ci.yml','utf8')); console.log(Object.keys(c.jobs).includes('contracts'))"` runs
-Then output is `true`
+Given .github/workflows/contracts.yml exists with a contracts job (separate file because GH Actions per-job `paths:` is unsupported — see spec patch in file modification map)
+When `grep -qE "^\s*contracts:" .github/workflows/contracts.yml` runs
+Then exit code is 0
 
 Given the contracts job uses Foundry
 When grep checks the workflow
@@ -57,23 +59,31 @@ Then it includes "paths:" with `contracts/**` (so the heavy job only runs when c
 ## Shell verification
 
 ```bash
-# Workflow has contracts job
-grep -qE "^\s*contracts:" .github/workflows/ci.yml
+# Workflow has contracts job (in the dedicated contracts.yml file — see
+# spec correction above; per-job paths: filters unsupported in GH Actions)
+test -f .github/workflows/contracts.yml
+grep -qE "^\s*contracts:" .github/workflows/contracts.yml
 
 # Foundry toolchain
-grep -q "foundry-rs/foundry-toolchain" .github/workflows/ci.yml
+grep -q "foundry-rs/foundry-toolchain" .github/workflows/contracts.yml
 
 # All required forge commands
-grep -q "forge fmt --check" .github/workflows/ci.yml
-grep -q "forge build" .github/workflows/ci.yml
-grep -q "forge test" .github/workflows/ci.yml
-grep -q "forge coverage" .github/workflows/ci.yml
+grep -q "forge fmt --check" .github/workflows/contracts.yml
+grep -q "forge build" .github/workflows/contracts.yml
+grep -q "forge test" .github/workflows/contracts.yml
+grep -q "forge coverage" .github/workflows/contracts.yml
 
-# Slither + Aderyn configs
-test -f .slither.config.json
-test -f aderyn.toml
-grep -q "fail_on" .slither.config.json
-grep -q "fail-on-high" aderyn.toml
+# Slither config (Aderyn dropped 2026-06-09 — see file modification map)
+test -f contracts/.slither.config.json
+# Slither severity gate lives in workflow `with: fail-on: high` (single
+# source of truth per type-design + simplification on PR #7).
+grep -q "fail-on: high" .github/workflows/contracts.yml
+# Smoke test for the config (story-01/02 precedent: every enforcement
+# config gets a behavioral test).
+test -f scripts/test-slither-config.mjs
+
+# Path filter present (saves CI minutes on TS-only PRs)
+grep -q "contracts/\*\*" .github/workflows/contracts.yml
 ```
 
 ---
