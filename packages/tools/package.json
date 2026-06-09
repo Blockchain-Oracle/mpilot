@@ -28,6 +28,7 @@
     "build": "tsup",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "prepare": "tsup",
     "prepack": "pnpm run build"
   },
   "dependencies": {

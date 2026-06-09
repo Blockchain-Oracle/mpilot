@@ -21,7 +21,12 @@ const result = streamText({
 `getVercelAITools(agent, providerToolFactories?)` mirrors
 `createConciergeTools` exactly: factories are composed, network-incompatible
 tools are filtered for `agent.chainId`, and omitting the factories yields an
-empty `ToolSet`.
+empty `ToolSet`. Seeing zero tools? Check that you passed the factories and
+that `agent.chainId` matches the networks your tools support.
+
+Aborting `streamText` does not cancel an in-flight tool call —
+`ConciergeTool.invoke` takes no abort signal, so a started execution (e.g.
+an on-chain transaction) runs to completion.
 
 For per-tool type inference (e.g. `InferToolOutput`), convert a
 concretely-typed definition directly with `toVercelAITool(t)` — the registry

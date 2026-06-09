@@ -1,7 +1,9 @@
 // BDD coverage for the @concierge/vercel-ai adapter: ToolSet shape, v6 tool()
-// field passthrough, execute→invoke delegation, schema reference identity,
-// empty-registry default, registry error propagation, type-level inference
-// (InferToolInput/Output), and a streamText + MockLanguageModelV3 integration.
+// field passthrough, execute→invoke delegation (incl. rejection passthrough +
+// unary call), multi-factory merging, schema reference identity, empty-registry
+// default, registry error propagation, type-level inference
+// (InferToolInput/Output), and streamText + MockLanguageModelV3 integrations
+// (happy path + tool-error surfacing).
 
 import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@concierge/tools';
 import { type InferToolInput, type InferToolOutput, streamText } from 'ai';
@@ -60,6 +62,47 @@ describe('getVercelAITools', () => {
     });
   });
 
+  it('execute calls invoke with exactly the args (Vercel ToolCallOptions never leak into the Concierge contract)', async () => {
+    const calls: unknown[][] = [];
+    const spyTool = tool({
+      name: 'spy',
+      description: 'Records invoke arguments.',
+      inputSchema: z.object({ q: z.string() }),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async (...args) => {
+        calls.push(args);
+        return { ok: true };
+      },
+    });
+    const tools = getVercelAITools(agent, [() => [spyTool]]);
+    const execute = tools['spy']?.execute;
+    if (!execute) throw new Error('spy.execute missing');
+    await execute({ q: 'x' }, mockExecuteOptions);
+    expect(calls).toEqual([[{ q: 'x' }]]);
+  });
+
+  it('execute rejects with the original error when invoke rejects (no swallowing, no wrapping)', async () => {
+    const boom = new Error('aave revert sentinel');
+    const failing = tool({
+      name: 'failing',
+      description: 'Always rejects.',
+      inputSchema: z.object({}),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => {
+        throw boom;
+      },
+    });
+    const tools = getVercelAITools(agent, [() => [failing]]);
+    const execute = tools['failing']?.execute;
+    if (!execute) throw new Error('failing.execute missing');
+    await expect(execute({}, mockExecuteOptions)).rejects.toBe(boom);
+  });
+
+  it('merges tools from multiple factories into one ToolSet', () => {
+    const tools = getVercelAITools(agent, [() => [proposeAction], () => [getPortfolio]]);
+    expect(Object.keys(tools).sort()).toEqual(['getPortfolio', 'proposeAction']);
+  });
+
   it('passes inputSchema and outputSchema through by reference (InferUITools / structuredContent contract)', () => {
     const tools = getVercelAITools(agent, [factory]);
     expect(tools['proposeAction']?.inputSchema).toBe(proposeActionInput);
@@ -90,17 +133,12 @@ describe('toVercelAITool', () => {
 });
 
 describe('streamText integration', () => {
-  it('executes a model-issued tool call end-to-end and surfaces the invoke value as the tool result', async () => {
-    const model = new MockLanguageModelV3({
+  function toolCallModel(toolName: string, input: Record<string, unknown>) {
+    return new MockLanguageModelV3({
       doStream: async () => ({
         stream: convertArrayToReadableStream([
           { type: 'stream-start', warnings: [] },
-          {
-            type: 'tool-call',
-            toolCallId: 'call-1',
-            toolName: 'proposeAction',
-            input: JSON.stringify({ goal: 'maximize yield' }),
-          },
+          { type: 'tool-call', toolCallId: 'call-1', toolName, input: JSON.stringify(input) },
           {
             type: 'finish',
             finishReason: 'tool-calls',
@@ -112,15 +150,22 @@ describe('streamText integration', () => {
         ]),
       }),
     });
+  }
 
+  async function collectFullStream(result: ReturnType<typeof streamText>) {
+    const parts = [];
+    for await (const part of result.fullStream) parts.push(part);
+    return parts;
+  }
+
+  it('executes a model-issued tool call end-to-end and surfaces the invoke value as the tool result', async () => {
     const result = streamText({
-      model,
+      model: toolCallModel('proposeAction', { goal: 'maximize yield' }),
       tools: getVercelAITools(agent, [factory]),
       prompt: 'Plan my next move.',
     });
 
-    const parts = [];
-    for await (const part of result.fullStream) parts.push(part);
+    const parts = await collectFullStream(result);
 
     expect(parts.filter((p) => p.type === 'error')).toEqual([]);
     const toolResult = parts.find((p) => p.type === 'tool-result');
@@ -128,5 +173,33 @@ describe('streamText integration', () => {
       throw new Error('no tool-result part emitted');
     }
     expect(toolResult.output).toEqual({ summary: 'plan for maximize yield', riskScore: 2 });
+  });
+
+  it('surfaces a rejecting invoke as a diagnosable tool-error part carrying the original error', async () => {
+    const boom = new Error('borrow reverted: E-Mode not set');
+    const failing = tool({
+      name: 'failing',
+      description: 'Always rejects.',
+      inputSchema: z.object({}),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => {
+        throw boom;
+      },
+    });
+
+    const result = streamText({
+      model: toolCallModel('failing', {}),
+      tools: getVercelAITools(agent, [() => [failing]]),
+      prompt: 'Trigger the failure.',
+    });
+
+    const parts = await collectFullStream(result);
+
+    expect(parts.find((p) => p.type === 'tool-result')).toBeUndefined();
+    const toolError = parts.find((p) => p.type === 'tool-error');
+    if (!toolError || toolError.type !== 'tool-error') {
+      throw new Error('no tool-error part emitted');
+    }
+    expect(toolError.error).toBe(boom);
   });
 });

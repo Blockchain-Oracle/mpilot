@@ -23,11 +23,13 @@ export function toVercelAITool<
   // biome-ignore lint/suspicious/noExplicitAny: matches the ConciergeTool ZodObject<any> generic
   TOut extends z.ZodObject<any>,
 >(t: ConciergeTool<TIn, TOut>): Tool<z.infer<TIn>, z.infer<TOut>>;
-// Overload split: tool()'s OUTPUT inference resolves against TOut's CONSTRAINT
-// (ZodObject<any>) inside a generic body and collapses to `unknown`, and its
-// `NeverOptional<…>` conditional cannot be structurally checked against
-// unresolved type parameters. The loose implementation signature sidesteps
-// both while the public overload keeps per-tool inference exact.
+// Overload split: inside a generic body, tool()'s schema-driven inference
+// resolves against the type parameters' CONSTRAINTS — INPUT collapses to
+// `unknown` and OUTPUT to `Record<string, unknown>` (z.infer of
+// ZodObject<any>) — and its `NeverOptional<…>` conditional cannot be
+// structurally checked against unresolved type parameters. The loose
+// implementation signature sidesteps both while the public overload keeps
+// per-tool inference exact.
 export function toVercelAITool(t: ConciergeTool): Tool {
   return aiTool({
     description: t.description,
@@ -42,6 +44,10 @@ export function toVercelAITool(t: ConciergeTool): Tool {
  * Mirrors `createConciergeTools(agent, providerToolFactories)`: omitting the
  * factories yields an empty ToolSet, and registry validation errors
  * (duplicate names, schema violations) propagate unchanged.
+ *
+ * Aborting `streamText` does NOT cancel an in-flight tool call —
+ * `ConciergeTool.invoke` takes no abort signal, so a started execution
+ * (e.g. an on-chain transaction) runs to completion.
  */
 export function getVercelAITools(
   agent: ConciergeAgentLike,
