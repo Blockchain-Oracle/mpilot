@@ -13,6 +13,7 @@
 //   lifi.diamond     → research/concierge/03-providers/lifi-bridge.md
 //   mantleDex.*      → research/concierge/03-providers/mantle-dex.md
 
+import { assertNumericChainId } from './chains.ts';
 import type { Address, EvmChainId } from './types.ts';
 
 const ZERO: Address = '0x0000000000000000000000000000000000000000';
@@ -58,11 +59,9 @@ export const ADDRESSES = deepFreeze({
     },
     mantleDex: {
       merchantMoe: {
-        // Liquidity Book v2.2 — the surface Concierge swaps through (concentrated-liquidity bins).
         lbRouter: '0x013e138EF6008ae5FDFDE29700e3f2Bc61d21E3a' as Address,
       },
       agni: {
-        // Uniswap v3 fork; Factory is the primary entry for pool discovery.
         factory: '0x25780dc8Fc3cfBD75F33bFDAB65e969b603b2035' as Address,
       },
     },
@@ -109,29 +108,54 @@ export const ADDRESSES = deepFreeze({
 /**
  * Resolve the addresses block for a given Mantle chain id.
  *
- * Overloads narrow the return type so consumers get the exact block shape for each chain
- * (instead of the collapsed `MainnetBlock | SepoliaBlock` union). The `satisfies never`
- * in the throw branch makes the exhaustiveness check explicit — adding a third chain id
- * to `EvmChainId` will become a compile error here, forcing the helper to handle it.
+ * Collapsed from 3 overloads to a single generic conditional return — narrows
+ * by literal at the call site (`addressesFor(5000).aave.pool` resolves directly
+ * to the Mainnet shape) without per-chain overload duplication.
+ *
+ * Inputs are validated for type (string from env / bigint from JSON-parse fail
+ * with a typed TypeError, not the generic "unsupported chain id" message).
  */
-export function addressesFor(chainId: 5000): typeof ADDRESSES.mantleMainnet;
-export function addressesFor(chainId: 5003): typeof ADDRESSES.mantleSepolia;
-export function addressesFor(
-  chainId: EvmChainId,
-): typeof ADDRESSES.mantleMainnet | typeof ADDRESSES.mantleSepolia;
-export function addressesFor(chainId: EvmChainId) {
-  if (chainId === 5000) return ADDRESSES.mantleMainnet;
-  if (chainId === 5003) return ADDRESSES.mantleSepolia;
+export function addressesFor<C extends EvmChainId>(
+  chainId: C,
+): C extends 5000 ? typeof ADDRESSES.mantleMainnet : typeof ADDRESSES.mantleSepolia {
+  assertNumericChainId(chainId, 'addressesFor');
+  if (chainId === 5000) {
+    return ADDRESSES.mantleMainnet as never;
+  }
+  if (chainId === 5003) {
+    return ADDRESSES.mantleSepolia as never;
+  }
   throw new Error(
-    `[@concierge/shared] addressesFor: unsupported chain id: ${chainId satisfies never}`,
+    `[@concierge/shared] addressesFor: unsupported Mantle chain id ${chainId satisfies never} (expected 5000 mainnet or 5003 sepolia)`,
   );
 }
+
+/**
+ * Recursive leaf-path type for `ADDRESSES.*` blocks. Each entry resolves to a
+ * dot-separated path string whose terminal is an `Address`. Typing
+ * `SEPOLIA_PENDING_ADDRESS_SLOTS` against this catches renames at compile time —
+ * e.g., `tokens.USDC` → `tokens.usdc` would fail the build immediately instead
+ * of silently passing the lockbox test until story-192 trips on a stale path.
+ */
+type LeafPath<T> = T extends Address
+  ? ''
+  : T extends Record<string, unknown>
+    ? {
+        [K in keyof T & string]: LeafPath<T[K]> extends '' ? K : `${K}.${LeafPath<T[K]>}`;
+      }[keyof T & string]
+    : never;
+
+/** Valid dot-paths on `ADDRESSES.mantleSepolia` (compile-time enforced). */
+export type SepoliaAddressPath = LeafPath<typeof ADDRESSES.mantleSepolia>;
 
 /**
  * Slot paths on `ADDRESSES.mantleSepolia` that intentionally hold the zero address until
  * a later story populates them. Story-15 / story-192 will delete entries from this list
  * as it lands real mock-deploy addresses — turning a future regression (someone reverting
  * a populated address back to zero) into a test failure instead of a silent footgun.
+ *
+ * MUST stay lexically sorted (default JS Array.sort comparator) — the lockbox test
+ * compares against `.sort()`. Asserted in index.test.ts.
  */
 export const SEPOLIA_PENDING_ADDRESS_SLOTS = [
   'aave.addressesProvider',
@@ -148,4 +172,4 @@ export const SEPOLIA_PENDING_ADDRESS_SLOTS = [
   'tokens.WMNT',
   'tokens.mETH',
   'tokens.sUSDe',
-] as const;
+] as const satisfies readonly SepoliaAddressPath[];
