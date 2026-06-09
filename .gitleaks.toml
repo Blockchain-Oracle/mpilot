@@ -1,6 +1,5 @@
 # Gitleaks config for Concierge. Extends the upstream default ruleset
-# with Concierge-specific secret shapes (provider API keys, Mantle
-# Sepolia private keys committed to .env files).
+# with Concierge-specific secret shapes.
 
 title = "Concierge gitleaks config"
 
@@ -49,21 +48,34 @@ path = '''\.env(\.[a-zA-Z]+)?$'''
 keywords = ["private_key"]
 
 # Allowlist ────────────────────────────────────────────────────────────
+# NARROW allowlist — only files that legitimately need to bypass scan
+# (lockfiles, build artefacts, third-party libs). DO NOT add broad
+# directory patterns like `research/` or `docs/` — code-reviewer
+# + silent-failure-hunter + type-design on PR #10 caught that path
+# patterns disable ALL rules (default + custom) inside the matched tree.
+# An agent debugging Pimlico/ZeroDev/Anthropic auth could paste a real
+# key into an audit doc, and we WANT gitleaks to catch it.
 
 [allowlist]
-description = "Paths and patterns gitleaks should NEVER flag"
+description = "Build-artefact paths + public on-chain data shapes"
 paths = [
   '''node_modules/''',
-  '''pnpm-lock\.yaml''',
+  '''pnpm-lock\.yaml$''',
   '''\.git/''',
   '''contracts/lib/''',
   '''contracts/out/''',
   '''contracts/cache/''',
   '''contracts/broadcast/''',
-  # research/ + archive/ contain audit notes that reference example
-  # private-key SHAPES (e.g. "0x..64 hex chars..") but never real keys
-  '''research/''',
-  '''archive/''',
-  # Documentation references (story specs cite expected key shapes)
-  '''docs/''',
 ]
+# Content-based allowlist: 40-hex shapes prefixed with 0x are Ethereum /
+# Mantle contract addresses — public on-chain data, never secrets.
+# Without this, gitleaks's upstream `generic-api-key` rule flags every
+# contract address in research/ + audit docs as high-entropy → false
+# positive. The path-scoped `mantle-private-key-in-env` rule (which
+# matches 64-hex inside .env files) still fires correctly because its
+# regex requires the .env path AND the 64-hex shape — different from
+# this 40-hex content allowlist.
+regexes = [
+  '''^0x[0-9a-fA-F]{40}$''',
+]
+regexTarget = "secret"

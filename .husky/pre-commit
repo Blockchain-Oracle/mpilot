@@ -17,5 +17,5 @@ pnpm run typecheck
 if command -v gitleaks >/dev/null 2>&1; then
   gitleaks detect --no-banner --config .gitleaks.toml --redact --source .
 else
-  echo "::warning::gitleaks not on PATH — local secret scan skipped. CI catches this. To enable locally: brew install gitleaks"
+  echo "::warning::gitleaks not on PATH — local secret scan skipped. CI catches this. Install: brew install gitleaks (mac) / apt install gitleaks (debian) / go install github.com/gitleaks/gitleaks/v8@latest / scoop install gitleaks (windows)"
 fi
