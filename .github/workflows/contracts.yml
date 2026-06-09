@@ -74,20 +74,27 @@ jobs:
           version: v1.7.1
       - name: Install Foundry dependencies
         run: bash contracts/scripts/install-deps.sh
+      # Pre-flight: skip slither when contracts/src/ is empty. slither-action
+      # internally runs `forge build --skip ./test/** --force` which produces
+      # no build-info on empty src/ and crytic-compile then errors with
+      # "out/build-info is not a directory". We don't want that to look like
+      # a real security failure — and we don't want to look-like-success when
+      # there's truly nothing analyzed either. So: explicit skip + warning
+      # annotation until story-10+ lands the first src/ contract.
+      - name: Pre-flight — count contracts/src/ Solidity files
+        id: srccheck
+        run: |
+          set -euo pipefail
+          sol_count=$(find contracts/src -name '*.sol' 2>/dev/null | wc -l | tr -d ' ')
+          echo "count=$sol_count" >> "$GITHUB_OUTPUT"
+          if [ "$sol_count" -eq 0 ]; then
+            echo "::warning::contracts/src/ has no .sol files yet — Slither skipped until story-10+ lands real source. The security gate is INTENTIONALLY vacuous-green for now; it becomes real the moment src/ is populated."
+          fi
       - name: Slither static analysis
+        if: steps.srccheck.outputs.count != '0'
         uses: crytic/slither-action@v0.4.2
         with:
           target: contracts/
           slither-config: contracts/.slither.config.json
           fail-on: high
           slither-version: 0.11.5
-      - name: Guard against vacuous-green (zero files analyzed)
-        # If src/ is empty (story-05 state) AND filter_paths excludes test/,
-        # Slither finds nothing and exits 0 — a silently meaningless green.
-        # Emit a ::warning:: until story-10 lands real source.
-        run: |
-          set -euo pipefail
-          sol_count=$(find contracts/src -name '*.sol' 2>/dev/null | wc -l | tr -d ' ')
-          if [ "$sol_count" -eq 0 ]; then
-            echo "::warning::Slither analyzed 0 production .sol files (contracts/src/ empty). Security gate is vacuous until story-10+ lands real source."
-          fi
