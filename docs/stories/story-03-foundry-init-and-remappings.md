@@ -76,9 +76,11 @@ grep -qE "solc\s*=\s*['\"]0\.8\.26['\"]" contracts/foundry.toml
 grep -q "openzeppelin-contracts" contracts/remappings.txt
 grep -q "aave-v3-origin" contracts/remappings.txt
 
-# NO Chainlink (per ADR-008)
+# NO Chainlink dep installed (per ADR-008). Skip comment lines (`#`) so
+# the script can document the no-chainlink rationale without tripping
+# this grep — only `forge install` lines (or any non-comment) matter.
 ! grep -iq "chainlink" contracts/remappings.txt
-! grep -iq "chainlink" contracts/scripts/install-deps.sh
+! grep -vE "^\s*#" contracts/scripts/install-deps.sh | grep -iq "chainlink"
 
 # install-deps script is executable
 test -x contracts/scripts/install-deps.sh
