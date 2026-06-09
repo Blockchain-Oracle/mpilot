@@ -1,7 +1,10 @@
 // Convert a tool's schemas to OpenAPI 3 JSON Schema for OpenAI / Anthropic / MCP.
-// Refinements (.refine, .superRefine) are stripped silently — JSON Schema can't
-// represent them. Prefer expressible constraints (.regex, .min, .max, .email)
-// at tool boundaries; refinements re-check at runtime via parse(), not advertised.
+// Behavior on non-representable shapes:
+//  - Refinements (.refine, .superRefine) are stripped silently — JSON Schema can't
+//    represent them. Prefer expressible constraints (.regex, .min, .max, .email).
+//  - .transform() / z.custom() / .pipe() throw at conversion time (neither silent
+//    strip nor lossy round-trip is safe). The wrapper re-throws with tool name
+//    + which schema (input vs output) for attribution.
 
 import { z } from 'zod';
 import type { ConciergeTool } from './types.ts';

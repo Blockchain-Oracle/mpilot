@@ -13,6 +13,29 @@ import {
   safeParseSerializableTickCard,
 } from '../serializable.ts';
 
+describe('ID-prefix regex tightening', () => {
+  it('proposal.id rejects bare prefix "p_"', () => {
+    const r = safeParseSerializableProposalCard({
+      id: 'p_',
+      actionSummary: 'x',
+      estimatedAprDelta: 0,
+      expiresAt: '2026-06-09T00:00:00Z',
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it('tick.tickId rejects bare prefix "t_"', () => {
+    const r = safeParseSerializableTickCard({
+      tickId: 't_',
+      agentId: 'a',
+      phase: 'plan',
+      startedAt: '2026-06-09T00:00:00Z',
+      outcome: 'success',
+    });
+    expect(r.success).toBe(false);
+  });
+});
+
 describe('SerializableProposalCard', () => {
   it('accepts a minimal valid payload', () => {
     const r = safeParseSerializableProposalCard({
@@ -155,7 +178,9 @@ describe('SerializableReputationCard', () => {
 describe('IsoDateTime offset-suffix coverage on every card', () => {
   // The shared IsoDateTime helper accepts `+00:00` (Postgres timestamptz / indexer
   // output / AI date strings). One test per schema field locks the contract.
-  const OFFSET = '2026-06-09T00:00:00+00:00';
+  // Non-zero offset — `+00:00` is semantically equivalent to `Z` so it passes even
+  // without `{ offset: true }`. Use a real timezone (India) to actually exercise the flag.
+  const OFFSET = '2026-06-09T00:00:00+05:30';
 
   it('proposal.expiresAt', () => {
     expect(
