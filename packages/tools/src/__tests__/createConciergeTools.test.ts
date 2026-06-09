@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { bigintSafeStringify } from '../bigintSafeStringify.ts';
 import { createConciergeTools } from '../createConciergeTools.ts';
 import { SerializableProposalCardSchema, TICK_PHASE_VALUES } from '../serializable.ts';
-import { toInputJsonSchema, toOutputJsonSchema } from '../toJsonSchema.ts';
+import { toInputJsonSchema, toJsonSchema, toOutputJsonSchema } from '../toJsonSchema.ts';
 import { tool } from '../tool.ts';
 import type {
   ConciergeAgentLike,
@@ -155,6 +155,38 @@ describe('createConciergeTools aggregation', () => {
     );
   });
 
+  it('throws clearly when an async factory leaks a Promise (no unhandledRejection)', () => {
+    const asyncBad = (() =>
+      Promise.reject(new Error('async boom'))) as unknown as ProviderToolFactory;
+    expect(() => createConciergeTools(agentMainnet, [asyncBad])).toThrow(/returned a Promise/);
+  });
+
+  it('rejects non-Zod inputSchema/outputSchema (adapters require .safeParse + _def)', () => {
+    const fakeSchema = { type: 'object', properties: {} } as unknown;
+    expect(() =>
+      createConciergeTools(agentMainnet, [
+        () => [{ ...echo, inputSchema: fakeSchema } as unknown as ConciergeTool],
+      ]),
+    ).toThrow(/must be Zod schemas/);
+  });
+
+  it('rejects a non-ZodObject outputSchema per ADR-017', () => {
+    expect(() =>
+      createConciergeTools(agentMainnet, [
+        () => [{ ...echo, outputSchema: z.string() } as unknown as ConciergeTool],
+      ]),
+    ).toThrow(/must be a z\.ZodObject per ADR-017/);
+  });
+
+  it('rejects supportsNetwork as a non-function value', () => {
+    const bad: ProviderToolFactory = () => [
+      { ...echo, supportsNetwork: 42 as unknown as (id: 5000 | 5003) => boolean },
+    ];
+    expect(() => createConciergeTools(agentMainnet, [bad])).toThrow(
+      /supportsNetwork must be a function/,
+    );
+  });
+
   it('throws on duplicate tool name across factories', () => {
     expect(() => createConciergeTools(agentMainnet, [echoFactory, echoFactory])).toThrow(
       /duplicate tool name "echo"/,
@@ -203,6 +235,10 @@ describe('toInputJsonSchema + toOutputJsonSchema', () => {
     });
     expect(() => toInputJsonSchema(bad)).toThrow(/badTool/);
   });
+
+  it('toJsonSchema is the canonical ADR-014 alias of toInputJsonSchema (identity)', () => {
+    expect(toJsonSchema).toBe(toInputJsonSchema);
+  });
 });
 
 describe('bigintSafeStringify', () => {
@@ -237,6 +273,12 @@ describe('bigintSafeStringify', () => {
 
   it('throws on top-level undefined (JSON.stringify(undefined) returns undefined, not "undefined")', () => {
     expect(() => bigintSafeStringify(undefined)).toThrow(/undefined/);
+  });
+
+  it('throws on top-level function / Symbol / Promise (same :string contract violation)', () => {
+    expect(() => bigintSafeStringify(() => 1)).toThrow(/not serializable/);
+    expect(() => bigintSafeStringify(Symbol('x'))).toThrow(/not serializable/);
+    expect(() => bigintSafeStringify(Promise.resolve(1))).toThrow(/not serializable/);
   });
 
   it('leaves plain numbers + strings untouched', () => {

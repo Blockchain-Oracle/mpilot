@@ -10,7 +10,7 @@ import type { TickPhase, UICardId } from './types.ts';
 const IsoDateTime = z.iso.datetime({ offset: true });
 
 export const SerializableProposalCardSchema = z.object({
-  id: z.string().regex(/^p_/),
+  id: z.string().regex(/^p_[a-zA-Z0-9]+$/),
   actionSummary: z.string().min(1),
   estimatedAprDelta: z.number(),
   expectedHealthFactor: z.number().optional(),
@@ -46,7 +46,7 @@ type _NoWiden = _AssertNever<Exclude<TickPhase, (typeof TICK_PHASE_VALUES)[numbe
 type _Used = _NoWiden;
 
 export const SerializableTickCardSchema = z.object({
-  tickId: z.string().regex(/^t_/),
+  tickId: z.string().regex(/^t_[a-zA-Z0-9]+$/),
   agentId: z.string().min(1),
   phase: z.enum(TICK_PHASE_VALUES),
   startedAt: IsoDateTime,
@@ -118,3 +118,7 @@ export const CARD_SCHEMAS = {
   portfolio: SerializablePortfolioCardSchema,
   reputation: SerializableReputationCardSchema,
 } as const satisfies Record<UICardId, z.ZodTypeAny>;
+// Subtractive direction: a stale CARD_SCHEMAS key whose UICardId arm was deleted
+// fails compilation here (the `satisfies` above only catches the additive case).
+type _NoStaleCardSchemas = _AssertNever<Exclude<keyof typeof CARD_SCHEMAS, UICardId>>;
+type _UsedStale = _NoStaleCardSchemas;
