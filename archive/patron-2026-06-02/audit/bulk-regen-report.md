@@ -1,0 +1,237 @@
+# Bulk Depends-on regen report
+
+**Date:** 2026-06-03
+**YAML source-of-truth file:** sprint-status.yaml
+**Story files scanned:** 97
+**Files patched:** 75
+**Files skipped (already matching):** 22
+**Files with missing Depends-on header (manual review needed):** []
+**YAML ids with no matching file:** []
+
+## Patched files (before -> after)
+
+- `story-00-monorepo-scaffold`
+  - before: `**Depends on:** None (first story)`
+  - after:  `**Depends on:** None`
+- `story-100-threads-by-mara-storefront`
+  - before: `**Depends on:** story-00-monorepo-scaffold (workspace exists), story-95-sdk-react-patron-button (`@patron/react` ships `<PatronButton>`), story-36-order-intent-endpoint (POST /orders/intent exists)`
+  - after:  `**Depends on:** story-95-sdk-react-patron-button`
+- `story-101-pixelink-storefront`
+  - before: `**Depends on:** story-00-monorepo-scaffold, story-91-sdk-js-button-component (`@patron/sdk-js` ships vanilla button), story-93-sdk-js-event-callbacks (`onSuccess` for license-key delivery), story-36-order-intent-endpoint`
+  - after:  `**Depends on:** story-91-sdk-js-button-component`
+- `story-102-dialer-pro-storefront`
+  - before: `**Depends on:** story-00-monorepo-scaffold, story-95-sdk-react-patron-button (`@patron/react`), story-36-order-intent-endpoint`
+  - after:  `**Depends on:** story-95-sdk-react-patron-button`
+- `story-103-merchant-onboarding-via-cli`
+  - before: `**Depends on:** story-15-merchant-registry (contract exists), story-21-sepolia-deployment (Sepolia addresses in `addresses.ts`), story-34-merchant-onboarding-endpoints (POST /merchants creates DB row + generates merchant key)`
+  - after:  `**Depends on:** story-34-merchant-onboarding-endpoints, story-21-sepolia-deployment`
+- `story-104-demo-merchant-deploys`
+  - before: `**Depends on:** story-100-threads-by-mara-storefront, story-101-pixelink-storefront, story-102-dialer-pro-storefront, story-103-merchant-onboarding-via-cli (per-merchant secrets generated)`
+  - after:  `**Depends on:** story-100-threads-by-mara-storefront, story-101-pixelink-storefront, story-102-dialer-pro-storefront, story-103-merchant-onboarding-via-cli`
+- `story-110-mainnet-contract-deploy`
+  - before: `**Depends on:** story-21-sepolia-deployment (Sepolia worked end-to-end), story-12 through story-20 (all Foundry tests green), story-06-env-and-secrets-setup (MANTLE_RPC_URL + MAINNET keys configured)`
+  - after:  `**Depends on:** story-21-sepolia-deployment, story-53-agent-test-fixtures`
+- `story-111-mainnet-merchant-onboarding`
+  - before: `**Depends on:** story-110-mainnet-contract-deploy (Mainnet MerchantRegistry exists in addresses.ts), story-103-merchant-onboarding-via-cli (script exists and works on Sepolia)`
+  - after:  `**Depends on:** story-110-mainnet-contract-deploy, story-104-demo-merchant-deploys`
+- `story-112-demo-video-script-and-shoot`
+  - before: `**Depends on:** story-104-demo-merchant-deploys (storefronts live), story-110-mainnet-contract-deploy + story-111-mainnet-merchant-onboarding (Mainnet flow works), story-77-audit-receipt-viewer (receipt page renders)`
+  - after:  `**Depends on:** story-111-mainnet-merchant-onboarding, story-88-deep-link-handling`
+- `story-113-x-thread-draft`
+  - before: `**Depends on:** story-112-demo-video-script-and-shoot (90s tight cut uploaded), story-110-mainnet-contract-deploy (Mainnet addresses real), story-114-readme-finalize (repo URL canonical), story-104-demo-merchant-deploys (storefront URLs live)`
+  - after:  `**Depends on:** story-112-demo-video-script-and-shoot`
+- `story-114-readme-finalize`
+  - before: `**Depends on:** story-110-mainnet-contract-deploy (Mainnet addresses), story-111-mainnet-merchant-onboarding (merchants registered), story-104-demo-merchant-deploys (storefront URLs live), story-112-demo-video-script-and-shoot (video URL), story-115-architecture-diagram-export (diagram exists)`
+  - after:  `**Depends on:** story-110-mainnet-contract-deploy, story-104-demo-merchant-deploys`
+- `story-115-architecture-diagram-export`
+  - before: `**Depends on:** story-00-monorepo-scaffold (canonical repo structure exists), architecture.md (source of truth for layers)`
+  - after:  `**Depends on:** story-00-monorepo-scaffold`
+- `story-116-accuracy-report`
+  - before: `**Depends on:** all prior epics ≥ 80% complete (you cannot honestly self-assess what you haven't tried to build)`
+  - after:  `**Depends on:** story-110-mainnet-contract-deploy, story-53-agent-test-fixtures, story-104-demo-merchant-deploys`
+- `story-117-dorahacks-submission`
+  - before: `**Depends on:** story-110-mainnet-contract-deploy (real Mainnet addresses), story-111-mainnet-merchant-onboarding (merchants registered), story-112-demo-video-script-and-shoot (video uploaded), story-113-x-thread-draft (thread published), story-114-readme-finalize (README canonical), story-115-architecture-diagram-export (diagram exists), story-116-accuracy-report`
+  - after:  `**Depends on:** story-110-mainnet-contract-deploy, story-112-demo-video-script-and-shoot, story-113-x-thread-draft, story-114-readme-finalize, story-115-architecture-diagram-export, story-116-accuracy-report`
+- `story-118-live-demo-rehearsal`
+  - before: `**Depends on:** story-110-mainnet-contract-deploy, story-111-mainnet-merchant-onboarding, story-104-demo-merchant-deploys (Mainnet env wired), all prior stories (the agent + UI + SDK must work end-to-end)`
+  - after:  `**Depends on:** story-117-dorahacks-submission`
+- `story-14-patron-vault-tests-invariant`
+  - before: `**Depends on:** story-13-patron-vault-tests-fuzz`
+  - after:  `**Depends on:** story-12-patron-vault-tests-unit`
+- `story-15-merchant-registry`
+  - before: `**Depends on:** story-10-patron-vault-base, story-04-foundry-init-and-ci`
+  - after:  `**Depends on:** story-04-foundry-init-and-ci`
+- `story-17-reputation-proxy`
+  - before: `**Depends on:** story-10-patron-vault-base, story-15-merchant-registry`
+  - after:  `**Depends on:** story-04-foundry-init-and-ci`
+- `story-19-agent-authorizer-v1`
+  - before: `**Depends on:** story-10-patron-vault-base, story-17-reputation-proxy`
+  - after:  `**Depends on:** story-04-foundry-init-and-ci`
+- `story-21-sepolia-deployment`
+  - before: `**Depends on:** story-11-patron-vault-aave-integration, story-15-merchant-registry, story-17-reputation-proxy, story-19-agent-authorizer-v1, story-06-env-and-secrets-setup`
+  - after:  `**Depends on:** story-12-patron-vault-tests-unit, story-14-patron-vault-tests-invariant, story-16-merchant-registry-tests, story-18-reputation-proxy-tests, story-20-agent-authorizer-tests, story-22-susde-emode-setup, story-06-env-and-secrets-setup`
+- `story-30-hono-skeleton`
+  - before: `**Depends on:** story-00-monorepo-scaffold, story-02-typescript-config, story-06-env-and-secrets-setup`
+  - after:  `**Depends on:** story-00-monorepo-scaffold, story-06-env-and-secrets-setup`
+- `story-31-postgres-and-drizzle-init`
+  - before: `**Depends on:** story-30-hono-skeleton, story-06-env-and-secrets-setup`
+  - after:  `**Depends on:** story-30-hono-skeleton`
+- `story-33-db-schema-events-tasks-keys`
+  - before: `**Depends on:** story-31-postgres-and-drizzle-init, story-32-db-schema-users-merchants-orders`
+  - after:  `**Depends on:** story-31-postgres-and-drizzle-init`
+- `story-34-merchant-onboarding-endpoints`
+  - before: `**Depends on:** story-30-hono-skeleton, story-32-db-schema-users-merchants-orders, story-21-sepolia-deployment`
+  - after:  `**Depends on:** story-32-db-schema-users-merchants-orders, story-21-sepolia-deployment`
+- `story-35-user-profile-endpoints`
+  - before: `**Depends on:** story-30-hono-skeleton, story-32-db-schema-users-merchants-orders`
+  - after:  `**Depends on:** story-32-db-schema-users-merchants-orders`
+- `story-36-order-intent-endpoint`
+  - before: `**Depends on:** story-32-db-schema-users-merchants-orders, story-34-merchant-onboarding-endpoints, story-35-user-profile-endpoints`
+  - after:  `**Depends on:** story-32-db-schema-users-merchants-orders, story-34-merchant-onboarding-endpoints`
+- `story-37-merchant-webhook-handler`
+  - before: `**Depends on:** story-32-db-schema-users-merchants-orders, story-36-order-intent-endpoint`
+  - after:  `**Depends on:** story-36-order-intent-endpoint`
+- `story-38-onchain-indexer-skeleton`
+  - before: `**Depends on:** story-31-postgres-and-drizzle-init, story-33-db-schema-events-tasks-keys, story-21-sepolia-deployment`
+  - after:  `**Depends on:** story-33-db-schema-events-tasks-keys, story-21-sepolia-deployment`
+- `story-39-scheduler-skeleton`
+  - before: `**Depends on:** story-30-hono-skeleton, story-06-env-and-secrets-setup`
+  - after:  `**Depends on:** story-33-db-schema-events-tasks-keys, story-06-env-and-secrets-setup`
+- `story-40-claude-agent-sdk-bootstrap`
+  - before: `**Depends on:** story-06-env-and-secrets-setup, story-30-hono-skeleton, story-33-db-schema-events-tasks-keys`
+  - after:  `**Depends on:** story-30-hono-skeleton, story-06-env-and-secrets-setup`
+- `story-41-agent-context-loader`
+  - before: `**Depends on:** story-32-db-schema-users-merchants-orders, story-33-db-schema-events-tasks-keys, story-40-claude-agent-sdk-bootstrap`
+  - after:  `**Depends on:** story-40-claude-agent-sdk-bootstrap, story-33-db-schema-events-tasks-keys`
+- `story-42-tool-onchain-reads`
+  - before: `**Depends on:** story-21-sepolia-deployment, story-40-claude-agent-sdk-bootstrap`
+  - after:  `**Depends on:** story-40-claude-agent-sdk-bootstrap, story-21-sepolia-deployment`
+- `story-43-tool-onchain-writes`
+  - before: `**Depends on:** story-19-agent-authorizer-v1, story-21-sepolia-deployment, story-42-tool-onchain-reads`
+  - after:  `**Depends on:** story-42-tool-onchain-reads, story-20-agent-authorizer-tests`
+- `story-44-tool-external-apis`
+  - before: `**Depends on:** story-06-env-and-secrets-setup, story-40-claude-agent-sdk-bootstrap`
+  - after:  `**Depends on:** story-40-claude-agent-sdk-bootstrap`
+- `story-47-intent-repay-position`
+  - before: `**Depends on:** story-39-scheduler-skeleton, story-41-agent-context-loader, story-42-tool-onchain-reads, story-43-tool-onchain-writes, story-46-intent-open-position`
+  - after:  `**Depends on:** story-41-agent-context-loader, story-43-tool-onchain-writes, story-39-scheduler-skeleton`
+- `story-48-intent-monitor-depeg`
+  - before: `**Depends on:** story-39-scheduler-skeleton, story-41-agent-context-loader, story-42-tool-onchain-reads, story-43-tool-onchain-writes, story-44-tool-external-apis`
+  - after:  `**Depends on:** story-42-tool-onchain-reads, story-44-tool-external-apis, story-39-scheduler-skeleton`
+- `story-49-intent-verify-merchant`
+  - before: `**Depends on:** story-34-merchant-onboarding-endpoints, story-41-agent-context-loader, story-42-tool-onchain-reads, story-44-tool-external-apis`
+  - after:  `**Depends on:** story-41-agent-context-loader, story-44-tool-external-apis, story-16-merchant-registry-tests`
+- `story-50-intent-personalize-limits`
+  - before: `**Depends on:** story-39-scheduler-skeleton, story-40-claude-agent-sdk-bootstrap, story-41-agent-context-loader`
+  - after:  `**Depends on:** story-41-agent-context-loader, story-39-scheduler-skeleton`
+- `story-51-intent-handle-dispute`
+  - before: `**Depends on:** story-41-agent-context-loader, story-42-tool-onchain-reads, story-44-tool-external-apis, story-52-erc8004-receipt-logging`
+  - after:  `**Depends on:** story-46-intent-open-position, story-52-erc8004-receipt-logging`
+- `story-52-erc8004-receipt-logging`
+  - before: `**Depends on:** story-17-reputation-proxy, story-21-sepolia-deployment, story-40-claude-agent-sdk-bootstrap`
+  - after:  `**Depends on:** story-18-reputation-proxy-tests, story-41-agent-context-loader`
+- `story-53-agent-test-fixtures`
+  - before: `**Depends on:** story-40-claude-agent-sdk-bootstrap, story-41-agent-context-loader, story-42-tool-onchain-reads, story-43-tool-onchain-writes, story-44-tool-external-apis, story-45-tool-byreal-cli, story-46-intent-open-position, story-47-intent-repay-position, story-48-intent-monitor-depeg, story-49-intent-verify-merchant, story-50-intent-personalize-limits, story-51-intent-handle-dispute, story-52-erc8004-receipt-logging`
+  - after:  `**Depends on:** story-46-intent-open-position, story-47-intent-repay-position, story-48-intent-monitor-depeg, story-49-intent-verify-merchant, story-50-intent-personalize-limits, story-51-intent-handle-dispute, story-52-erc8004-receipt-logging`
+- `story-60-nextjs-15-scaffold`
+  - before: `**Depends on:** story-00-monorepo-scaffold, story-01-biome-and-loc-enforcement, story-02-typescript-config`
+  - after:  `**Depends on:** story-00-monorepo-scaffold, story-02-typescript-config`
+- `story-63-landing-hero`
+  - before: `**Depends on:** story-61-design-tokens-and-fonts, story-62-shared-ui-package-bootstrap`
+  - after:  `**Depends on:** story-62-shared-ui-package-bootstrap`
+- `story-64-landing-how-it-works`
+  - before: `**Depends on:** story-63-landing-hero`
+  - after:  `**Depends on:** story-62-shared-ui-package-bootstrap`
+- `story-65-landing-merchant-logos`
+  - before: `**Depends on:** story-63-landing-hero, story-64-landing-how-it-works`
+  - after:  `**Depends on:** story-62-shared-ui-package-bootstrap`
+- `story-66-landing-cta-and-footer`
+  - before: `**Depends on:** story-65-landing-merchant-logos`
+  - after:  `**Depends on:** story-62-shared-ui-package-bootstrap`
+- `story-68-dashboard-shell`
+  - before: `**Depends on:** story-62-shared-ui-package-bootstrap, story-67-wagmi-rainbowkit-connect`
+  - after:  `**Depends on:** story-67-wagmi-rainbowkit-connect, story-62-shared-ui-package-bootstrap`
+- `story-69-dashboard-positions-list`
+  - before: `**Depends on:** story-68-dashboard-shell, story-64-landing-how-it-works (Recharts already installed)`
+  - after:  `**Depends on:** story-68-dashboard-shell, story-35-user-profile-endpoints`
+- `story-70-dashboard-activity-feed`
+  - before: `**Depends on:** story-68-dashboard-shell`
+  - after:  `**Depends on:** story-68-dashboard-shell, story-52-erc8004-receipt-logging`
+- `story-71-dashboard-emergency-freeze`
+  - before: `**Depends on:** story-68-dashboard-shell`
+  - after:  `**Depends on:** story-68-dashboard-shell, story-20-agent-authorizer-tests`
+- `story-72-dashboard-permission-summary`
+  - before: `**Depends on:** story-68-dashboard-shell`
+  - after:  `**Depends on:** story-68-dashboard-shell, story-20-agent-authorizer-tests`
+- `story-73-agent-management-page`
+  - before: `**Depends on:** story-68-dashboard-shell, story-71-dashboard-emergency-freeze, story-72-dashboard-permission-summary`
+  - after:  `**Depends on:** story-71-dashboard-emergency-freeze, story-72-dashboard-permission-summary`
+- `story-74-merchant-directory-page`
+  - before: `**Depends on:** story-68-dashboard-shell, story-65-landing-merchant-logos`
+  - after:  `**Depends on:** story-68-dashboard-shell, story-34-merchant-onboarding-endpoints`
+- `story-75-merchant-public-page`
+  - before: `**Depends on:** story-74-merchant-directory-page`
+  - after:  `**Depends on:** story-60-nextjs-15-scaffold, story-34-merchant-onboarding-endpoints`
+- `story-76-checkout-flow-page`
+  - before: `**Depends on:** story-62-shared-ui-package-bootstrap, story-64-landing-how-it-works (YieldDeltaBadge), story-67-wagmi-rainbowkit-connect`
+  - after:  `**Depends on:** story-68-dashboard-shell, story-36-order-intent-endpoint, story-46-intent-open-position`
+- `story-77-audit-receipt-viewer`
+  - before: `**Depends on:** story-62-shared-ui-package-bootstrap`
+  - after:  `**Depends on:** story-60-nextjs-15-scaffold, story-52-erc8004-receipt-logging`
+- `story-78-api-keys-page`
+  - before: `**Depends on:** story-68-dashboard-shell`
+  - after:  `**Depends on:** story-73-agent-management-page`
+- `story-79-open-in-telegram-cta`
+  - before: `**Depends on:** story-66-landing-cta-and-footer, story-76-checkout-flow-page`
+  - after:  `**Depends on:** story-66-landing-cta-and-footer, story-68-dashboard-shell`
+- `story-80-mini-nextjs-scaffold`
+  - before: `**Depends on:** story-00-monorepo-scaffold, story-02-typescript-config, story-06-env-and-secrets-setup, story-60-nextjs-15-scaffold, story-62-shared-ui-package-bootstrap`
+  - after:  `**Depends on:** story-07-privy-tg-spike, story-62-shared-ui-package-bootstrap`
+- `story-82-privy-embedded-wallet`
+  - before: `**Depends on:** story-80-mini-nextjs-scaffold, story-81-tg-webapp-sdk-integration, story-06-env-and-secrets-setup`
+  - after:  `**Depends on:** story-81-tg-webapp-sdk-integration, story-06-env-and-secrets-setup`
+- `story-83-mini-onboarding`
+  - before: `**Depends on:** story-81-tg-webapp-sdk-integration, story-82-privy-embedded-wallet, story-62-shared-ui-package-bootstrap`
+  - after:  `**Depends on:** story-82-privy-embedded-wallet`
+- `story-84-mini-dashboard`
+  - before: `**Depends on:** story-82-privy-embedded-wallet, story-83-mini-onboarding, story-62-shared-ui-package-bootstrap, story-69-dashboard-positions-list, story-70-dashboard-activity-feed, story-71-dashboard-emergency-freeze, story-72-dashboard-permission-summary`
+  - after:  `**Depends on:** story-83-mini-onboarding, story-69-dashboard-positions-list, story-70-dashboard-activity-feed, story-71-dashboard-emergency-freeze, story-72-dashboard-permission-summary`
+- `story-85-mini-agent-management`
+  - before: `**Depends on:** story-82-privy-embedded-wallet, story-84-mini-dashboard, story-73-agent-management-page`
+  - after:  `**Depends on:** story-84-mini-dashboard, story-73-agent-management-page`
+- `story-86-mini-merchant-directory`
+  - before: `**Depends on:** story-82-privy-embedded-wallet, story-84-mini-dashboard, story-74-merchant-directory-page`
+  - after:  `**Depends on:** story-84-mini-dashboard, story-74-merchant-directory-page`
+- `story-87-mini-checkout-flow`
+  - before: `**Depends on:** story-82-privy-embedded-wallet, story-86-mini-merchant-directory, story-76-checkout-flow-page, story-36-order-intent-endpoint`
+  - after:  `**Depends on:** story-86-mini-merchant-directory, story-76-checkout-flow-page`
+- `story-88-deep-link-handling`
+  - before: `**Depends on:** story-81-tg-webapp-sdk-integration, story-82-privy-embedded-wallet, story-83-mini-onboarding, story-87-mini-checkout-flow, story-79-open-in-telegram-cta`
+  - after:  `**Depends on:** story-79-open-in-telegram-cta, story-87-mini-checkout-flow`
+- `story-90-sdk-js-scaffold`
+  - before: `**Depends on:** story-00-monorepo-scaffold, story-02-typescript-config, story-01-biome-and-loc-enforcement`
+  - after:  `**Depends on:** story-00-monorepo-scaffold, story-02-typescript-config`
+- `story-91-sdk-js-button-component`
+  - before: `**Depends on:** story-90-sdk-js-scaffold, story-36-order-intent-endpoint`
+  - after:  `**Depends on:** story-90-sdk-js-scaffold`
+- `story-92-sdk-js-modal-pattern`
+  - before: `**Depends on:** story-90-sdk-js-scaffold, story-91-sdk-js-button-component, story-76-checkout-flow-page`
+  - after:  `**Depends on:** story-91-sdk-js-button-component, story-76-checkout-flow-page`
+- `story-93-sdk-js-event-callbacks`
+  - before: `**Depends on:** story-91-sdk-js-button-component, story-92-sdk-js-modal-pattern`
+  - after:  `**Depends on:** story-92-sdk-js-modal-pattern`
+- `story-94-sdk-react-scaffold`
+  - before: `**Depends on:** story-90-sdk-js-scaffold, story-93-sdk-js-event-callbacks`
+  - after:  `**Depends on:** story-90-sdk-js-scaffold`
+- `story-95-sdk-react-patron-button`
+  - before: `**Depends on:** story-94-sdk-react-scaffold, story-91-sdk-js-button-component`
+  - after:  `**Depends on:** story-94-sdk-react-scaffold, story-93-sdk-js-event-callbacks`
+- `story-96-sdk-react-hooks`
+  - before: `**Depends on:** story-94-sdk-react-scaffold, story-95-sdk-react-patron-button`
+  - after:  `**Depends on:** story-95-sdk-react-patron-button`
+- `story-97-sdk-docs-site`
+  - before: `**Depends on:** story-90-sdk-js-scaffold, story-93-sdk-js-event-callbacks, story-94-sdk-react-scaffold, story-96-sdk-react-hooks`
+  - after:  `**Depends on:** story-91-sdk-js-button-component, story-95-sdk-react-patron-button`
+- `story-98-changesets-publish-pipeline`
+  - before: `**Depends on:** story-03-github-actions-ci, story-90-sdk-js-scaffold, story-94-sdk-react-scaffold`
+  - after:  `**Depends on:** story-97-sdk-docs-site, story-05-branch-protection-and-pr-template`

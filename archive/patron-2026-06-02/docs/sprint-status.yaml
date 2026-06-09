@@ -1,0 +1,799 @@
+project: Patron
+hackathon: mantle-turing-test-2026
+deadline: 2026-06-15T15:59:00Z
+repo: ""
+thread_surface: ""
+thread_chat_id: ""
+thread_topic_id: ""
+thread_anchor: ""
+
+# 95 stories across 9 epics
+# Status values: PENDING | IN_PROGRESS | COMPLETE
+# Orchestrator fills issue_url in Phase 1, pr_url + merged_at + flips status in Phase 3.
+# depends_on lists story IDs that must reach COMPLETE before this one can be dispatched.
+
+stories:
+  # ─── Epic 0: Foundation (CI/CD + monorepo + 400-LOC) ───────────────────
+  - id: story-00-monorepo-scaffold
+    epic: "Epic 0 — Foundation"
+    status: PENDING
+    depends_on: []
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-01-biome-and-loc-enforcement
+    epic: "Epic 0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-02-typescript-config
+    epic: "Epic 0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-03-github-actions-ci
+    epic: "Epic 0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold, story-01-biome-and-loc-enforcement, story-02-typescript-config]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-04-foundry-init-and-ci
+    epic: "Epic 0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold, story-03-github-actions-ci]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-05-branch-protection-and-pr-template
+    epic: "Epic 0 — Foundation"
+    status: PENDING
+    depends_on: [story-03-github-actions-ci, story-04-foundry-init-and-ci]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-06-env-and-secrets-setup
+    epic: "Epic 0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-07-privy-tg-spike
+    epic: "Epic 0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold, story-06-env-and-secrets-setup]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─── Epic 1: Smart Contracts ───────────────────────────────────────────
+  - id: story-10-patron-vault-base
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-04-foundry-init-and-ci]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-11-patron-vault-aave-integration
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-10-patron-vault-base]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-12-patron-vault-tests-unit
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-11-patron-vault-aave-integration]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-13-patron-vault-tests-fuzz
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-12-patron-vault-tests-unit]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-14-patron-vault-tests-invariant
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-12-patron-vault-tests-unit]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-15-merchant-registry
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-04-foundry-init-and-ci]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-16-merchant-registry-tests
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-15-merchant-registry]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-17-reputation-proxy
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-04-foundry-init-and-ci]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-18-reputation-proxy-tests
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-17-reputation-proxy]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-19-agent-authorizer-v1
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-04-foundry-init-and-ci]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-20-agent-authorizer-tests
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-19-agent-authorizer-v1]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-22-susde-emode-setup
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-10-patron-vault-base, story-11-patron-vault-aave-integration]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-21-sepolia-deployment
+    epic: "Epic 1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-12-patron-vault-tests-unit, story-14-patron-vault-tests-invariant, story-16-merchant-registry-tests, story-18-reputation-proxy-tests, story-20-agent-authorizer-tests, story-22-susde-emode-setup, story-06-env-and-secrets-setup]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─── Epic 2: Backend Foundation ────────────────────────────────────────
+  - id: story-30-hono-skeleton
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold, story-06-env-and-secrets-setup]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-31-postgres-and-drizzle-init
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-30-hono-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-32-db-schema-users-merchants-orders
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-31-postgres-and-drizzle-init]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-33-db-schema-events-tasks-keys
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-31-postgres-and-drizzle-init]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-34-merchant-onboarding-endpoints
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-32-db-schema-users-merchants-orders, story-21-sepolia-deployment]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-35-user-profile-endpoints
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-32-db-schema-users-merchants-orders]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-36-order-intent-endpoint
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-32-db-schema-users-merchants-orders, story-34-merchant-onboarding-endpoints]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-37-merchant-webhook-handler
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-36-order-intent-endpoint]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-38-onchain-indexer-skeleton
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-33-db-schema-events-tasks-keys, story-21-sepolia-deployment]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-39-scheduler-skeleton
+    epic: "Epic 2 — Backend Foundation"
+    status: PENDING
+    depends_on: [story-33-db-schema-events-tasks-keys, story-06-env-and-secrets-setup]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─── Epic 3: Agent Decision Engine ─────────────────────────────────────
+  - id: story-40-claude-agent-sdk-bootstrap
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-30-hono-skeleton, story-06-env-and-secrets-setup]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-41-agent-context-loader
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-40-claude-agent-sdk-bootstrap, story-33-db-schema-events-tasks-keys]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-42-tool-onchain-reads
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-40-claude-agent-sdk-bootstrap, story-21-sepolia-deployment]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-43-tool-onchain-writes
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-42-tool-onchain-reads, story-20-agent-authorizer-tests]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-44-tool-external-apis
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-40-claude-agent-sdk-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-45-tool-byreal-cli
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-40-claude-agent-sdk-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-46-intent-open-position
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-36-order-intent-endpoint, story-41-agent-context-loader, story-42-tool-onchain-reads, story-43-tool-onchain-writes, story-44-tool-external-apis]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-47-intent-repay-position
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-41-agent-context-loader, story-43-tool-onchain-writes, story-39-scheduler-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-48-intent-monitor-depeg
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-42-tool-onchain-reads, story-44-tool-external-apis, story-39-scheduler-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-49-intent-verify-merchant
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-41-agent-context-loader, story-44-tool-external-apis, story-16-merchant-registry-tests]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-50-intent-personalize-limits
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-41-agent-context-loader, story-39-scheduler-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-51-intent-handle-dispute
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-46-intent-open-position, story-52-erc8004-receipt-logging]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-52-erc8004-receipt-logging
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-18-reputation-proxy-tests, story-41-agent-context-loader]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-53-agent-test-fixtures
+    epic: "Epic 3 — Agent Decision Engine"
+    status: PENDING
+    depends_on: [story-46-intent-open-position, story-47-intent-repay-position, story-48-intent-monitor-depeg, story-49-intent-verify-merchant, story-50-intent-personalize-limits, story-51-intent-handle-dispute, story-52-erc8004-receipt-logging]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─── Epic 4: Web App ───────────────────────────────────────────────────
+  - id: story-60-nextjs-15-scaffold
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold, story-02-typescript-config]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-61-design-tokens-and-fonts
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-60-nextjs-15-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-62-shared-ui-package-bootstrap
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-61-design-tokens-and-fonts]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-63-landing-hero
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-62-shared-ui-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-64-landing-how-it-works
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-62-shared-ui-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-65-landing-merchant-logos
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-62-shared-ui-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-66-landing-cta-and-footer
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-62-shared-ui-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-67-wagmi-rainbowkit-connect
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-60-nextjs-15-scaffold, story-06-env-and-secrets-setup]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-68-dashboard-shell
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-67-wagmi-rainbowkit-connect, story-62-shared-ui-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-69-dashboard-positions-list
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-68-dashboard-shell, story-35-user-profile-endpoints]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-70-dashboard-activity-feed
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-68-dashboard-shell, story-52-erc8004-receipt-logging]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-71-dashboard-emergency-freeze
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-68-dashboard-shell, story-20-agent-authorizer-tests]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-72-dashboard-permission-summary
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-68-dashboard-shell, story-20-agent-authorizer-tests]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-73-agent-management-page
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-71-dashboard-emergency-freeze, story-72-dashboard-permission-summary]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-74-merchant-directory-page
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-68-dashboard-shell, story-34-merchant-onboarding-endpoints]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-75-merchant-public-page
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-60-nextjs-15-scaffold, story-34-merchant-onboarding-endpoints]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-76-checkout-flow-page
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-68-dashboard-shell, story-36-order-intent-endpoint, story-46-intent-open-position]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-77-audit-receipt-viewer
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-60-nextjs-15-scaffold, story-52-erc8004-receipt-logging]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-78-api-keys-page
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-73-agent-management-page]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-79-open-in-telegram-cta
+    epic: "Epic 4 — Web App"
+    status: PENDING
+    depends_on: [story-66-landing-cta-and-footer, story-68-dashboard-shell]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─── Epic 5: Telegram Mini App ─────────────────────────────────────────
+  - id: story-80-mini-nextjs-scaffold
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-07-privy-tg-spike, story-62-shared-ui-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-81-tg-webapp-sdk-integration
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-80-mini-nextjs-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-82-privy-embedded-wallet
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-81-tg-webapp-sdk-integration, story-06-env-and-secrets-setup]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-83-mini-onboarding
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-82-privy-embedded-wallet]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-84-mini-dashboard
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-83-mini-onboarding, story-69-dashboard-positions-list, story-70-dashboard-activity-feed, story-71-dashboard-emergency-freeze, story-72-dashboard-permission-summary]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-85-mini-agent-management
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-84-mini-dashboard, story-73-agent-management-page]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-86-mini-merchant-directory
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-84-mini-dashboard, story-74-merchant-directory-page]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-87-mini-checkout-flow
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-86-mini-merchant-directory, story-76-checkout-flow-page]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-88-deep-link-handling
+    epic: "Epic 5 — Telegram Mini App"
+    status: PENDING
+    depends_on: [story-79-open-in-telegram-cta, story-87-mini-checkout-flow]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─── Epic 6: Checkout SDKs ─────────────────────────────────────────────
+  - id: story-90-sdk-js-scaffold
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold, story-02-typescript-config]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-91-sdk-js-button-component
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-90-sdk-js-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-92-sdk-js-modal-pattern
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-91-sdk-js-button-component, story-76-checkout-flow-page]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-93-sdk-js-event-callbacks
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-92-sdk-js-modal-pattern]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-94-sdk-react-scaffold
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-90-sdk-js-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-95-sdk-react-patron-button
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-94-sdk-react-scaffold, story-93-sdk-js-event-callbacks]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-96-sdk-react-hooks
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-95-sdk-react-patron-button]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-97-sdk-docs-site
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-91-sdk-js-button-component, story-95-sdk-react-patron-button]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-98-changesets-publish-pipeline
+    epic: "Epic 6 — Checkout SDKs"
+    status: PENDING
+    depends_on: [story-97-sdk-docs-site, story-05-branch-protection-and-pr-template]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─── Epic 7: Demo Merchants ────────────────────────────────────────────
+  - id: story-100-threads-by-mara-storefront
+    epic: "Epic 7 — Demo Merchants"
+    status: PENDING
+    depends_on: [story-95-sdk-react-patron-button]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-101-pixelink-storefront
+    epic: "Epic 7 — Demo Merchants"
+    status: PENDING
+    depends_on: [story-91-sdk-js-button-component]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-102-dialer-pro-storefront
+    epic: "Epic 7 — Demo Merchants"
+    status: PENDING
+    depends_on: [story-95-sdk-react-patron-button]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-103-merchant-onboarding-via-cli
+    epic: "Epic 7 — Demo Merchants"
+    status: PENDING
+    depends_on: [story-34-merchant-onboarding-endpoints, story-21-sepolia-deployment]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-104-demo-merchant-deploys
+    epic: "Epic 7 — Demo Merchants"
+    status: PENDING
+    depends_on: [story-100-threads-by-mara-storefront, story-101-pixelink-storefront, story-102-dialer-pro-storefront, story-103-merchant-onboarding-via-cli]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─── Epic 8: Polish + Submit ───────────────────────────────────────────
+  - id: story-110-mainnet-contract-deploy
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-21-sepolia-deployment, story-53-agent-test-fixtures]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-111-mainnet-merchant-onboarding
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-110-mainnet-contract-deploy, story-104-demo-merchant-deploys]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-112-demo-video-script-and-shoot
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-111-mainnet-merchant-onboarding, story-88-deep-link-handling]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-113-x-thread-draft
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-112-demo-video-script-and-shoot]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-114-readme-finalize
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-110-mainnet-contract-deploy, story-104-demo-merchant-deploys]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-115-architecture-diagram-export
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-116-accuracy-report
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-110-mainnet-contract-deploy, story-53-agent-test-fixtures, story-104-demo-merchant-deploys]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-117-dorahacks-submission
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-110-mainnet-contract-deploy, story-112-demo-video-script-and-shoot, story-113-x-thread-draft, story-114-readme-finalize, story-115-architecture-diagram-export, story-116-accuracy-report]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  - id: story-118-live-demo-rehearsal
+    epic: "Epic 8 — Polish + Submit"
+    status: PENDING
+    depends_on: [story-117-dorahacks-submission]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""

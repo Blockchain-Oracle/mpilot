@@ -1,0 +1,930 @@
+project: Concierge
+hackathon: mantle-turing-test-2026
+submission_window_closes: 2026-06-15T15:59:00Z
+repo: ""                  # filled by orchestrator Phase 1
+thread_surface: ""        # telegram or discord — filled by orchestrator Phase 1
+thread_chat_id: ""
+thread_topic_id: ""
+thread_anchor: ""
+
+stories:
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E0 — Foundation
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-00-monorepo-scaffold
+    epic: "Epic E0 — Foundation"
+    status: PENDING
+    depends_on: []
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-01-biome-and-loc-enforcement
+    epic: "Epic E0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-02-typescript-config
+    epic: "Epic E0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-03-foundry-init-and-remappings
+    epic: "Epic E0 — Foundation"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-04-ci-typescript-pipeline
+    epic: "Epic E0 — Foundation"
+    status: PENDING
+    depends_on: [story-01-biome-and-loc-enforcement, story-02-typescript-config]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-05-ci-contracts-pipeline
+    epic: "Epic E0 — Foundation"
+    status: PENDING
+    depends_on: [story-03-foundry-init-and-remappings]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-06-husky-precommit-hooks
+    epic: "Epic E0 — Foundation"
+    status: PENDING
+    depends_on: [story-01-biome-and-loc-enforcement, story-02-typescript-config]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-07-security-workflow
+    epic: "Epic E0 — Foundation"
+    status: PENDING
+    depends_on: [story-04-ci-typescript-pipeline, story-06-husky-precommit-hooks]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E1 — Smart Contracts
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-10-concierge-registry-base
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-03-foundry-init-and-remappings, story-05-ci-contracts-pipeline]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-11-concierge-registry-tests-unit
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-10-concierge-registry-base]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-12-concierge-registry-tests-fuzz
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-11-concierge-registry-tests-unit]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-13-concierge-registry-tests-invariant
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-11-concierge-registry-tests-unit]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-14-mock-aave-pool
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-03-foundry-init-and-remappings]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-15-mock-susde-usdc-usdy-meth
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-03-foundry-init-and-remappings]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-16-mock-aave-oracle
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-03-foundry-init-and-remappings]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-17-helper-config
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-14-mock-aave-pool, story-15-mock-susde-usdc-usdy-meth, story-16-mock-aave-oracle]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-18-deploy-script-sepolia
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-17-helper-config, story-10-concierge-registry-base]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-19-deploy-script-mainnet-gated
+    epic: "Epic E1 — Smart Contracts"
+    status: PENDING
+    depends_on: [story-18-deploy-script-sepolia]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E2 — Shared SDK Core
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-20-shared-package-bootstrap
+    epic: "Epic E2 — Shared SDK Core"
+    status: PENDING
+    depends_on: [story-04-ci-typescript-pipeline]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-21-shared-abi-imports
+    epic: "Epic E2 — Shared SDK Core"
+    status: PENDING
+    depends_on: [story-20-shared-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-22-sdk-skeleton
+    epic: "Epic E2 — Shared SDK Core"
+    status: PENDING
+    depends_on: [story-20-shared-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-23-sdk-error-types
+    epic: "Epic E2 — Shared SDK Core"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-24-sdk-config-loader
+    epic: "Epic E2 — Shared SDK Core"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E3 — Action Providers
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-30-aave-v3-mantle-provider
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-21-shared-abi-imports, story-22-sdk-skeleton, story-17-helper-config]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-31-aave-v3-mantle-tests
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-30-aave-v3-mantle-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-32-mantle-dex-provider
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-33-mantle-dex-tests
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-32-mantle-dex-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-34-ethena-susde-provider
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-35-ethena-susde-tests
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-34-ethena-susde-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-36-ondo-usdy-provider
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-37-ondo-usdy-tests
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-36-ondo-usdy-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-38-meth-staking-provider
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-39-meth-staking-tests
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-38-meth-staking-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-40-lifi-bridge-provider
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-41-lifi-bridge-tests
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-40-lifi-bridge-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-42-erc8004-provider
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-21-shared-abi-imports, story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-43-erc8004-tests
+    epic: "Epic E3 — Action Providers"
+    status: PENDING
+    depends_on: [story-42-erc8004-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E4 — Smart Account Layer
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-50-zerodev-sdk-bootstrap
+    epic: "Epic E4 — Smart Account Layer"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-51-pimlico-bundler-client
+    epic: "Epic E4 — Smart Account Layer"
+    status: PENDING
+    depends_on: [story-50-zerodev-sdk-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-52-session-key-policies
+    epic: "Epic E4 — Smart Account Layer"
+    status: PENDING
+    depends_on: [story-50-zerodev-sdk-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-53-session-key-issuance-flow
+    epic: "Epic E4 — Smart Account Layer"
+    status: PENDING
+    depends_on: [story-52-session-key-policies, story-69-postgres-drizzle-schemas]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-54-session-key-revocation-flow
+    epic: "Epic E4 — Smart Account Layer"
+    status: PENDING
+    depends_on: [story-53-session-key-issuance-flow]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-55-eoa-fallback-queue
+    epic: "Epic E4 — Smart Account Layer"
+    status: PENDING
+    depends_on: [story-69-postgres-drizzle-schemas]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-56-smart-account-tests
+    epic: "Epic E4 — Smart Account Layer"
+    status: PENDING
+    depends_on: [story-51-pimlico-bundler-client, story-53-session-key-issuance-flow]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E5 — Agent Runtime
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-60-anthropic-sdk-bootstrap
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-61-vercel-ai-sdk-chat-api
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-60-anthropic-sdk-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-62-tick-loop-orchestrator
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-60-anthropic-sdk-bootstrap, story-69-postgres-drizzle-schemas]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-63-tick-phase-plan
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-62-tick-loop-orchestrator]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-64-tick-phase-simulate
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-62-tick-loop-orchestrator, story-30-aave-v3-mantle-provider, story-32-mantle-dex-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-65-tick-phase-propose
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-64-tick-phase-simulate]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-66-tick-phase-execute
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-65-tick-phase-propose, story-56-smart-account-tests]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-67-tick-phase-record
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-66-tick-phase-execute]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-68-bullmq-cron-worker
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-62-tick-loop-orchestrator]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-69-postgres-drizzle-schemas
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-70-runtime-integration-tests
+    epic: "Epic E5 — Agent Runtime"
+    status: PENDING
+    depends_on: [story-67-tick-phase-record, story-68-bullmq-cron-worker]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E6 — ERC-8004 Attestation Flow
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-80-feedback-uri-schema
+    epic: "Epic E6 — ERC-8004 Attestation Flow"
+    status: PENDING
+    depends_on: [story-42-erc8004-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-81-ipfs-pinning-pinata
+    epic: "Epic E6 — ERC-8004 Attestation Flow"
+    status: PENDING
+    depends_on: [story-80-feedback-uri-schema]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-82-feedback-hash-compute
+    epic: "Epic E6 — ERC-8004 Attestation Flow"
+    status: PENDING
+    depends_on: [story-80-feedback-uri-schema]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-83-attestation-write-pipeline
+    epic: "Epic E6 — ERC-8004 Attestation Flow"
+    status: PENDING
+    depends_on: [story-67-tick-phase-record, story-81-ipfs-pinning-pinata, story-82-feedback-hash-compute]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-84-reputation-read-sdk
+    epic: "Epic E6 — ERC-8004 Attestation Flow"
+    status: PENDING
+    depends_on: [story-42-erc8004-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E7 — Web App  (BLOCKED until designer publishes @concierge/ui@1.0.0)
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-100-next-app-scaffold
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-24-sdk-config-loader]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-101-landing-hero
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-102-landing-how-it-works
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-103-landing-klarna-comparison
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-104-landing-developer-cta
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-105-landing-trust-signals
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-106-onboarding-flow
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold, story-53-session-key-issuance-flow, story-42-erc8004-provider]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-107-app-dashboard
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-106-onboarding-flow, story-70-runtime-integration-tests]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-108-tick-card-component
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold, story-67-tick-phase-record]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-109-goal-set-screen
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-107-app-dashboard]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-110-tick-history-list
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-108-tick-card-component]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-111-tick-detail-page
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-108-tick-card-component]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-112-portfolio-page
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-107-app-dashboard]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-113-agent-reputation-page
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold, story-84-reputation-read-sdk]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-114-settings-page
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-107-app-dashboard]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-115-emergency-stop-flow
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-107-app-dashboard, story-54-session-key-revocation-flow]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E8 — MCP Server
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-130-cloudflare-worker-bootstrap
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-131-mcp-server-setup
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-130-cloudflare-worker-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-132-mcp-tool-registrations
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-131-mcp-server-setup, story-30-aave-v3-mantle-provider, story-32-mantle-dex-provider, story-34-ethena-susde-provider, story-36-ondo-usdy-provider, story-38-meth-staking-provider, story-40-lifi-bridge-provider, story-42-erc8004-provider, story-62-tick-loop-orchestrator]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-133-mcp-bearer-auth
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-131-mcp-server-setup]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-134-mcp-redis-session-store
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-133-mcp-bearer-auth]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-135-mcp-claude-code-integration-test
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-132-mcp-tool-registrations, story-134-mcp-redis-session-store]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E9 — RealClaw Skill Packaging
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-150-skill-manifest
+    epic: "Epic E9 — RealClaw Skill Packaging"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-151-skill-cli-bootstrap
+    epic: "Epic E9 — RealClaw Skill Packaging"
+    status: PENDING
+    depends_on: [story-150-skill-manifest, story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-152-skill-json-output-contract
+    epic: "Epic E9 — RealClaw Skill Packaging"
+    status: PENDING
+    depends_on: [story-151-skill-cli-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-153-skill-npm-publish
+    epic: "Epic E9 — RealClaw Skill Packaging"
+    status: PENDING
+    depends_on: [story-152-skill-json-output-contract]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-154-skill-distribution-prs
+    epic: "Epic E9 — RealClaw Skill Packaging"
+    status: PENDING
+    depends_on: [story-153-skill-npm-publish]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E10 — Docs Site
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-170-docs-framework-bootstrap
+    epic: "Epic E10 — Docs Site"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-171-docs-quickstart
+    epic: "Epic E10 — Docs Site"
+    status: PENDING
+    depends_on: [story-170-docs-framework-bootstrap, story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-172-docs-sdk-reference
+    epic: "Epic E10 — Docs Site"
+    status: PENDING
+    depends_on: [story-170-docs-framework-bootstrap, story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-173-docs-providers-reference
+    epic: "Epic E10 — Docs Site"
+    status: PENDING
+    depends_on: [story-170-docs-framework-bootstrap, story-43-erc8004-tests]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-174-docs-runtime-concepts
+    epic: "Epic E10 — Docs Site"
+    status: PENDING
+    depends_on: [story-170-docs-framework-bootstrap, story-70-runtime-integration-tests]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-175-docs-skill-guide
+    epic: "Epic E10 — Docs Site"
+    status: PENDING
+    depends_on: [story-170-docs-framework-bootstrap, story-153-skill-npm-publish]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-176-docs-mcp-guide
+    epic: "Epic E10 — Docs Site"
+    status: PENDING
+    depends_on: [story-170-docs-framework-bootstrap, story-135-mcp-claude-code-integration-test]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-177-docs-recipes
+    epic: "Epic E10 — Docs Site"
+    status: PENDING
+    depends_on: [story-172-docs-sdk-reference]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E11 — Mainnet Deployment + Sepolia Playground
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-190-sepolia-mock-deploy
+    epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
+    status: PENDING
+    depends_on: [story-18-deploy-script-sepolia]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-191-sepolia-faucet-page
+    epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
+    status: PENDING
+    depends_on: [story-190-sepolia-mock-deploy, story-107-app-dashboard]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-192-mainnet-deploy-runbook
+    epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
+    status: PENDING
+    depends_on: [story-19-deploy-script-mainnet-gated]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-193-mainnet-deploy-execution
+    epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
+    status: PENDING
+    depends_on: [story-192-mainnet-deploy-runbook, story-70-runtime-integration-tests, story-83-attestation-write-pipeline, story-115-emergency-stop-flow]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-194-mcp-server-deployment
+    epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
+    status: PENDING
+    depends_on: [story-135-mcp-claude-code-integration-test]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-195-postdeploy-smoke-tests
+    epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
+    status: PENDING
+    depends_on: [story-193-mainnet-deploy-execution, story-194-mcp-server-deployment]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic E12 — Submission Polish
+  # ─────────────────────────────────────────────────────────────────
+  - id: story-200-readme-finalize
+    epic: "Epic E12 — Submission Polish"
+    status: PENDING
+    depends_on: [story-195-postdeploy-smoke-tests, story-153-skill-npm-publish]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-201-architecture-diagram-export
+    epic: "Epic E12 — Submission Polish"
+    status: PENDING
+    depends_on: [story-100-next-app-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-202-demo-video-script-and-shoot
+    epic: "Epic E12 — Submission Polish"
+    status: PENDING
+    depends_on: [story-195-postdeploy-smoke-tests, story-191-sepolia-faucet-page, story-135-mcp-claude-code-integration-test]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-203-x-thread-draft
+    epic: "Epic E12 — Submission Polish"
+    status: PENDING
+    depends_on: [story-202-demo-video-script-and-shoot]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-204-dorahacks-submission
+    epic: "Epic E12 — Submission Polish"
+    status: PENDING
+    depends_on: [story-200-readme-finalize, story-202-demo-video-script-and-shoot, story-203-x-thread-draft]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-205-live-demo-rehearsal
+    epic: "Epic E12 — Submission Polish"
+    status: PENDING
+    depends_on: [story-204-dorahacks-submission]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # ─────────────────────────────────────────────────────────────────
+  # POST-REWORK 2026-06-09 — Composable Primitive + Three-Rail Gen UI
+  # See: research/concierge/SPEC-REWORK-BRIEF-2026-06-09.md
+  #      research/concierge/AUDIT-2026-06-09.md
+  #      research/concierge/SDK-DX-STUDY-2026-06-09.md
+  # ─────────────────────────────────────────────────────────────────
+
+  # Epic E13 — Composable Primitive (tools registry + framework adapters)
+  - id: story-300-tools-registry
+    epic: "Epic E13 — Composable Primitive"
+    status: PENDING
+    depends_on: [story-20-shared-package-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-301-vercel-ai-adapter
+    epic: "Epic E13 — Composable Primitive"
+    status: PENDING
+    depends_on: [story-300-tools-registry]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-302-langchain-adapter
+    epic: "Epic E13 — Composable Primitive"
+    status: PENDING
+    depends_on: [story-300-tools-registry]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-303-openai-adapter
+    epic: "Epic E13 — Composable Primitive"
+    status: PENDING
+    depends_on: [story-300-tools-registry]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-304-agentkit-adapter
+    epic: "Epic E13 — Composable Primitive"
+    status: PENDING
+    depends_on: [story-300-tools-registry]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-320-model-agnostic-provider
+    epic: "Epic E13 — Composable Primitive"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # Epic E14 — Composable UI (react headless + styled + adapters)
+  - id: story-310-react-headless
+    epic: "Epic E14 — Composable UI"
+    status: PENDING
+    depends_on: [story-300-tools-registry]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-311-react-ui-styled
+    epic: "Epic E14 — Composable UI"
+    status: PENDING
+    depends_on: [story-310-react-headless, story-100-next-app-scaffold]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-312-web-dogfood-react-ui
+    epic: "Epic E14 — Composable UI"
+    status: PENDING
+    depends_on: [story-311-react-ui-styled]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-313-react-assistant-ui
+    epic: "Epic E14 — Composable UI"
+    status: PENDING
+    depends_on: [story-310-react-headless]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-314-react-copilotkit
+    epic: "Epic E14 — Composable UI"
+    status: PENDING
+    depends_on: [story-310-react-headless]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # Epic E15 — Distribution (scaffolder)
+  - id: story-330-scaffolder
+    epic: "Epic E15 — Distribution"
+    status: PENDING
+    depends_on: [story-300-tools-registry, story-301-vercel-ai-adapter, story-302-langchain-adapter, story-303-openai-adapter, story-304-agentkit-adapter, story-310-react-headless, story-311-react-ui-styled]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # MCP rework — three new MCP stories
+  - id: story-136-mcp-stdio-publish
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-130-mcp-server-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-137-mcp-apps-ui-resources
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-130-mcp-server-bootstrap, story-300-tools-registry]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-138-mcp-elicitation
+    epic: "Epic E8 — MCP Server"
+    status: PENDING
+    depends_on: [story-130-mcp-server-bootstrap]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
