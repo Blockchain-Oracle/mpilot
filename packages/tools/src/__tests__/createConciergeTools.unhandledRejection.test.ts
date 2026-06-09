@@ -1,4 +1,5 @@
-// Dedicated test file for the `.catch(() => {})` at createConciergeTools.ts:44
+// Dedicated test file for the leaked-Promise `.catch(() => {})` suppression
+// in createConciergeTools.ts
 // — proving Node's `unhandledRejection` event is suppressed for the leaked
 // Promise that a misbehaving async ProviderToolFactory returns. Split out of
 // createConciergeTools.test.ts because (a) the test touches `process.on` /
@@ -26,7 +27,8 @@ describe('createConciergeTools — unhandledRejection suppression', () => {
   const agentMainnet: ConciergeAgentLike = { chainId: 5000 };
 
   it('suppresses Node unhandledRejection for the leaked Promise (no orphan emission)', async () => {
-    // Honest test of the `.catch(() => {})` at createConciergeTools.ts:44.
+    // Honest test of the leaked-Promise `.catch(() => {})` suppression in
+    // createConciergeTools.ts.
     // Strategy: install an object-identity-filtered spy FIRST (narrows the
     // bare-window where a concurrent rejection hits a zero-listener emit),
     // then remove vitest's listeners, run the failing factory, and drain
@@ -36,9 +38,7 @@ describe('createConciergeTools — unhandledRejection suppression', () => {
     // on which Node actually fires `unhandledRejection` — collapsing to one
     // drain is a known flakiness source under heavy event-loop load.
     // Object-identity sentinels (vs message strings) can't collide with a
-    // concurrent test throwing the same text, and the positive control
-    // PROVES the harness can detect emission — if the `.catch` is removed
-    // and timing masks the leak, the control catches the vacuous pass.
+    // concurrent test throwing the same text.
     const SENTINEL_ERR = new Error('unhandledRejection suppression sentinel — DO NOT REUSE');
     const SENTINEL_CONTROL = new Error('unhandledRejection positive-control sentinel');
     const originalListeners = process.listeners('unhandledRejection').slice();
@@ -59,10 +59,10 @@ describe('createConciergeTools — unhandledRejection suppression', () => {
       expect(() => createConciergeTools(agentMainnet, [asyncBad])).toThrow(/returned a Promise/);
 
       // Positive control: an unsuppressed rejection MUST hit the spy. If
-      // this is silently 0, our setImmediate drain is too short and the
-      // sentinelHits === 0 assertion below is vacuously green. The control
-      // is the load-bearing regression detector — it catches the case where
-      // `.catch(() => {})` is removed AND timing happens to mask the leak.
+      // this is silently 0, the setImmediate drain is too short and the
+      // sentinelHits === 0 assertion below is vacuously green — the control
+      // catches the case where `.catch(() => {})` is removed AND timing
+      // happens to mask the leak.
       void Promise.reject(SENTINEL_CONTROL);
 
       await new Promise<void>((r) => setImmediate(r));
