@@ -1,11 +1,14 @@
 // BDD coverage for the @concierge/openai adapter: raw Chat Completions
-// function-tool shape (no SDK wrapped), OpenAPI-3 `parameters` emission,
-// dispatch with string/object args (parse-before-invoke invariant, malformed
-// JSON, unknown-tool error, rejection passthrough by identity), registry
-// behavior passthrough (multi-factory merge, empty default, duplicate-name
-// error), single-tool toOpenAITool conversion (pipe + non-object guards),
-// type-level compat with the `openai` SDK, the Anthropic key-rename recipe,
-// and the re-exported bigintSafeStringify for wei-scale tool results.
+// function-tool shape (no SDK wrapped), OpenAPI-3 `parameters` emission
+// (incl. near-exact wire content for defaults/optionals/enums — the coverage
+// of record until packages/tools grows a toJsonSchema.test.ts), dispatch with
+// string/object args (parse-before-invoke invariant, malformed/non-object
+// JSON, unknown-tool + empty-registry errors, rejection passthrough by
+// identity), registry behavior passthrough (multi-factory merge, chain
+// gating, empty default, duplicate-name error), single-tool toOpenAITool
+// conversion (pipe + non-object guards, toJsonSchema attribution), type-level
+// compat with the `openai` SDK, the Anthropic key-rename recipe, and the
+// re-exported bigintSafeStringify for wei-scale tool results.
 
 import type Anthropic from '@anthropic-ai/sdk';
 import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@concierge/tools';
@@ -55,6 +58,35 @@ describe('getOpenAITools — toolkit shape', () => {
     });
   });
 
+  it('emits near-exact wire content for defaults, optionals, and enums', () => {
+    const move = tool({
+      name: 'move',
+      description: 'Wire-content fixture covering default/enum/optional emission.',
+      inputSchema: z.object({
+        amount: z.number().default(1),
+        token: z.enum(['USDC', 'USDT']),
+        note: z.string().optional(),
+      }),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => ({ ok: true }),
+    });
+    const { tools } = getOpenAITools(agent, [() => [move]]);
+    // toEqual (not toMatchObject): freezes the surprising parts of zod's
+    // openapi-3.0 emission — defaulted props STAY in `required` (parse fills
+    // them; the model needn't send them), only .optional() leaves it, and
+    // additionalProperties:false is always present.
+    expect(tools[0]?.function.parameters).toEqual({
+      type: 'object',
+      properties: {
+        amount: { type: 'number', default: 1 },
+        token: { type: 'string', enum: ['USDC', 'USDT'] },
+        note: { type: 'string' },
+      },
+      required: ['amount', 'token'],
+      additionalProperties: false,
+    });
+  });
+
   it('merges tools from multiple factories into one array', () => {
     const { tools } = getOpenAITools(agent, [() => [proposeAction], () => [getPortfolio]]);
     expect(tools.map((t) => t.function.name).sort()).toEqual(['getPortfolio', 'proposeAction']);
@@ -65,6 +97,20 @@ describe('getOpenAITools — toolkit shape', () => {
     expect(getOpenAITools(agent, []).tools).toEqual([]);
   });
 
+  it('chain-gated tools are absent from BOTH tools and dispatch (one registry snapshot)', async () => {
+    const gated = tool({
+      name: 'gated',
+      description: 'Only supported on a different chain.',
+      inputSchema: z.object({}),
+      outputSchema: z.object({ ok: z.boolean() }),
+      supportsNetwork: (chainId) => chainId !== 5000,
+      invoke: async () => ({ ok: true }),
+    });
+    const toolkit = getOpenAITools(agent, [() => [gated, getPortfolio]]);
+    expect(toolkit.tools.map((t) => t.function.name)).toEqual(['getPortfolio']);
+    await expect(toolkit.dispatch('gated', {})).rejects.toThrow(/unknown tool "gated"/i);
+  });
+
   it('propagates registry validation errors (duplicate tool names) without swallowing', () => {
     const dup: ProviderToolFactory = () => [proposeAction];
     expect(() => getOpenAITools(agent, [dup, dup])).toThrow(/duplicate tool name/);
@@ -73,8 +119,10 @@ describe('getOpenAITools — toolkit shape', () => {
 
 describe('getOpenAITools — dispatch', () => {
   it('dispatches a JSON-string arguments payload (the Chat Completions wire format) to invoke', async () => {
-    const toolkit = getOpenAITools(agent, [factory]);
-    await expect(toolkit.dispatch('proposeAction', '{"goal":"maximize yield"}')).resolves.toEqual({
+    // Destructured on purpose: dispatch closes over its registry snapshot
+    // and must never depend on `this`.
+    const { dispatch } = getOpenAITools(agent, [factory]);
+    await expect(dispatch('proposeAction', '{"goal":"maximize yield"}')).resolves.toEqual({
       summary: 'plan for maximize yield',
       riskScore: 2,
     });
@@ -118,19 +166,37 @@ describe('getOpenAITools — dispatch', () => {
       },
     });
     const toolkit = getOpenAITools(agent, [() => [recorder]]);
-    await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toThrow(/string/i);
+    await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toBeInstanceOf(z.ZodError);
+    await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toThrow(/expected string/i);
     expect(received).toEqual([]);
   });
 
-  it('rejects with SyntaxError on malformed JSON-string arguments (no silent empty-args fallback)', async () => {
+  it('rejects a JSON "null" arguments string with a ZodError (valid JSON, not an object)', async () => {
+    // Models do emit arguments: "null" on no-arg tools — it parses fine, so
+    // the zod gate, not JSON.parse, must be what rejects it.
+    const toolkit = getOpenAITools(agent, [factory]);
+    await expect(toolkit.dispatch('getPortfolio', 'null')).rejects.toBeInstanceOf(z.ZodError);
+  });
+
+  it('rejects with a tool-attributed SyntaxError on malformed JSON-string arguments', async () => {
     const toolkit = getOpenAITools(agent, [factory]);
     await expect(toolkit.dispatch('proposeAction', '{not json')).rejects.toThrow(SyntaxError);
+    await expect(toolkit.dispatch('proposeAction', '{not json')).rejects.toThrow(
+      /dispatch\("proposeAction"\).*malformed JSON/,
+    );
   });
 
   it('rejects loudly on an unknown tool name, listing the known tools (model hallucination guard)', async () => {
     const toolkit = getOpenAITools(agent, [factory]);
     await expect(toolkit.dispatch('nope', {})).rejects.toThrow(
       /unknown tool "nope".*getPortfolio, proposeAction/i,
+    );
+  });
+
+  it('unknown-tool error on an empty registry points at the zero-tools causes instead of trailing off', async () => {
+    const toolkit = getOpenAITools(agent);
+    await expect(toolkit.dispatch('anything', {})).rejects.toThrow(
+      /no tools are registered.*providerToolFactories.*chainId/i,
     );
   });
 
@@ -188,6 +254,22 @@ describe('toOpenAITool', () => {
     expect(() => toOpenAITool(pipedInput)).toThrow(TypeError);
     expect(() => toOpenAITool(pipedInput)).toThrow(/pipedInput.*transform\(\) or \.pipe\(\)/);
   });
+
+  it('surfaces toJsonSchema attribution when a NESTED schema is unrepresentable', () => {
+    const nestedTransform = tool({
+      name: 'nestedTransform',
+      description: 'Root is a plain ZodObject, so adapter guards pass.',
+      inputSchema: z.object({ goal: z.string().transform((v) => v.length) }),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => ({ ok: true }),
+    });
+    // Slips past isZodPipe/isZodObject (both inspect only the root) and fails
+    // inside z.toJSONSchema — the @concierge/tools wrapper must name the tool
+    // and field so a multi-tool registry build is debuggable.
+    expect(() => toOpenAITool(nestedTransform)).toThrow(
+      /cannot convert inputSchema for tool "nestedTransform"/,
+    );
+  });
 });
 
 describe('SDK compatibility (type-only devDeps — never runtime imports)', () => {
@@ -200,10 +282,12 @@ describe('SDK compatibility (type-only devDeps — never runtime imports)', () =
 
   it('parameters double as Anthropic input_schema via key rename (one adapter, two runtimes)', () => {
     const { tools } = getOpenAITools(agent, [factory]);
+    // Direct assignment, no re-spread: OpenAIFunctionDefinition['parameters']
+    // carries the literal type:'object' that Anthropic's InputSchema demands.
     const anthropicTools: Anthropic.Messages.Tool[] = tools.map((t) => ({
       name: t.function.name,
       description: t.function.description,
-      input_schema: { ...t.function.parameters, type: 'object' as const },
+      input_schema: t.function.parameters,
     }));
     expect(anthropicTools.map((t) => t.name).sort()).toEqual(['getPortfolio', 'proposeAction']);
     for (const t of anthropicTools) {

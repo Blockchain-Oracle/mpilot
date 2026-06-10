@@ -28,6 +28,19 @@ import {
 export { bigintSafeStringify };
 
 /**
+ * The function definition inside the tool envelope. `parameters` carries the
+ * literal `type: 'object'` invariant in the type itself, so it is directly
+ * assignable to BOTH the `openai` SDK's `FunctionParameters` AND Anthropic's
+ * `Tool['input_schema']` (which requires the literal) — the dual-runtime
+ * claim is type-enforced, not cast-assisted.
+ */
+export interface OpenAIFunctionDefinition {
+  name: string;
+  description: string;
+  parameters: { type: 'object'; [key: string]: unknown };
+}
+
+/**
  * The NESTED Chat Completions function-tool wire shape (`.function` holds the
  * definition). Structurally assignable to the `openai` SDK's
  * `ChatCompletionFunctionTool` — pinned by a type-level test. The flat
@@ -35,18 +48,23 @@ export { bigintSafeStringify };
  */
 export interface OpenAIFunctionTool {
   type: 'function';
-  function: {
-    name: string;
-    description: string;
-    parameters: Record<string, unknown>;
-  };
+  function: OpenAIFunctionDefinition;
 }
 
 /**
  * `tools` goes into the request body; `dispatch` executes a model-issued
  * tool call. `args` accepts the raw JSON string from a Chat Completions
  * `tool_calls[].function.arguments` or the already-parsed object from an
- * Anthropic `tool_use.input` block.
+ * Anthropic `tool_use.input` block (`object` rather than
+ * `Record<string, unknown>` because interface-typed arg objects lack an
+ * implicit index signature — the wider type costs nothing: junk values are
+ * rejected loudly by `inputSchema.parse`).
+ *
+ * Treat `tools` as readonly: it is a snapshot sharing one registry build with
+ * `dispatch`, so mutating the array does NOT change what `dispatch` will
+ * execute — subset at the `providerToolFactories` level instead. (The array
+ * stays mutable only because the `openai` SDK's request type wants
+ * `Array<ChatCompletionTool>`.)
  */
 export interface OpenAIToolkit {
   tools: OpenAIFunctionTool[];
@@ -60,13 +78,15 @@ export interface OpenAIToolkit {
  * Throws a `TypeError` when `inputSchema` is not a plain Zod object — the
  * registry invariant `createConciergeTools` already enforces, re-checked here
  * because direct callers bypass the registry. Pipes get their own error:
- * `z.toJSONSchema` may silently convert a `.transform()`/`.pipe()` chain as
- * its first segment, advertising a schema to the model that no longer matches
- * what `inputSchema.parse()` accepts at dispatch time.
+ * `z.toJSONSchema` throws on `.transform()` chains, but silently converts a
+ * plain `.pipe()` as its OUTPUT (last) segment — advertising what `parse()`
+ * *returns* rather than what it *accepts*, so the model would send arguments
+ * that fail validation at dispatch time.
  *
- * Note: emitted schemas are NOT OpenAI strict-mode ready (`strict: true`
- * requires `additionalProperties: false` and all properties required); see
- * the README if you need strict mode.
+ * Note: emitted schemas carry `additionalProperties: false`, but `.optional()`
+ * properties are omitted from `required`, so they are not OpenAI strict-mode
+ * ready in general (`strict: true` wants every property required); see the
+ * README if you need strict mode.
  */
 export function toOpenAITool(t: ConciergeTool): OpenAIFunctionTool {
   if (isZodPipe(t.inputSchema)) {
@@ -81,7 +101,13 @@ export function toOpenAITool(t: ConciergeTool): OpenAIFunctionTool {
   }
   return {
     type: 'function',
-    function: { name: t.name, description: t.description, parameters: toJsonSchema(t) },
+    function: {
+      name: t.name,
+      description: t.description,
+      // Safe after the isZodObject guard: z.toJSONSchema on a ZodObject with
+      // target openapi-3.0 always emits a root `type: 'object'`.
+      parameters: toJsonSchema(t) as OpenAIFunctionDefinition['parameters'],
+    },
   };
 }
 
@@ -115,11 +141,33 @@ export function getOpenAITools(
     async dispatch(name, args) {
       const t = byName.get(name);
       if (!t) {
+        const known = [...byName.keys()].sort();
         throw new Error(
-          `[@concierge/openai] dispatch: unknown tool "${name}". Known tools: ${[...byName.keys()].sort().join(', ')}`,
+          `[@concierge/openai] dispatch: unknown tool "${name}". ${
+            known.length === 0
+              ? 'No tools are registered — check providerToolFactories and agent.chainId.'
+              : `Known tools: ${known.join(', ')}`
+          }`,
         );
       }
-      const parsed: unknown = typeof args === 'string' ? JSON.parse(args) : args;
+      let parsed: unknown;
+      if (typeof args === 'string') {
+        try {
+          parsed = JSON.parse(args);
+        } catch (cause) {
+          // Re-raise as SyntaxError (the documented contract) but with tool
+          // attribution — in a Promise.all fan-out over parallel tool calls,
+          // a bare "Unexpected token" names neither tool nor payload.
+          throw new SyntaxError(
+            `[@concierge/openai] dispatch("${name}"): malformed JSON arguments — ${
+              cause instanceof Error ? cause.message : String(cause)
+            }`,
+            { cause },
+          );
+        }
+      } else {
+        parsed = args;
+      }
       return t.invoke(t.inputSchema.parse(parsed));
     },
   };
