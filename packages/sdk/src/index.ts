@@ -42,6 +42,7 @@ export {
   type UICardId,
 } from '@concierge/tools';
 export { getVercelAITools, toVercelAITool } from '@concierge/vercel-ai';
+export { type ConciergeConfig, ConfigSchema, loadConfig } from './config.ts';
 export { defaultModel } from './defaultModel.ts';
 export {
   CONCIERGE_ERROR_TYPES,

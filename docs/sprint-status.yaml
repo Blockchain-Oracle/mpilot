@@ -177,17 +177,17 @@ stories:
     merged_at: "2026-06-10T21:12:00Z"
   - id: story-23-sdk-error-types
     epic: "Epic E2 — Shared SDK Core"
-    status: PENDING
+    status: COMPLETE
     depends_on: [story-22-sdk-skeleton]
     issue_url: ""
-    pr_url: ""
-    merged_at: ""
+    pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/33"
+    merged_at: "2026-06-10T20:53:21Z"
   - id: story-24-sdk-config-loader
     epic: "Epic E2 — Shared SDK Core"
-    status: PENDING
+    status: IN_PROGRESS
     depends_on: [story-22-sdk-skeleton]
     issue_url: ""
-    pr_url: ""
+    pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/34"
     merged_at: ""
 
   # ─────────────────────────────────────────────────────────────────
