@@ -8,6 +8,32 @@
 
 ---
 
+## ⚠️ 2026-06-10 IMPLEMENTATION ADDENDUM — `@concierge/agent` re-exports DEFERRED to Epic E5
+
+The 2026-06-09 UPDATE below assumes `@concierge/agent` exists (`createConcierge`,
+`Concierge`, `tick()`, `setGoal()` re-exports + the tick/goal BDD criteria).
+**No story in the corpus creates `packages/agent/` before Epic E5** — story-60
+creates `@concierge/llm`, and the runtime itself is assembled by stories 62-67,
+all of which transitively depend on THIS story. Stubbing a fake runtime to
+satisfy the criteria would be a banned hot-path mock, so story-22 shipped the
+implementable subset:
+
+- ✅ `packages/sdk/package.json` per ADR-018 (ESM-only, Node ≥22, peers `ai` /
+  `@ai-sdk/provider` / `zod`; zod peer is `^4.1.0` matching `@concierge/tools`,
+  not the `^3.25 || ^4.1` below — the dependency chain can't honor zod 3)
+- ✅ `src/defaultModel.ts` per ADR-016 (returns `LanguageModelV3` — the
+  interface the installed `@ai-sdk/*` 3.x providers actually ship, per
+  SDK-DX-STUDY §A's "pin to whatever is active at story time")
+- ✅ `src/registry.ts` — `ConciergeRegistry.mainnet()/sepolia()`, frozen,
+  sourcing `@concierge/shared` by reference, `implements ConciergeAgentLike`
+- ✅ `src/errors.ts` — `ConciergeError` + `ConciergeErrorType` per ADR-019
+- ✅ Barrel re-exports of the EXISTING surface (`@concierge/tools` +
+  `@concierge/vercel-ai`) + README
+- ⏸️ DEFERRED to the E5 story that creates `@concierge/agent`: the
+  `createConcierge` / `Concierge` re-exports, the tick/goal BDD criteria
+  (missing-goal `ConciergeError`, AsyncIterable + `.on()`, per-phase model
+  override), and the ADR-019 five-line quickstart in the README.
+
 ## ⚠️ 2026-06-09 UPDATE — read this BEFORE the original story body
 
 Per architecture.md ADR-014 + ADR-016 + ADR-019 (rework 2026-06-09), the `@concierge/sdk` shape changed:

@@ -1,0 +1,77 @@
+// defaultModel() per ADR-016: env auto-detect with AI_MODEL="provider:model"
+// override. The @ai-sdk provider factories read their API keys lazily at
+// REQUEST time, so constructing a model here makes no network calls and
+// needs no keys — these tests assert routing, not authentication.
+
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { defaultModel } from '../defaultModel.ts';
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+describe('defaultModel (ADR-016 env auto-detect)', () => {
+  it('defaults to anthropic:claude-sonnet-4-6 when AI_MODEL is unset', () => {
+    vi.stubEnv('AI_MODEL', undefined);
+    const model = defaultModel();
+    expect(model.modelId).toBe('claude-sonnet-4-6');
+    expect(model.provider).toContain('anthropic');
+  });
+
+  it('treats an empty AI_MODEL as unset (set-but-empty env vars are common)', () => {
+    vi.stubEnv('AI_MODEL', '');
+    expect(defaultModel().modelId).toBe('claude-sonnet-4-6');
+  });
+
+  it('routes AI_MODEL="openai:gpt-5.1" to the openai provider', () => {
+    vi.stubEnv('AI_MODEL', 'openai:gpt-5.1');
+    const model = defaultModel();
+    expect(model.modelId).toBe('gpt-5.1');
+    expect(model.provider).toContain('openai');
+  });
+
+  it('routes AI_MODEL="google:..." to the google provider', () => {
+    vi.stubEnv('AI_MODEL', 'google:gemini-2.5-pro');
+    const model = defaultModel();
+    expect(model.modelId).toBe('gemini-2.5-pro');
+    expect(model.provider).toContain('google');
+  });
+
+  it('routes an explicit "xai:..." spec to the xai provider', () => {
+    const model = defaultModel('xai:grok-4');
+    expect(model.modelId).toBe('grok-4');
+    expect(model.provider).toContain('xai');
+  });
+
+  it('an explicit spec argument beats the AI_MODEL env var', () => {
+    vi.stubEnv('AI_MODEL', 'openai:gpt-5.1');
+    const model = defaultModel('anthropic:claude-opus-4-7');
+    expect(model.modelId).toBe('claude-opus-4-7');
+    expect(model.provider).toContain('anthropic');
+  });
+
+  it('returns the model interface version the installed providers ship (v3)', () => {
+    // SDK-DX-STUDY §A: pin to whatever interface is active at story time.
+    // @ai-sdk/* 3.x factories return LanguageModelV3.
+    expect(defaultModel().specificationVersion).toBe('v3');
+  });
+
+  it('splits on the FIRST colon only — model ids may contain colons (OpenAI fine-tunes)', () => {
+    const model = defaultModel('openai:ft:gpt-5.1:org:custom');
+    expect(model.modelId).toBe('ft:gpt-5.1:org:custom');
+  });
+
+  it('throws on an unknown provider, naming the known ones', () => {
+    expect(() => defaultModel('mistral:large')).toThrow(
+      /unknown provider "mistral".*anthropic.*openai.*google.*xai/i,
+    );
+  });
+
+  it('throws on a spec with no model segment', () => {
+    expect(() => defaultModel('anthropic')).toThrow(/provider:model/);
+  });
+
+  it('throws on a spec with an empty model segment', () => {
+    expect(() => defaultModel('anthropic:')).toThrow(/provider:model/);
+  });
+});

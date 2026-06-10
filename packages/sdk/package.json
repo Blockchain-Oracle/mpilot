@@ -1,0 +1,50 @@
+{
+  "name": "@concierge/sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "!src/__tests__/**"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.82",
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.69",
+    "@ai-sdk/xai": "^3.0.93",
+    "@concierge/shared": "workspace:*",
+    "@concierge/tools": "workspace:*",
+    "@concierge/vercel-ai": "workspace:*"
+  },
+  "peerDependencies": {
+    "@ai-sdk/provider": "^3.0.0",
+    "ai": "^6.0.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@ai-sdk/provider": "3.0.10",
+    "@types/node": "22.19.20",
+    "ai": "6.0.199",
+    "tsup": "8.5.0",
+    "zod": "4.4.3"
+  }
+}
