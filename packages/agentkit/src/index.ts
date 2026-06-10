@@ -59,10 +59,10 @@ type AgentKitSchema = AgentKitActionOptions[number]['schema'];
  * AgentKit (or parse with `schema` yourself first).
  */
 export interface ConciergeAgentKitAction {
-  name: string;
-  description: string;
-  schema: z.ZodObject<z.ZodRawShape>;
-  invoke: (args: unknown) => Promise<string>;
+  readonly name: string;
+  readonly description: string;
+  readonly schema: z.ZodObject<z.ZodRawShape>;
+  readonly invoke: (args: unknown) => Promise<string>;
 }
 
 /**
@@ -135,9 +135,12 @@ export function toAgentKitAction(t: ConciergeTool): ConciergeAgentKitAction {
  * rebinds dispatch for overlapping tool names (last wins) or silently merges
  * disjoint actions into EVERY provider's `getActions()` (union leakage).
  * Both dispatch actions against the wrong agent context, so this factory
- * THROWS when custom actions are already registered in the process. Raw
- * `customActionProvider` calls elsewhere bypass this guard — the hazard is
- * upstream's registration model, not this adapter's.
+ * THROWS when custom actions are already registered in the process. The
+ * guard fails CLOSED: an unrecognized metadata shape (an AgentKit bump
+ * changing the registration model) throws rather than silently disarming,
+ * and a zero-action provider stamps a sentinel so it still counts as THE
+ * provider. Raw `customActionProvider` calls elsewhere bypass this guard —
+ * the hazard is upstream's registration model, not this adapter's.
  *
  * Two more AgentKit behaviors consumers must know (verified against 0.10.4):
  *
@@ -174,22 +177,22 @@ export function getConciergeActionProvider(
   providerToolFactories?: ReadonlyArray<ProviderToolFactory>,
 ): CustomActionProvider<WalletProvider> {
   const actions = createConciergeTools(agent, providerToolFactories).map(toAgentKitAction);
-  // Registration-time guard for upstream's shared-class registry (keyed by
-  // UN-prefixed tool name). Without it a second provider silently
-  // dispatches actions against the WRONG agent — in a DeFi agent that
-  // executes transactions, a funds-level failure mode with zero signal.
-  const registered: ReadonlyMap<string, unknown> | undefined = Reflect.getMetadata(
-    ACTION_DECORATOR_KEY,
-    CustomActionProvider,
-  );
-  if (registered && registered.size > 0) {
+  // Guard for upstream's shared-class registry (keyed by UN-prefixed tool
+  // name) — rationale in the JSDoc above.
+  const registered: unknown = Reflect.getMetadata(ACTION_DECORATOR_KEY, CustomActionProvider);
+  if (registered !== undefined) {
+    if (!(registered instanceof Map)) {
+      throw new Error(
+        `[@concierge/agentkit] AgentKit's custom-action metadata is no longer a Map — the registration model changed upstream and the one-provider-per-process guard cannot verify it. Pin @coinbase/agentkit 0.10.x or update @concierge/agentkit.`,
+      );
+    }
     const overlap = actions.filter((a) => registered.has(a.name)).map((a) => a.name);
     const consequence =
       overlap.length > 0
         ? `would silently rebind dispatch for: ${overlap.join(', ')}`
-        : `its actions would silently merge into this provider's getActions()`;
+        : `would silently merge its actions into every provider's getActions()`;
     throw new Error(
-      `[@concierge/agentkit] custom actions are already registered in this process and ${consequence}. AgentKit 0.10.x stores custom-action metadata on the shared CustomActionProvider class — create ONE provider per process.`,
+      `[@concierge/agentkit] a custom action provider is already registered in this process; registering another ${consequence}. AgentKit 0.10.x stores custom-action metadata on the shared CustomActionProvider class — create ONE provider per process.`,
     );
   }
   // Single cross-library type boundary, scoped to the ONE incompatible
@@ -204,5 +207,13 @@ export function getConciergeActionProvider(
     ...a,
     schema: a.schema as unknown as AgentKitSchema,
   })) satisfies AgentKitActionOptions;
-  return customActionProvider<WalletProvider>(options);
+  const provider = customActionProvider<WalletProvider>(options);
+  if (Reflect.getMetadata(ACTION_DECORATOR_KEY, CustomActionProvider) === undefined) {
+    // A zero-action customActionProvider stamps no metadata upstream; leave
+    // a sentinel empty Map so a later provider still trips the guard instead
+    // of union-leaking its actions into this one's getActions(). Conditional
+    // so a future upstream that stamps its own is never clobbered.
+    Reflect.defineMetadata(ACTION_DECORATOR_KEY, new Map(), CustomActionProvider);
+  }
+  return provider;
 }

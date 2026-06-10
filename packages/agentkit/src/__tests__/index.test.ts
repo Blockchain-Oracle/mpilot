@@ -1,13 +1,5 @@
-// BDD coverage for the @concierge/agentkit adapter: ActionProvider shape via
-// the customActionProvider escape hatch (no decorators in our src), the
-// CustomActionProvider_ name prefix AgentKit stamps on every custom action,
-// stringified invoke delegation (bigint-safe + rejection passthrough +
-// serialization attribution), zod validation at AgentKit's wrapper using OUR
-// zod-4 schema (parsed-args invariant: defaults applied, unknown keys
-// stripped), chain gating, multi-factory merging, empty-registry default,
-// registry error propagation, and pipe/non-object schema guards on
-// toAgentKitAction. The shared-class registry hazard (one provider per
-// process: guard + upstream last-wins/union pins) lives in
+// Adapter behavior for @concierge/agentkit. The shared-class registry hazard
+// (one provider per process: guard + upstream last-wins/union pins) lives in
 // registry-guard.test.ts.
 
 import {
@@ -265,19 +257,21 @@ describe('getConciergeActionProvider', () => {
 
   it('yields a provider with zero actions when no factories are given', () => {
     const provider = getConciergeActionProvider(agent);
-    // AgentKit warns to console when a provider has no registered metadata;
-    // silence it — the empty array IS the documented mirror of
-    // createConciergeTools(agent) with no factories.
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    try {
-      expect(provider.getActions(walletStub)).toEqual([]);
-    } finally {
-      warn.mockRestore();
-    }
+    expect(provider.getActions(walletStub)).toEqual([]);
+    // A zero-action customActionProvider stamps no metadata upstream, so the
+    // adapter leaves a sentinel empty Map — without it a SECOND provider
+    // would slip past the one-provider guard and union-leak into this one.
+    const sentinel = Reflect.getMetadata(ACTION_DECORATOR_KEY, CustomActionProvider);
+    expect(sentinel).toBeInstanceOf(Map);
+    expect(sentinel.size).toBe(0);
   });
 
   it('propagates registry validation errors (duplicate tool names) unchanged', () => {
-    expect(() => getConciergeActionProvider(agent, [factory, factory])).toThrow(/proposeAction/);
+    // Pin the registry's own message shape, not just the tool name — a
+    // wrapper that re-worded the error would lose factory attribution.
+    expect(() => getConciergeActionProvider(agent, [factory, factory])).toThrow(
+      /\[@concierge\/tools\] duplicate tool name "proposeAction"/,
+    );
   });
 });
 
@@ -299,6 +293,27 @@ describe('toAgentKitAction', () => {
     // argument is a WalletProvider. A binary closure here would silently
     // shift the model's args out of position.
     expect(toAgentKitAction(proposeAction).invoke.length).toBe(1);
+  });
+
+  it('direct invoke is PRE-validation: raw args reach the tool unparsed', async () => {
+    // Validation belongs to AgentKit's wrapper alone. The adapter must never
+    // grow a second parse: a tool whose FIELD schema transforms (legal — the
+    // pipe ban is top-level only) would reject its own already-parsed output
+    // on the AgentKit path if invoke re-parsed.
+    let received: unknown;
+    const recorder = tool({
+      name: 'rawRecorder',
+      description: 'Records the args it receives.',
+      inputSchema: z.object({ amount: z.string().default('1') }),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async (args) => {
+        received = args;
+        return { ok: true };
+      },
+    });
+    await toAgentKitAction(recorder).invoke({ unknownKey: true });
+    // No default applied, unknown key kept => no parse happened here.
+    expect(received).toEqual({ unknownKey: true });
   });
 
   it('throws a TypeError on .transform()/.pipe() input schemas (silent wrong-schema trap)', () => {
