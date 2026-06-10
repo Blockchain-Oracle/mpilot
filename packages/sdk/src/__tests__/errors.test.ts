@@ -160,6 +160,19 @@ describe('ConciergeError (ADR-019)', () => {
     expect('metadata' in err).toBe(false);
   });
 
+  it('metadata is non-writable after construction — sealing matches type/name strategy', () => {
+    const err = new ConciergeError('RpcError', 'x', undefined, { key: 'val' });
+    expect(() => {
+      (err as { metadata: unknown }).metadata = { evil: true };
+    }).toThrow(TypeError);
+    expect(err.metadata).toEqual({ key: 'val' });
+  });
+
+  it('metadata is non-configurable — defineProperty cannot override it', () => {
+    const err = new ConciergeError('RpcError', 'x', undefined, { key: 'val' });
+    expect(() => Object.defineProperty(err, 'metadata', { value: {} })).toThrow(TypeError);
+  });
+
   it('toJSON() returns type+message+metadata, omits cause+name to prevent RPC payload leaks', () => {
     const err = new ConciergeError('RpcError', 'rpc fail', new Error('raw'), { host: 'node1' });
     const json = err.toJSON();
@@ -184,6 +197,31 @@ describe('ConciergeError (ADR-019)', () => {
     expect(wire['metadata']).toEqual({ host: 'node1' });
     expect('cause' in wire).toBe(false);
     expect('name' in wire).toBe(false);
+  });
+
+  it('toJSON() converts BigInt metadata values to decimal strings — viem amounts are bigint', () => {
+    // DeFi amounts from viem (e.g. Aave borrow amount) are `bigint`. Without
+    // conversion, `JSON.stringify(err.toJSON())` throws "Do not know how to
+    // serialize a BigInt". toJSON() must handle this in the error serialization
+    // path — the one place a secondary throw is most catastrophic.
+    const err = new ConciergeError('RpcError', 'borrow failed', undefined, {
+      amount: 1_000_000n,
+      asset: '0xabc',
+    });
+    const json = err.toJSON();
+    expect(() => JSON.stringify(json)).not.toThrow();
+    expect((json['metadata'] as Record<string, unknown>)['amount']).toBe('1000000');
+    expect((json['metadata'] as Record<string, unknown>)['asset']).toBe('0xabc');
+  });
+
+  it('JSON.stringify(err) with BigInt metadata does not throw', () => {
+    const err = new ConciergeError('InsufficientLiquidity', 'pool dry', undefined, {
+      available: 500n,
+      requested: 1000n,
+    });
+    expect(() => JSON.stringify(err)).not.toThrow();
+    const wire = JSON.parse(JSON.stringify(err)) as Record<string, unknown>;
+    expect(wire['type']).toBe('InsufficientLiquidity');
   });
 
   it('fromUnknown: wraps plain Error as ConciergeError without double-wrapping', () => {

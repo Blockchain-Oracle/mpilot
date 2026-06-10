@@ -95,7 +95,17 @@ export class ConciergeError extends Error {
       );
     }
     this.type = type;
-    if (metadata !== undefined) this.metadata = metadata;
+    // Seal `metadata` with the same descriptor strategy as `type`: TS `readonly`
+    // is compile-time only. `configurable: false` prevents `defineProperty`
+    // bypass; `enumerable: true` keeps it visible in JSON.stringify output.
+    if (metadata !== undefined) {
+      Object.defineProperty(this, 'metadata', {
+        value: metadata,
+        writable: false,
+        configurable: false,
+        enumerable: true,
+      });
+    }
     // Seal `type`: TS `readonly` is compile-time only. `configurable: false`
     // too — otherwise `Object.defineProperty(err, 'type', { value: 'X' })`
     // would still slip past a non-writable slot. `type` stays enumerable so
@@ -126,9 +136,11 @@ export class ConciergeError extends Error {
   }
 
   /**
-   * Returns a plain object safe for structured logging. `cause` is intentionally
-   * omitted — it may carry raw calldata / RPC URLs. `metadata` is included
-   * because callers are responsible for not putting secrets in it.
+   * Returns a plain object safe for structured logging and JSON.stringify.
+   * `cause` is intentionally omitted — it may carry raw calldata / RPC URLs.
+   * `metadata` is included and BigInt-sanitised: viem amounts are bigint, and
+   * `JSON.stringify(bigint)` throws. BigInts are converted to decimal strings
+   * so `JSON.stringify(err.toJSON())` never throws on real DeFi metadata.
    */
   toJSON(): Record<string, unknown> {
     // `name` is non-enumerable on purpose (matches native Error semantics);
@@ -137,7 +149,15 @@ export class ConciergeError extends Error {
       type: this.type,
       message: this.message,
     };
-    if (this.metadata !== undefined) result['metadata'] = this.metadata;
+    if (this.metadata !== undefined) {
+      try {
+        result['metadata'] = JSON.parse(
+          JSON.stringify(this.metadata, (_key, v) => (typeof v === 'bigint' ? v.toString() : v)),
+        );
+      } catch {
+        result['metadata'] = '[unserializable metadata]';
+      }
+    }
     return result;
   }
 }
