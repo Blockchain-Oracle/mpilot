@@ -168,13 +168,20 @@ describe('getOpenAITools — dispatch', () => {
       },
     });
     const toolkit = getOpenAITools(agent, [() => [recorder]]);
-    // instanceof AND attribution on the SAME rejection: the message rewrite
-    // must not replace the ZodError instance consumers branch on.
-    await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toBeInstanceOf(z.ZodError);
-    await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toThrow(
-      /dispatch\("recorder"\).*failed inputSchema validation/,
+    // Capture ONE rejection and assert instanceof + attribution + issues on
+    // the same instance: separate dispatches would each pass individually
+    // even if the rewrite replaced the ZodError consumers branch on.
+    const err: unknown = await toolkit.dispatch('recorder', { goal: 42 }).then(
+      () => {
+        throw new Error('expected dispatch to reject');
+      },
+      (e: unknown) => e,
     );
-    await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toThrow(/expected string/i);
+    expect(err).toBeInstanceOf(z.ZodError);
+    const zodErr = err as z.ZodError;
+    expect(zodErr.message).toMatch(/dispatch\("recorder"\).*failed inputSchema validation/);
+    expect(zodErr.message).toMatch(/expected string/i);
+    expect(zodErr.issues.length).toBeGreaterThan(0);
     expect(received).toEqual([]);
   });
 

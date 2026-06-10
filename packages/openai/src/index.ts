@@ -17,7 +17,20 @@ import {
   type ProviderToolFactory,
   toJsonSchema,
 } from '@concierge/tools';
-import { z } from 'zod';
+
+/**
+ * Duck-typed per the guards.ts convention: `instanceof z.ZodError` fails
+ * across realm boundaries when a consumer's graph resolves a second zod
+ * copy, and would silently skip attribution. Also keeps this adapter free
+ * of runtime zod imports (type-only siblings posture).
+ */
+function isZodError(err: unknown): err is Error & { issues: unknown[] } {
+  return (
+    err instanceof Error &&
+    err.name === 'ZodError' &&
+    Array.isArray((err as { issues?: unknown }).issues)
+  );
+}
 
 /**
  * Re-exported for callers building the tool-result message: dispatch returns
@@ -187,9 +200,17 @@ export function getOpenAITools(
         // Same-instance message rewrite: keeps the documented `instanceof
         // ZodError` contract while giving the rejection the same tool
         // attribution the SyntaxError path has — a bare "expected string at
-        // goal" names no tool in a parallel-call fan-out.
-        if (err instanceof z.ZodError) {
-          err.message = `[@concierge/openai] dispatch("${name}"): arguments failed inputSchema validation — ${err.message}`;
+        // goal" names no tool in a parallel-call fan-out. Best-effort: parse
+        // throws a FRESH error each call (no double-prefix), `message` is a
+        // writable own property on zod 4.4.3, and if a future zod makes it
+        // getter-only the attribution is skipped rather than replacing the
+        // ZodError with a TypeError mid-flight.
+        if (isZodError(err)) {
+          try {
+            err.message = `[@concierge/openai] dispatch("${name}"): arguments failed inputSchema validation — ${err.message}`;
+          } catch {
+            // attribution only — the original error still propagates below
+          }
         }
         throw err;
       }
