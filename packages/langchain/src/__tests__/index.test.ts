@@ -3,8 +3,9 @@
 // call), zod input validation + unknown-key stripping, schema reference
 // identity, multi-factory merging, empty-registry default, registry error
 // propagation, serialization safety (bigint / undefined / nested thenable),
-// single-tool toLangChainTool conversion, and fakeModel + bindTools
-// integrations (ToolCall → ToolMessage happy path + error propagation).
+// single-tool toLangChainTool conversion (incl. the non-object-schema guard),
+// and fakeModel + bindTools integrations (ToolCall → ToolMessage happy path +
+// error propagation + invalid-args rejection).
 
 import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@concierge/tools';
 import { HumanMessage } from '@langchain/core/messages';
@@ -46,7 +47,7 @@ describe('getLangChainTools', () => {
     }
   });
 
-  it('invoke resolves to the JSON-stringified value of ConciergeTool.invoke (LangChain string contract)', async () => {
+  it('invoke resolves to the JSON-stringified value of ConciergeTool.invoke (adapter string contract)', async () => {
     const tools = getLangChainTools(agent, [factory]);
     const propose = tools.find((t) => t.name === 'proposeAction');
     if (!propose) throw new Error('proposeAction missing');
@@ -62,13 +63,25 @@ describe('getLangChainTools', () => {
   });
 
   it('rejects invalid input via zod validation before reaching ConciergeTool.invoke', async () => {
-    const tools = getLangChainTools(agent, [factory]);
-    const propose = tools.find((t) => t.name === 'proposeAction');
-    if (!propose) throw new Error('proposeAction missing');
+    const received: unknown[] = [];
+    const recorder = tool({
+      name: 'recorder',
+      description: 'Records whether invoke was ever reached.',
+      inputSchema: z.object({ goal: z.string() }),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async (args) => {
+        received.push(args);
+        return { ok: true };
+      },
+    });
+    const tools = getLangChainTools(agent, [() => [recorder]]);
+    const lcRecorder = tools.find((t) => t.name === 'recorder');
+    if (!lcRecorder) throw new Error('recorder missing');
     // Compiles without @ts-expect-error because StructuredToolInterface erases
     // per-tool input generics — this test deliberately covers the RUNTIME
     // validation that backstops the erased static typing.
-    await expect(propose.invoke({ goal: 42 })).rejects.toThrow(/string/i);
+    await expect(lcRecorder.invoke({ goal: 42 })).rejects.toThrow(/string/i);
+    expect(received).toEqual([]);
   });
 
   it('rejects with the original error when invoke rejects (no swallowing, no wrapping)', async () => {
@@ -195,6 +208,21 @@ describe('toLangChainTool', () => {
       JSON.stringify({ summary: 'plan for hedge', riskScore: 2 }),
     );
   });
+
+  it('throws a TypeError naming the tool when inputSchema is not a Zod object (no silent string-input fallback)', () => {
+    const scalarInput = tool({
+      name: 'scalarInput',
+      description: 'Violates the registry object-schema invariant.',
+      inputSchema: z.string(),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => ({ ok: true }),
+    });
+    // Direct callers bypass createConciergeTools' isZodObject check; the
+    // adapter must fail loudly here instead of letting LangChain degrade the
+    // tool to a string-input shape that feeds raw strings into invoke.
+    expect(() => toLangChainTool(scalarInput)).toThrow(TypeError);
+    expect(() => toLangChainTool(scalarInput)).toThrow(/scalarInput.*object/i);
+  });
 });
 
 describe('bindTools integration', () => {
@@ -239,5 +267,29 @@ describe('bindTools integration', () => {
     await expect(
       lcFailing.invoke({ name: 'failing', args: {}, id: 'call-2', type: 'tool_call' }),
     ).rejects.toBe(boom);
+  });
+
+  it('rejects a model-issued ToolCall carrying invalid args (hallucinated types never reach invoke)', async () => {
+    const received: unknown[] = [];
+    const recorder = tool({
+      name: 'recorder',
+      description: 'Records whether invoke was ever reached.',
+      inputSchema: z.object({ goal: z.string() }),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async (args) => {
+        received.push(args);
+        return { ok: true };
+      },
+    });
+    const tools = getLangChainTools(agent, [() => [recorder]]);
+    const lcRecorder = tools.find((t) => t.name === 'recorder');
+    if (!lcRecorder) throw new Error('recorder missing');
+    // LangChain parses ToolCall args on a different branch than plain-args
+    // invoke — pin that this path also fails loudly, never an empty-success
+    // or error-status ToolMessage hiding the bad input.
+    await expect(
+      lcRecorder.invoke({ name: 'recorder', args: { goal: 42 }, id: 'call-3', type: 'tool_call' }),
+    ).rejects.toThrow();
+    expect(received).toEqual([]);
   });
 });
