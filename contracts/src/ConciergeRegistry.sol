@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {AccessControlUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import {PausableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import {UUPSUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {
+    AccessControlUpgradeable
+} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {
+    PausableUpgradeable
+} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {
+    ReentrancyGuardUpgradeable
+} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import {
+    UUPSUpgradeable
+} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {IConciergeRegistry} from "./interfaces/IConciergeRegistry.sol";
+import { IConciergeRegistry } from "./interfaces/IConciergeRegistry.sol";
 import {
     NotAgentOwner,
     AgentInactive,
@@ -50,7 +54,7 @@ contract ConciergeRegistry is
 {
     // ─── Constants ─────────────────────────────────────────────────────────
 
-    uint256 public constant MAX_POLICY_SIZE = 4_096;
+    uint256 public constant MAX_POLICY_SIZE = 4096;
 
     bytes32 public constant ADMIN_ROLE = DEFAULT_ADMIN_ROLE;
     bytes32 public constant AGENT_OPERATOR_ROLE = keccak256("AGENT_OPERATOR_ROLE");
@@ -77,7 +81,9 @@ contract ConciergeRegistry is
     /// @notice One-time initializer called via the proxy's constructor data.
     /// @param admin  Address that receives DEFAULT_ADMIN_ROLE + PAUSER_ROLE.
     ///               Must be non-zero; address(0) would make the proxy ungovernable.
-    function initialize(address admin) external initializer {
+    function initialize(
+        address admin
+    ) external initializer {
         if (admin == address(0)) revert InvalidOwner(admin);
 
         __AccessControl_init();
@@ -98,13 +104,7 @@ contract ConciergeRegistry is
         address validator,
         bytes32 goalHash,
         bytes calldata policyData
-    )
-        external
-        whenNotPaused
-        nonReentrant
-        onlyRole(AGENT_OPERATOR_ROLE)
-        returns (uint256 agentId)
-    {
+    ) external whenNotPaused nonReentrant onlyRole(AGENT_OPERATOR_ROLE) returns (uint256 agentId) {
         if (owner == address(0)) revert InvalidOwner(owner);
         if (validator == address(0)) revert InvalidValidator(validator);
         if (goalHash == bytes32(0)) revert EmptyGoalHash();
@@ -125,7 +125,10 @@ contract ConciergeRegistry is
     }
 
     /// @inheritdoc IConciergeRegistry
-    function updateGoal(uint256 agentId, bytes32 newGoalHash) external whenNotPaused {
+    function updateGoal(
+        uint256 agentId,
+        bytes32 newGoalHash
+    ) external whenNotPaused {
         _requireRegistered(agentId);
         _requireOwner(agentId);
         if (!_agents[agentId].active) revert AgentInactive(agentId);
@@ -138,7 +141,10 @@ contract ConciergeRegistry is
     /// @inheritdoc IConciergeRegistry
     /// @dev Inactive agents are also blocked — consistent with updateGoal. Deactivate,
     ///      then reactivate after the policy is ready.
-    function updatePolicy(uint256 agentId, bytes calldata newPolicy) external whenNotPaused {
+    function updatePolicy(
+        uint256 agentId,
+        bytes calldata newPolicy
+    ) external whenNotPaused {
         _requireRegistered(agentId);
         _requireOwner(agentId);
         if (!_agents[agentId].active) revert AgentInactive(agentId);
@@ -149,7 +155,10 @@ contract ConciergeRegistry is
     }
 
     /// @inheritdoc IConciergeRegistry
-    function setActive(uint256 agentId, bool active) external whenNotPaused {
+    function setActive(
+        uint256 agentId,
+        bool active
+    ) external whenNotPaused {
         _requireRegistered(agentId);
         _requireOwner(agentId);
 
@@ -158,7 +167,10 @@ contract ConciergeRegistry is
     }
 
     /// @inheritdoc IConciergeRegistry
-    function transferAgent(uint256 agentId, address newOwner) external whenNotPaused {
+    function transferAgent(
+        uint256 agentId,
+        address newOwner
+    ) external whenNotPaused {
         if (newOwner == address(0)) revert InvalidOwner(newOwner);
         _requireRegistered(agentId);
         _requireOwner(agentId);
@@ -187,29 +199,40 @@ contract ConciergeRegistry is
     // ─── Reads ─────────────────────────────────────────────────────────────
 
     /// @inheritdoc IConciergeRegistry
-    function getAgent(uint256 agentId) external view returns (AgentRecord memory) {
+    function getAgent(
+        uint256 agentId
+    ) external view returns (AgentRecord memory) {
         _requireRegistered(agentId);
         return _agents[agentId];
     }
 
     /// @inheritdoc IConciergeRegistry
-    function agentsByOwner(address owner) external view returns (uint256[] memory) {
+    function agentsByOwner(
+        address owner
+    ) external view returns (uint256[] memory) {
         return _agentsByOwner[owner];
     }
 
     // ─── Internal helpers ──────────────────────────────────────────────────
 
-    function _requireRegistered(uint256 agentId) internal view {
+    function _requireRegistered(
+        uint256 agentId
+    ) internal view {
         if (_agents[agentId].activatedAt == 0) revert AgentNotFound(agentId);
     }
 
-    function _requireOwner(uint256 agentId) internal view {
+    function _requireOwner(
+        uint256 agentId
+    ) internal view {
         if (_agents[agentId].owner != msg.sender) revert NotAgentOwner(agentId, msg.sender);
     }
 
     /// O(n) removal from the owner's agent list. Reverts with OwnerIndexCorrupted
     /// if the ID is absent — this should be unreachable under correct operation.
-    function _removeFromOwnerIndex(address owner, uint256 agentId) internal {
+    function _removeFromOwnerIndex(
+        address owner,
+        uint256 agentId
+    ) internal {
         uint256[] storage ids = _agentsByOwner[owner];
         uint256 len = ids.length;
         for (uint256 i = 0; i < len; ++i) {
@@ -223,7 +246,9 @@ contract ConciergeRegistry is
     }
 
     /// @dev UUPS upgrade gate — only DEFAULT_ADMIN_ROLE may trigger upgrades.
-    function _authorizeUpgrade(address) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    function _authorizeUpgrade(
+        address
+    ) internal override onlyRole(DEFAULT_ADMIN_ROLE) { }
 
     // ─── Storage gap ───────────────────────────────────────────────────────
 

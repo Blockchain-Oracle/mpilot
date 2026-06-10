@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {ConciergeRegistryBase} from "./ConciergeRegistryBase.t.sol";
-import {IConciergeRegistry} from "../src/interfaces/IConciergeRegistry.sol";
+import { ConciergeRegistryBase } from "./ConciergeRegistryBase.t.sol";
+import { IConciergeRegistry } from "../src/interfaces/IConciergeRegistry.sol";
 import {
     NotAgentOwner,
     AgentInactive,
@@ -12,7 +12,7 @@ import {
     PolicyTooLarge,
     AgentNotFound
 } from "../src/errors/ConciergeErrors.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 /// @notice Core CRUD tests for ConciergeRegistry (registerAgent, updateGoal,
 /// updatePolicy, setActive, reads, fuzz). Admin/pause/upgrade: ConciergeRegistryAdmin.t.sol.
@@ -252,7 +252,9 @@ contract ConciergeRegistryTest is ConciergeRegistryBase {
 
     // ─── Fuzz ──────────────────────────────────────────────────────────────
 
-    function testFuzz_registerAgent_idAlwaysIncrements(uint8 count) public {
+    function testFuzz_registerAgent_idAlwaysIncrements(
+        uint8 count
+    ) public {
         count = uint8(bound(count, 1, 50));
         for (uint256 i = 0; i < count; i++) {
             vm.prank(operator);
@@ -263,8 +265,10 @@ contract ConciergeRegistryTest is ConciergeRegistryBase {
         assertEq(registry.nextAgentId(), uint256(count) + 1);
     }
 
-    function testFuzz_updatePolicy_rejectsOversized(uint16 rawSize) public {
-        uint256 size = bound(rawSize, 4097, 65535);
+    function testFuzz_updatePolicy_rejectsOversized(
+        uint16 rawSize
+    ) public {
+        uint256 size = bound(rawSize, 4097, 65_535);
         uint256 id = _registerAlice();
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(PolicyTooLarge.selector, size));

@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {ConciergeRegistryBase} from "./ConciergeRegistryBase.t.sol";
-import {ConciergeRegistry} from "../src/ConciergeRegistry.sol";
-import {ConciergeRegistryProxy} from "../src/ConciergeRegistryProxy.sol";
-import {IConciergeRegistry} from "../src/interfaces/IConciergeRegistry.sol";
-import {
-    NotAgentOwner,
-    InvalidOwner,
-    AgentNotFound
-} from "../src/errors/ConciergeErrors.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import { ConciergeRegistryBase } from "./ConciergeRegistryBase.t.sol";
+import { ConciergeRegistry } from "../src/ConciergeRegistry.sol";
+import { ConciergeRegistryProxy } from "../src/ConciergeRegistryProxy.sol";
+import { IConciergeRegistry } from "../src/interfaces/IConciergeRegistry.sol";
+import { NotAgentOwner, InvalidOwner, AgentNotFound } from "../src/errors/ConciergeErrors.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 
 /// @notice Tests for initialization, transferAgent, pause/unpause, roles, and
 /// UUPS upgrade gate. Core CRUD tests: ConciergeRegistry.t.sol.
@@ -134,8 +130,7 @@ contract ConciergeRegistryAdminTest is ConciergeRegistryBase {
         vm.prank(operator);
         uint256 id1 = registry.registerAgent(alice, validator, goalHash, policyData);
         vm.prank(operator);
-        uint256 id2 =
-            registry.registerAgent(alice, validator, keccak256("goal-2"), policyData);
+        uint256 id2 = registry.registerAgent(alice, validator, keccak256("goal-2"), policyData);
         uint256[] memory ids = registry.agentsByOwner(alice);
         assertEq(ids.length, 2);
         assertEq(ids[0], id1);
@@ -235,8 +230,7 @@ contract ConciergeRegistryAdminTest is ConciergeRegistryBase {
     function test_upgrade_preservesStateWithNonEmptyRegistry() public {
         uint256 id1 = _registerAlice();
         vm.prank(operator);
-        uint256 id2 =
-            registry.registerAgent(bob, validator, keccak256("g2"), policyData);
+        uint256 id2 = registry.registerAgent(bob, validator, keccak256("g2"), policyData);
 
         ConciergeRegistry newImpl = new ConciergeRegistry();
         vm.prank(admin);

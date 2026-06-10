@@ -49,20 +49,32 @@ interface IConciergeRegistry {
     ) external returns (uint256 agentId);
 
     /// @notice Update the goal hash for an agent. Caller must be the owner.
-    function updateGoal(uint256 agentId, bytes32 newGoalHash) external;
+    function updateGoal(
+        uint256 agentId,
+        bytes32 newGoalHash
+    ) external;
 
     /// @notice Replace an agent's policy blob. Caller must be the owner.
     /// @dev Reverts with PolicyTooLarge if newPolicy.length > 4096.
     ///      Reverts with AgentInactive if the agent is deactivated — consistent
     ///      with updateGoal. Deactivate → update → reactivate is the intended flow.
-    function updatePolicy(uint256 agentId, bytes calldata newPolicy) external;
+    function updatePolicy(
+        uint256 agentId,
+        bytes calldata newPolicy
+    ) external;
 
     /// @notice Flip the active flag. Caller must be the owner.
-    function setActive(uint256 agentId, bool active) external;
+    function setActive(
+        uint256 agentId,
+        bool active
+    ) external;
 
     /// @notice Transfer ownership of an agent. Caller must be the current owner.
     /// @dev Reverts with InvalidOwner if newOwner is address(0) or the current owner.
-    function transferAgent(uint256 agentId, address newOwner) external;
+    function transferAgent(
+        uint256 agentId,
+        address newOwner
+    ) external;
 
     /// @notice Pause all mutations. Requires PAUSER_ROLE.
     function pause() external;
@@ -74,8 +86,12 @@ interface IConciergeRegistry {
 
     /// @notice Returns the full AgentRecord. Never reverts when paused.
     /// @dev Reverts with AgentNotFound if the ID has never been registered.
-    function getAgent(uint256 agentId) external view returns (AgentRecord memory);
+    function getAgent(
+        uint256 agentId
+    ) external view returns (AgentRecord memory);
 
     /// @notice Returns all agentIds owned by `owner` at the time of the call.
-    function agentsByOwner(address owner) external view returns (uint256[] memory);
+    function agentsByOwner(
+        address owner
+    ) external view returns (uint256[] memory);
 }
