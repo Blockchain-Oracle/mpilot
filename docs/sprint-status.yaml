@@ -184,11 +184,11 @@ stories:
     merged_at: "2026-06-10T20:53:21Z"
   - id: story-24-sdk-config-loader
     epic: "Epic E2 — Shared SDK Core"
-    status: IN_PROGRESS
+    status: COMPLETE
     depends_on: [story-22-sdk-skeleton]
     issue_url: ""
     pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/34"
-    merged_at: ""
+    merged_at: "2026-06-10T21:20:23Z"
 
   # ─────────────────────────────────────────────────────────────────
   # Epic E3 — Action Providers
