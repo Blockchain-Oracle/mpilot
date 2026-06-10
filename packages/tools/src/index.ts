@@ -2,7 +2,7 @@
 
 export { bigintSafeStringify, type JsonSerializable } from './bigintSafeStringify.ts';
 export { createConciergeTools } from './createConciergeTools.ts';
-export { isZodObject } from './guards.ts';
+export { isZodObject, isZodPipe } from './guards.ts';
 export {
   CARD_SCHEMAS,
   type SerializablePortfolioCard,

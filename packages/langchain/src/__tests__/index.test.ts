@@ -223,6 +223,18 @@ describe('toLangChainTool', () => {
     expect(() => toLangChainTool(scalarInput)).toThrow(TypeError);
     expect(() => toLangChainTool(scalarInput)).toThrow(/scalarInput.*object/i);
   });
+
+  it('names .transform()/.pipe() schemas specifically (actionable fix: normalize inside invoke)', () => {
+    const pipedInput = tool({
+      name: 'pipedInput',
+      description: 'Uses a transform chain on its input schema.',
+      inputSchema: z.object({ goal: z.string() }).transform((v) => v),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => ({ ok: true }),
+    });
+    expect(() => toLangChainTool(pipedInput)).toThrow(TypeError);
+    expect(() => toLangChainTool(pipedInput)).toThrow(/pipedInput.*transform\(\) or \.pipe\(\)/);
+  });
 });
 
 describe('bindTools integration', () => {
@@ -284,12 +296,13 @@ describe('bindTools integration', () => {
     const tools = getLangChainTools(agent, [() => [recorder]]);
     const lcRecorder = tools.find((t) => t.name === 'recorder');
     if (!lcRecorder) throw new Error('recorder missing');
-    // LangChain parses ToolCall args on a different branch than plain-args
-    // invoke — pin that this path also fails loudly, never an empty-success
-    // or error-status ToolMessage hiding the bad input.
+    // LangChain routes ToolCall input through a different extraction +
+    // ToolMessage-wrapping path than plain-args invoke — pin that this path
+    // also fails loudly, never an empty-success or error-status ToolMessage
+    // hiding the bad input.
     await expect(
       lcRecorder.invoke({ name: 'recorder', args: { goal: 42 }, id: 'call-3', type: 'tool_call' }),
-    ).rejects.toThrow();
+    ).rejects.toThrow(/string/i);
     expect(received).toEqual([]);
   });
 });

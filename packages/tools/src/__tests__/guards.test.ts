@@ -89,6 +89,12 @@ describe('isZodObject / isZodPipe (ADR-017 gate)', () => {
     expect(isZodObject(z.object({ x: z.string() }))).toBe(true);
   });
 
+  it('isZodObject accepts a cross-realm duck-typed object schema (different zod copy)', () => {
+    expect(isZodObject({ _def: { type: 'object' }, safeParse: () => ({ success: true }) })).toBe(
+      true,
+    );
+  });
+
   it('isZodObject rejects scalars, arrays, unions, transforms', () => {
     expect(isZodObject(z.string())).toBe(false);
     expect(isZodObject(z.array(z.string()))).toBe(false);

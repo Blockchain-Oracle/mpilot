@@ -12,6 +12,7 @@ import {
   type ConciergeTool,
   createConciergeTools,
   isZodObject,
+  isZodPipe,
   type ProviderToolFactory,
 } from '@concierge/tools';
 import { tool as lcTool, type StructuredToolInterface } from '@langchain/core/tools';
@@ -26,10 +27,23 @@ import { tool as lcTool, type StructuredToolInterface } from '@langchain/core/to
  * invariant `createConciergeTools` already enforces. Without the guard, a
  * missing or plain-string schema would make LangChain's `tool()` build a
  * string-input DynamicTool that feeds raw strings into an `invoke` expecting
- * a parsed object, and other non-object schemas fail in equally quiet ways.
+ * a parsed object, and other non-object schemas surface only as confusing
+ * call-time parse failures or quiet pass-throughs, never as a
+ * construction-time error.
  */
 export function toLangChainTool(t: ConciergeTool): StructuredToolInterface {
-  if (!isZodObject(t.inputSchema)) {
+  // Guards run against a local so their narrowing cannot leak into the
+  // `schema:` argument below: narrowing to the unrefined
+  // z.ZodObject<z.ZodRawShape> flips LangChain's tool() overload resolution
+  // onto its string-input DynamicTool arm, which fails to typecheck under
+  // exactOptionalPropertyTypes.
+  const inputSchema = t.inputSchema;
+  if (isZodPipe(inputSchema)) {
+    throw new TypeError(
+      `Tool "${t.name}" inputSchema uses .transform() or .pipe(); perform normalization inside invoke() instead — LangChain must parse with the plain z.object shape.`,
+    );
+  }
+  if (!isZodObject(inputSchema)) {
     throw new TypeError(
       `Tool "${t.name}" has a non-object inputSchema; ConciergeTool requires a Zod object schema (z.object({ ... })).`,
     );
