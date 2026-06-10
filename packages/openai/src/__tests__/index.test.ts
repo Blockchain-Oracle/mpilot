@@ -2,11 +2,13 @@
 // function-tool shape (no SDK wrapped), OpenAPI-3 `parameters` emission
 // (incl. near-exact wire content for defaults/optionals/enums — the coverage
 // of record until packages/tools grows a toJsonSchema.test.ts), dispatch with
-// string/object args (parse-before-invoke invariant, malformed/non-object
-// JSON, unknown-tool + empty-registry errors, rejection passthrough by
-// identity), registry behavior passthrough (multi-factory merge, chain
-// gating, empty default, duplicate-name error), single-tool toOpenAITool
-// conversion (pipe + non-object guards, toJsonSchema attribution), type-level
+// string/object args (parse-before-invoke invariant, tool-attributed
+// SyntaxError with cause + tool-attributed ZodError same-instance,
+// malformed/non-object JSON, unknown-tool + empty-registry errors, rejection
+// passthrough by identity, snapshot survives tools-array mutation), registry
+// behavior passthrough (multi-factory merge, chain gating, empty default,
+// duplicate-name error), single-tool toOpenAITool conversion (transform AND
+// plain-pipe guards, non-object guard, toJsonSchema attribution), type-level
 // compat with the `openai` SDK, the Anthropic key-rename recipe, and the
 // re-exported bigintSafeStringify for wei-scale tool results.
 
@@ -166,7 +168,12 @@ describe('getOpenAITools — dispatch', () => {
       },
     });
     const toolkit = getOpenAITools(agent, [() => [recorder]]);
+    // instanceof AND attribution on the SAME rejection: the message rewrite
+    // must not replace the ZodError instance consumers branch on.
     await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toBeInstanceOf(z.ZodError);
+    await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toThrow(
+      /dispatch\("recorder"\).*failed inputSchema validation/,
+    );
     await expect(toolkit.dispatch('recorder', { goal: 42 })).rejects.toThrow(/expected string/i);
     expect(received).toEqual([]);
   });
@@ -184,6 +191,21 @@ describe('getOpenAITools — dispatch', () => {
     await expect(toolkit.dispatch('proposeAction', '{not json')).rejects.toThrow(
       /dispatch\("proposeAction"\).*malformed JSON/,
     );
+    // The original JSON.parse error must survive as `cause` — a refactor that
+    // drops the options bag would otherwise pass the two checks above.
+    await expect(toolkit.dispatch('proposeAction', '{not json')).rejects.toMatchObject({
+      cause: expect.any(SyntaxError),
+    });
+  });
+
+  it('dispatch executes from its registry snapshot even after toolkit.tools is mutated', async () => {
+    // Pins the documented "tools is a snapshot" contract: emptying the
+    // request-body array must not change what dispatch can execute.
+    const toolkit = getOpenAITools(agent, [factory]);
+    toolkit.tools.length = 0;
+    await expect(toolkit.dispatch('getPortfolio', '{}')).resolves.toEqual({
+      positions: ['sUSDe'],
+    });
   });
 
   it('rejects loudly on an unknown tool name, listing the known tools (model hallucination guard)', async () => {
@@ -241,18 +263,34 @@ describe('toOpenAITool', () => {
   });
 
   it('names .transform()/.pipe() schemas specifically (actionable fix: normalize inside invoke)', () => {
-    const pipedInput = tool({
-      name: 'pipedInput',
+    const transformedInput = tool({
+      name: 'transformedInput',
       description: 'Uses a transform chain on its input schema.',
       inputSchema: z.object({ goal: z.string() }).transform((v) => v),
       outputSchema: z.object({ ok: z.boolean() }),
       invoke: async () => ({ ok: true }),
     });
-    // z.toJSONSchema may silently convert a pipe as its first segment —
-    // advertising a schema that doesn't match what parse() produces. The
-    // guard turns that drift into a construction-time error.
-    expect(() => toOpenAITool(pipedInput)).toThrow(TypeError);
-    expect(() => toOpenAITool(pipedInput)).toThrow(/pipedInput.*transform\(\) or \.pipe\(\)/);
+    // The plain .pipe() is the SILENT failure mode the guard exists for:
+    // z.toJSONSchema converts it as its OUTPUT (last) segment — advertising
+    // what parse() *returns*, not what it *accepts* — so without the guard
+    // the model is handed a schema its arguments can never satisfy. (A
+    // .transform() merely throws; only the pipe ships a wrong schema.)
+    const pipedInput = tool({
+      name: 'pipedInput',
+      description: 'Pipes its input schema into a second schema.',
+      inputSchema: z.object({ goal: z.string() }).pipe(z.object({ goal: z.string() })),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => ({ ok: true }),
+    });
+    for (const [fixture, name] of [
+      [transformedInput, 'transformedInput'],
+      [pipedInput, 'pipedInput'],
+    ] as const) {
+      expect(() => toOpenAITool(fixture)).toThrow(TypeError);
+      expect(() => toOpenAITool(fixture)).toThrow(
+        new RegExp(`${name}.*transform\\(\\) or \\.pipe\\(\\)`),
+      );
+    }
   });
 
   it('surfaces toJsonSchema attribution when a NESTED schema is unrepresentable', () => {

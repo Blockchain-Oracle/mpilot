@@ -1,10 +1,11 @@
 // Convert a tool's schemas to OpenAPI 3 JSON Schema for OpenAI / Anthropic / MCP.
-// Behavior on non-representable shapes:
+// Behavior on non-representable shapes (verified against zod@4.4.3):
 //  - Refinements (.refine, .superRefine) are stripped silently.
 //  - .transform() throws at conversion time (shape changes, no safe round-trip).
-//  - z.custom() emits trivial `{}` (no constraints) — adapter sends a schema-less
-//    field to the LLM.
-//  - .pipe() may convert as the first segment or throw — adapter should validate.
+//  - z.custom() throws ("Custom types cannot be represented") — root or nested.
+//  - A plain .pipe() silently converts as its OUTPUT (last) segment —
+//    advertising what parse() *returns*, not what it *accepts* — so adapters
+//    must reject pipes before calling this.
 // Wrapper re-throws with tool name + field (inputSchema vs outputSchema) for
 // attribution; original Zod throw preserved as `cause`. ADR-017 outputSchema-
 // must-be-ZodObject is enforced upstream in createConciergeTools.
@@ -23,7 +24,7 @@ function convert(
     throw new Error(
       `[@concierge/tools] toJsonSchema: cannot convert ${field} for tool "${toolName}" — ${
         cause instanceof Error ? cause.message : String(cause)
-      }. .transform() / z.custom() / .pipe() are not representable in JSON Schema.`,
+      }. .transform() / z.custom() are not representable in JSON Schema.`,
       { cause },
     );
   }

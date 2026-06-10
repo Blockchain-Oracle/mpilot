@@ -17,6 +17,7 @@ import {
   type ProviderToolFactory,
   toJsonSchema,
 } from '@concierge/tools';
+import { z } from 'zod';
 
 /**
  * Re-exported for callers building the tool-result message: dispatch returns
@@ -99,14 +100,21 @@ export function toOpenAITool(t: ConciergeTool): OpenAIFunctionTool {
       `Tool "${t.name}" has a non-object inputSchema; ConciergeTool requires a Zod object schema (z.object({ ... })).`,
     );
   }
+  const parameters = toJsonSchema(t);
+  // The isZodObject guard makes a root `type: 'object'` certain today, but
+  // that rests on z.toJSONSchema's emission behavior — guard loudly instead
+  // of stamping the literal over a malformed root if a zod bump changes it.
+  if (parameters['type'] !== 'object') {
+    throw new TypeError(
+      `[@concierge/openai] toOpenAITool: expected a root type:"object" schema for tool "${t.name}", got ${JSON.stringify(parameters['type'])} — z.toJSONSchema emission may have changed; pin/check the zod version.`,
+    );
+  }
   return {
     type: 'function',
     function: {
       name: t.name,
       description: t.description,
-      // Safe after the isZodObject guard: z.toJSONSchema on a ZodObject with
-      // target openapi-3.0 always emits a root `type: 'object'`.
-      parameters: toJsonSchema(t) as OpenAIFunctionDefinition['parameters'],
+      parameters: { ...parameters, type: 'object' },
     },
   };
 }
@@ -118,12 +126,16 @@ export function toOpenAITool(t: ConciergeTool): OpenAIFunctionTool {
  * same — if the model never sees your tools, check both), and registry
  * validation errors (duplicate names, schema violations) propagate unchanged.
  *
- * `dispatch` parses string args as JSON (SyntaxError propagates), rejects
- * unknown tool names loudly, and validates with the tool's own `inputSchema`
+ * `dispatch` parses string args as JSON (malformed JSON re-raises as a
+ * tool-attributed `SyntaxError`, original error as `cause`), rejects unknown
+ * tool names loudly, and validates with the tool's own `inputSchema`
  * BEFORE invoking — `invoke` always receives the PARSED value (defaults
  * applied, unknown keys stripped), the same invariant every other Concierge
  * adapter upholds. No framework sits in between here, so the adapter is the
- * one that must parse.
+ * one that must parse. `outputSchema` is deliberately NOT enforced on the
+ * return value: Chat Completions has no return-shape slot, and dispatch
+ * hands back the raw `invoke()` result (same policy as the langchain
+ * sibling) — output validation belongs to the tool.
  *
  * Cancelling a model run does NOT cancel an in-flight tool call —
  * `ConciergeTool.invoke` takes no abort signal, so a started execution
@@ -168,7 +180,20 @@ export function getOpenAITools(
       } else {
         parsed = args;
       }
-      return t.invoke(t.inputSchema.parse(parsed));
+      let input: unknown;
+      try {
+        input = t.inputSchema.parse(parsed);
+      } catch (err) {
+        // Same-instance message rewrite: keeps the documented `instanceof
+        // ZodError` contract while giving the rejection the same tool
+        // attribution the SyntaxError path has — a bare "expected string at
+        // goal" names no tool in a parallel-call fan-out.
+        if (err instanceof z.ZodError) {
+          err.message = `[@concierge/openai] dispatch("${name}"): arguments failed inputSchema validation — ${err.message}`;
+        }
+        throw err;
+      }
+      return t.invoke(input);
     },
   };
 }
