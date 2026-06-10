@@ -14,6 +14,9 @@ error AgentInactive(uint256 agentId);
 /// @param validator  The zero-or-unsupported address that was rejected.
 error InvalidValidator(address validator);
 
+/// @param owner  The zero address rejected as owner or newOwner.
+error InvalidOwner(address owner);
+
 /// Thrown when goalHash is bytes32(0) — the hash of an empty goal.
 error EmptyGoalHash();
 
@@ -22,3 +25,7 @@ error PolicyTooLarge(uint256 size);
 
 /// @param agentId  Queried ID that has never been registered.
 error AgentNotFound(uint256 agentId);
+
+/// Thrown by _removeFromOwnerIndex when the ID is absent from the owner's index —
+/// indicates an invariant violation (index diverged from storage).
+error OwnerIndexCorrupted(address owner, uint256 agentId);

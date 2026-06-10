@@ -5,9 +5,11 @@ import {
     NotAgentOwner,
     AgentInactive,
     InvalidValidator,
+    InvalidOwner,
     EmptyGoalHash,
     PolicyTooLarge,
-    AgentNotFound
+    AgentNotFound,
+    OwnerIndexCorrupted
 } from "../errors/ConciergeErrors.sol";
 
 /// @notice On-chain identity + policy store for Concierge agents (ADR-009).
@@ -51,12 +53,15 @@ interface IConciergeRegistry {
 
     /// @notice Replace an agent's policy blob. Caller must be the owner.
     /// @dev Reverts with PolicyTooLarge if newPolicy.length > 4096.
+    ///      Reverts with AgentInactive if the agent is deactivated — consistent
+    ///      with updateGoal. Deactivate → update → reactivate is the intended flow.
     function updatePolicy(uint256 agentId, bytes calldata newPolicy) external;
 
     /// @notice Flip the active flag. Caller must be the owner.
     function setActive(uint256 agentId, bool active) external;
 
     /// @notice Transfer ownership of an agent. Caller must be the current owner.
+    /// @dev Reverts with InvalidOwner if newOwner is address(0) or the current owner.
     function transferAgent(uint256 agentId, address newOwner) external;
 
     /// @notice Pause all mutations. Requires PAUSER_ROLE.

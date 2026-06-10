@@ -15,9 +15,11 @@ import {
     NotAgentOwner,
     AgentInactive,
     InvalidValidator,
+    InvalidOwner,
     EmptyGoalHash,
     PolicyTooLarge,
-    AgentNotFound
+    AgentNotFound,
+    OwnerIndexCorrupted
 } from "./errors/ConciergeErrors.sol";
 
 /// @notice On-chain identity + policy store for Concierge agents (ADR-009).
@@ -29,10 +31,16 @@ import {
 ///   AGENT_OPERATOR_ROLE — call registerAgent
 ///   PAUSER_ROLE         — pause / unpause mutations
 ///
+/// Agent state machine:
+///   activatedAt == 0              → never registered (default mapping slot)
+///   activatedAt > 0, active=false → registered but deactivated by owner
+///   activatedAt > 0, active=true  → registered and operational
+///
 /// Storage invariants:
 ///   agents[id].activatedAt > 0  ↔  id was ever registered
 ///   nextAgentId starts at 1; 0 is the sentinel "unregistered" value
 ///   policyData.length ≤ 4096 at write time
+///   owner is never address(0) (enforced at register + transfer)
 contract ConciergeRegistry is
     IConciergeRegistry,
     AccessControlUpgradeable,
@@ -68,7 +76,10 @@ contract ConciergeRegistry is
 
     /// @notice One-time initializer called via the proxy's constructor data.
     /// @param admin  Address that receives DEFAULT_ADMIN_ROLE + PAUSER_ROLE.
+    ///               Must be non-zero; address(0) would make the proxy ungovernable.
     function initialize(address admin) external initializer {
+        if (admin == address(0)) revert InvalidOwner(admin);
+
         __AccessControl_init();
         __Pausable_init();
         __ReentrancyGuard_init();
@@ -94,6 +105,7 @@ contract ConciergeRegistry is
         onlyRole(AGENT_OPERATOR_ROLE)
         returns (uint256 agentId)
     {
+        if (owner == address(0)) revert InvalidOwner(owner);
         if (validator == address(0)) revert InvalidValidator(validator);
         if (goalHash == bytes32(0)) revert EmptyGoalHash();
         if (policyData.length > MAX_POLICY_SIZE) revert PolicyTooLarge(policyData.length);
@@ -124,9 +136,12 @@ contract ConciergeRegistry is
     }
 
     /// @inheritdoc IConciergeRegistry
+    /// @dev Inactive agents are also blocked — consistent with updateGoal. Deactivate,
+    ///      then reactivate after the policy is ready.
     function updatePolicy(uint256 agentId, bytes calldata newPolicy) external whenNotPaused {
         _requireRegistered(agentId);
         _requireOwner(agentId);
+        if (!_agents[agentId].active) revert AgentInactive(agentId);
         if (newPolicy.length > MAX_POLICY_SIZE) revert PolicyTooLarge(newPolicy.length);
 
         _agents[agentId].policyData = newPolicy;
@@ -144,10 +159,13 @@ contract ConciergeRegistry is
 
     /// @inheritdoc IConciergeRegistry
     function transferAgent(uint256 agentId, address newOwner) external whenNotPaused {
+        if (newOwner == address(0)) revert InvalidOwner(newOwner);
         _requireRegistered(agentId);
         _requireOwner(agentId);
 
         address prev = _agents[agentId].owner;
+        if (newOwner == prev) revert InvalidOwner(newOwner);
+
         _agents[agentId].owner = newOwner;
 
         _removeFromOwnerIndex(prev, agentId);
@@ -189,7 +207,8 @@ contract ConciergeRegistry is
         if (_agents[agentId].owner != msg.sender) revert NotAgentOwner(agentId, msg.sender);
     }
 
-    /// O(n) removal from the owner's agent list. Acceptable for per-owner scale.
+    /// O(n) removal from the owner's agent list. Reverts with OwnerIndexCorrupted
+    /// if the ID is absent — this should be unreachable under correct operation.
     function _removeFromOwnerIndex(address owner, uint256 agentId) internal {
         uint256[] storage ids = _agentsByOwner[owner];
         uint256 len = ids.length;
@@ -200,6 +219,7 @@ contract ConciergeRegistry is
                 return;
             }
         }
+        revert OwnerIndexCorrupted(owner, agentId);
     }
 
     /// @dev UUPS upgrade gate — only DEFAULT_ADMIN_ROLE may trigger upgrades.
@@ -207,8 +227,9 @@ contract ConciergeRegistry is
 
     // ─── Storage gap ───────────────────────────────────────────────────────
 
-    // Reserves 50 slots for future storage variables in this contract.
-    // Subtracting slots used: nextAgentId(1) = 1 used, so 49 remain free.
-    // Standard pattern: declare gap as [50] and let future versions shrink it.
-    uint256[49] private __gap;
+    // 50 reserved slots for future fields. Slots consumed by this contract:
+    //   nextAgentId (1) + _agents mapping root (1) + _agentsByOwner mapping root (1) = 3.
+    // 50 - 3 = 47 remaining. OZ v5 parents use ERC-7201 namespaced storage
+    // and consume zero sequential slots here.
+    uint256[47] private __gap;
 }
