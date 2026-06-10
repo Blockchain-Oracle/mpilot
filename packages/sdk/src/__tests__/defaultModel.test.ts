@@ -101,6 +101,24 @@ describe('defaultModel (ADR-016 env auto-detect)', () => {
     expect(() => defaultModel('anthropic:\u00a0claude-sonnet-4-6')).toThrow(/\\u00a0/);
   });
 
+  it('rejects invisibles in the PROVIDER segment too, not just the model segment', () => {
+    expect(() => defaultModel('anthro\u200bpic:claude-sonnet-4-6')).toThrow(/\\u200b/);
+  });
+
+  it('escapes invisibles in the FORMAT error too \u2014 a ZWSP-only spec must not render as got ""', () => {
+    // U+200B survives .trim(), so a ZWSP-only spec does NOT fall back to the
+    // default; it has no colon and hits the malformed-spec branch. Without
+    // escaping there, the error renders as `got ""` \u2014 maximally confusing,
+    // because an actually-empty spec falls back and never produces it.
+    expect(() => defaultModel('\u200b')).toThrow(/\\u200b/);
+  });
+
+  it('an NBSP-only spec falls back to the default \u2014 NBSP IS stripped by .trim()', () => {
+    // Companion to the ZWSP case: the two invisibles behave differently by
+    // design (trim strips Unicode whitespace, which includes NBSP but not ZWSP).
+    expect(defaultModel('\u00a0').modelId).toBe('claude-sonnet-4-6');
+  });
+
   it('treats a whitespace-only spec as unset, consistent with the empty string', () => {
     // AI_MODEL=" " in a quoted .env line must behave like AI_MODEL="" (fall
     // back to the default), not crash at startup with a confusing `got ""`.

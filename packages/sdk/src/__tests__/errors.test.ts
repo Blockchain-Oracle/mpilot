@@ -63,13 +63,17 @@ describe('ConciergeError (ADR-019)', () => {
     }
   });
 
-  it('installs falsy-but-defined causes — only undefined means "omitted"', () => {
+  it.each([
+    [null],
+    [0],
+    [''],
+  ])('installs the falsy-but-defined cause %p — only undefined means "omitted"', (cause) => {
     // The discriminator is `cause === undefined`, NOT truthiness: a provider
     // that rejects with null must not have its cause silently dropped. A
     // refactor to `cause ? { cause } : undefined` would break exactly this.
-    const err = new ConciergeError('RpcError', 'rejected with null', null);
+    const err = new ConciergeError('RpcError', 'falsy cause', cause);
     expect('cause' in err).toBe(true);
-    expect(err.cause).toBeNull();
+    expect(err.cause).toBe(cause);
   });
 
   it('CONCIERGE_ERROR_TYPES is frozen — it IS the constructor runtime guard', () => {
@@ -78,11 +82,28 @@ describe('ConciergeError (ADR-019)', () => {
     expect(Object.isFrozen(CONCIERGE_ERROR_TYPES)).toBe(true);
   });
 
+  it('push() onto the frozen list throws TypeError — loud in strict AND sloppy mode', () => {
+    // Index assignment on a frozen array no-ops silently in sloppy mode, but
+    // push() throws in both modes (non-writable length), so the widening
+    // attack fails loudly even from a sloppy-mode consumer.
+    expect(() => (CONCIERGE_ERROR_TYPES as unknown as string[]).push('Whatever')).toThrow(
+      TypeError,
+    );
+  });
+
   it('type is non-writable after construction — the guard cannot be bypassed by reassignment', () => {
     const err = new ConciergeError('RpcError', 'x');
     expect(() => {
       (err as { type: string }).type = 'Whatever';
     }).toThrow(TypeError);
+    expect(err.type).toBe('RpcError');
+  });
+
+  it('type is non-configurable too — defineProperty cannot bypass the guard either', () => {
+    // { writable: false } alone leaves configurable: true, so
+    // Object.defineProperty(err, 'type', { value: 'X' }) would still succeed.
+    const err = new ConciergeError('RpcError', 'x');
+    expect(() => Object.defineProperty(err, 'type', { value: 'Whatever' })).toThrow(TypeError);
     expect(err.type).toBe('RpcError');
   });
 

@@ -11,7 +11,11 @@
 // `ConciergeRegistry.sepolia()`'s zero-address placeholders (pending
 // story-192's mock deploys) — SDK-only consumers must be able to detect a
 // pending slot without reading the README.
-export { SEPOLIA_PENDING_ADDRESS_SLOTS, type SepoliaAddressPath } from '@concierge/shared';
+export {
+  type AddressPath,
+  SEPOLIA_PENDING_ADDRESS_SLOTS,
+  type SepoliaAddressPath,
+} from '@concierge/shared';
 export {
   bigintSafeStringify,
   CARD_SCHEMAS,

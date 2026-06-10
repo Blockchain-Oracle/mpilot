@@ -34,16 +34,12 @@ export function isConciergeErrorType(value: unknown): value is ConciergeErrorTyp
  * `err.type` + Anthropic status-class blend, per ADR-019 / SDK-DX-STUDY §F):
  * `instanceof ConciergeError` to detect, `switch (err.type)` to handle.
  *
- * `cause` is forwarded through native `ErrorOptions` rather than stored as a
- * class field, near-preserving native semantics: it is installed only when
- * provided and defined (`'cause' in err` is false otherwise) and
- * non-enumerable, so `JSON.stringify(err)` never leaks the raw cause (a viem
- * revert can carry calldata / RPC URLs). Falsy-but-defined causes (`null`,
- * `0`, `''`) ARE installed — the discriminator is `=== undefined`, not
- * truthiness. One deliberate divergence from native: an explicit
- * `new ConciergeError(t, m, undefined)` is treated as omitted, whereas
- * native `new Error(m, { cause: undefined })` installs an own
- * `cause: undefined`.
+ * `cause` is forwarded through native `ErrorOptions` (non-enumerable, so
+ * `JSON.stringify(err)` never leaks raw RPC payloads); falsy-but-defined
+ * causes (`null`, `0`, `''`) ARE installed. One deliberate divergence from
+ * native: an explicit `new ConciergeError(t, m, undefined)` is treated as
+ * omitted, whereas native `new Error(m, { cause: undefined })` installs an
+ * own `cause: undefined`. `name` stays writable, matching native Error.
  */
 export class ConciergeError extends Error {
   override readonly name = 'ConciergeError';
@@ -64,6 +60,8 @@ export class ConciergeError extends Error {
     this.type = type;
     // TS `readonly` is compile-time only; without this a JS caller could
     // reassign `err.type` after construction and bypass the guard above.
-    Object.defineProperty(this, 'type', { writable: false });
+    // `configurable: false` too — otherwise `Object.defineProperty(err,
+    // 'type', { value: 'X' })` would still slip past a non-writable slot.
+    Object.defineProperty(this, 'type', { writable: false, configurable: false });
   }
 }

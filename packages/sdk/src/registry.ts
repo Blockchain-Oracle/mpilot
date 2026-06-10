@@ -1,8 +1,9 @@
 import {
   ADDRESSES,
   type Address,
+  type AddressPath,
   type EvmChainId,
-  type SepoliaAddressPath,
+  ZERO_ADDRESS,
 } from '@concierge/shared';
 import type { ConciergeAgentLike } from '@concierge/tools';
 import { ConciergeError } from './errors.ts';
@@ -10,7 +11,7 @@ import { ConciergeError } from './errors.ts';
 type MainnetAddresses = typeof ADDRESSES.mantleMainnet;
 type SepoliaAddresses = typeof ADDRESSES.mantleSepolia;
 
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ADDRESS_SHAPE = /^0x[0-9a-fA-F]{40}$/;
 
 /**
  * Bundled Mantle address registry per story-22 / ADR-019's quickstart:
@@ -48,17 +49,31 @@ export class ConciergeRegistry implements ConciergeAgentLike {
    * `ConciergeError('NetworkUnsupported')` for zero-address placeholder
    * slots. Without this, a provider on Mantle Sepolia would `eth_call`
    * `0x000…000` and get an opaque ABI-decode failure — or burn native value
-   * sent to the zero address outright. (`SepoliaAddressPath` is the path
-   * type for BOTH chains; the two address shapes are structurally identical.)
+   * sent to the zero address outright.
+   *
+   * The two failure modes are deliberately distinct: a path that does not
+   * resolve to an address-shaped leaf is caller misuse (plain-JS typo, the
+   * compile-time `AddressPath` union can't protect them) and throws
+   * `TypeError`; only a real slot holding the zero placeholder throws the
+   * typed `NetworkUnsupported`, so `switch (err.type)` handlers never chase
+   * a network problem that is actually a typo.
    */
-  requireAddress(path: SepoliaAddressPath): Address {
+  requireAddress(path: AddressPath): Address {
     const leaf = path
       .split('.')
       .reduce<unknown>(
         (acc, key) => (acc as Record<string, unknown> | undefined)?.[key],
         this.addresses,
       );
-    if (typeof leaf !== 'string' || leaf === ZERO_ADDRESS) {
+    // Shape check, not just typeof: strings are indexable, so a stray
+    // trailing segment ('tokens.USDC.0') yields '0x0…0'[0] === '0' — a
+    // string that is NOT the zero address and would otherwise leak through.
+    if (typeof leaf !== 'string' || !ADDRESS_SHAPE.test(leaf)) {
+      throw new TypeError(
+        `[@concierge/sdk] requireAddress: "${path}" is not a leaf address slot on chain ${this.chainId} — expected a dot-path like "aave.pool" (see AddressPath in @concierge/shared).`,
+      );
+    }
+    if (leaf === ZERO_ADDRESS) {
       throw new ConciergeError(
         'NetworkUnsupported',
         `[@concierge/sdk] address slot "${path}" is not deployed on chain ${this.chainId} — it is a pending zero-address placeholder (see SEPOLIA_PENDING_ADDRESS_SLOTS). Use ConciergeRegistry.mainnet() or wait for the Sepolia mock deploys.`,

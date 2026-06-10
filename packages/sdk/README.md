@@ -74,10 +74,14 @@ Sepolia's non-ERC-8004 addresses are zero placeholders until story-192's
 mock deploy lands. Two programmatic guards, so nothing depends on prose:
 
 - **`registry.requireAddress(path)`** — resolves a dot-path (e.g.
-  `'aave.pool'`) to a deployed address, throwing
+  `'aave.pool'`, typed as `AddressPath`) to a deployed address, throwing
   `ConciergeError('NetworkUnsupported')` for a zero-address placeholder
   instead of letting a provider `eth_call` `0x000…000` (opaque ABI-decode
-  failure) or send funds there (burned). Prefer it over reading `addresses`
+  failure) or send funds there (burned). A path that doesn't resolve to an
+  address-shaped leaf (plain-JS typo like `'aave.poool'` or `'aave.pool.0'`)
+  throws a plain `TypeError` instead — caller misuse, deliberately distinct
+  from the typed network error so `switch (err.type)` handlers never chase a
+  network problem that is actually a typo. Prefer it over reading `addresses`
   directly whenever the address is about to be called or funded.
 - **`SEPOLIA_PENDING_ADDRESS_SLOTS`** (re-exported from `@concierge/shared`,
   frozen) — the full list of pending paths, for consumers that want to

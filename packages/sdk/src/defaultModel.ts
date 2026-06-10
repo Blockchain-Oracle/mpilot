@@ -20,15 +20,12 @@ const DEFAULT_SPEC = 'anthropic:claude-sonnet-4-6';
  * The spec splits on the FIRST colon only: model ids themselves may contain
  * colons (OpenAI fine-tune ids like `ft:gpt-5.1:org:custom`). Surrounding
  * whitespace is trimmed and a whitespace-only spec is treated as unset
- * (trailing spaces / quoted-blank lines in `.env` values are common), but
- * any INTERNAL character outside printable ASCII throws — `"anthropic:
- * claude-…"` would otherwise build a model whose id starts with an invisible
- * space, and a zero-width character copy-pasted from rendered docs would
- * survive both `/\s/` and `.trim()` to fail only as a request-time 404 with
- * an id that LOOKS correct. The error escapes non-printables (`\u200b`) so
- * the invisible character is visible. Malformed specs throw a plain `Error`
- * (not `ConciergeError`): a bad spec is programmer/config misuse at
- * construction time, not one of ADR-019's runtime DeFi failures.
+ * (trailing spaces / quoted-blank lines in `.env` values are common); any
+ * INTERNAL character outside printable ASCII throws, with non-printables
+ * escaped in the message — see `NON_PRINTABLE_ASCII` below for the threat
+ * model. Malformed specs throw a plain `Error` (not `ConciergeError`): a bad
+ * spec is programmer/config misuse at construction time, not one of
+ * ADR-019's runtime DeFi failures.
  *
  * Returns `LanguageModelV3` — the interface the installed @ai-sdk 3.x
  * provider factories actually ship (ADR-016 sketches `LanguageModelV2`;
@@ -36,12 +33,18 @@ const DEFAULT_SPEC = 'anthropic:claude-sonnet-4-6';
  * time, and `ai@6` accepts both).
  */
 // Everything outside printable ASCII (0x21-0x7E) is hostile inside a spec:
-// regular whitespace, but also U+200B/U+00A0-class invisibles that survive
-// `/\s/` AND `.trim()` and would otherwise reach the provider as part of a
-// model id that LOOKS character-for-character correct.
+// regular whitespace, but also U+200B-class invisibles that survive `/\s/`
+// AND `.trim()` — a zero-width char copy-pasted from rendered docs would
+// otherwise reach the provider inside a model id that LOOKS character-for-
+// character correct and fail only as a request-time 404.
 const NON_PRINTABLE_ASCII = /[^\x21-\x7E]/;
 
-/** Escapes non-printables as `\uXXXX` so they are visible in error messages. */
+/**
+ * Escapes non-printables as `\uXXXX` so they are visible in error messages.
+ * Deliberately one char wider than the guard (starts at 0x20, not 0x21):
+ * a regular space is INVALID in a spec but perfectly readable in an error,
+ * so it stays literal here.
+ */
 function escapeInvisibles(s: string): string {
   return s.replace(/[^\x20-\x7E]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
 }
@@ -52,8 +55,11 @@ export function defaultModel(spec = process.env['AI_MODEL']): LanguageModelV3 {
   const normalized = (spec ?? '').trim() || DEFAULT_SPEC;
   const splitAt = normalized.indexOf(':');
   if (splitAt <= 0 || splitAt === normalized.length - 1) {
+    // escapeInvisibles here too: a ZWSP-only spec survives .trim(), has no
+    // colon, and lands in THIS branch — unescaped it renders as `got ""`,
+    // while an actually-empty spec falls back and never produces this error.
     throw new Error(
-      `[@concierge/sdk] defaultModel: expected a "provider:model" spec (e.g. "anthropic:claude-sonnet-4-6"), got "${normalized}".`,
+      `[@concierge/sdk] defaultModel: expected a "provider:model" spec (e.g. "anthropic:claude-sonnet-4-6"), got "${escapeInvisibles(normalized)}".`,
     );
   }
   const provider = normalized.slice(0, splitAt);
