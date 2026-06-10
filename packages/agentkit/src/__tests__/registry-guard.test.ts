@@ -36,12 +36,18 @@ const mkTool = (name: string) =>
   });
 
 // Register an action through AgentKit DIRECTLY — the upstream path our
-// guard cannot see. The cast crosses the same zod-3/zod-4 type boundary
-// getConciergeActionProvider documents; runtime only calls schema.parse.
+// guard cannot see. Mirrors production's boundary discipline: the cast is
+// scoped to the one zod-3/zod-4-incompatible `schema` field and `satisfies`
+// keeps the rest structurally checked, so an upstream option-shape change
+// breaks this helper at build time exactly like it breaks the adapter.
+type RawOptions = Extract<
+  Parameters<typeof customActionProvider<WalletProvider>>[0],
+  readonly unknown[]
+>;
 const rawRegister = (action: ReturnType<typeof toAgentKitAction>) =>
-  customActionProvider<WalletProvider>([action] as unknown as Parameters<
-    typeof customActionProvider<WalletProvider>
-  >[0]);
+  customActionProvider<WalletProvider>([
+    { ...action, schema: action.schema as unknown as RawOptions[number]['schema'] },
+  ] satisfies RawOptions);
 
 beforeAll(() => {
   // Upstream fires an un-awaited telemetry fetch per invocation; stub it so
@@ -80,6 +86,52 @@ describe('getConciergeActionProvider registration guard', () => {
     getConciergeActionProvider(agent, [() => [mkTool('alpha')]]);
     Reflect.deleteMetadata(ACTION_DECORATOR_KEY, CustomActionProvider);
     expect(() => getConciergeActionProvider(agent, [() => [mkTool('alpha')]])).not.toThrow();
+  });
+
+  it('throws on a second provider even when the FIRST had zero actions (sentinel)', () => {
+    // A zero-action customActionProvider stamps no metadata upstream, so
+    // without a sentinel the guard would pass and the empty provider's
+    // getActions() would start advertising the second provider's actions —
+    // the union-leakage hazard through the documented empty-provider path.
+    getConciergeActionProvider(agent);
+    expect(() => getConciergeActionProvider(agent, [() => [mkTool('alpha')]])).toThrow(
+      /silently merge/,
+    );
+  });
+
+  it('fails CLOSED when the metadata container is no longer a Map (upstream drift)', () => {
+    // The guard must not silently disarm if an AgentKit bump inside the peer
+    // range changes how custom-action metadata is stored. Unrecognized shape
+    // present => loud refusal, not a no-op size check.
+    Reflect.defineMetadata(ACTION_DECORATOR_KEY, { alpha: {} }, CustomActionProvider);
+    expect(() => getConciergeActionProvider(agent, [() => [mkTool('alpha')]])).toThrow(
+      /registration model changed/,
+    );
+  });
+
+  it('a rejected registration leaves the FIRST provider dispatch untouched (no residue)', async () => {
+    const hits: string[] = [];
+    const mk = (label: string) =>
+      tool({
+        name: 'whoAmI',
+        description: 'Reports which provider owns dispatch.',
+        inputSchema: z.object({}),
+        outputSchema: z.object({ label: z.string() }),
+        invoke: async () => {
+          hits.push(label);
+          return { label };
+        },
+      });
+    const providerA = getConciergeActionProvider(agent, [() => [mk('A')]]);
+    expect(() => getConciergeActionProvider(agent, [() => [mk('B')]])).toThrow(
+      /rebind dispatch for: whoAmI/,
+    );
+    // The guard throws BEFORE customActionProvider runs, so the shared
+    // registry still resolves whoAmI to A's closure.
+    const action = providerA.getActions(walletStub)[0];
+    if (!action) throw new Error('whoAmI missing');
+    await action.invoke({});
+    expect(hits).toEqual(['A']);
   });
 });
 

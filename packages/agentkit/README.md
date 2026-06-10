@@ -37,7 +37,11 @@ tool's name attached and the original error as `cause`.
   disjoint actions into every provider's `getActions()` (union leakage) —
   both dispatch actions against the wrong agent context, so
   `getConciergeActionProvider` **throws** if custom actions already exist in
-  the process. Raw `customActionProvider` calls elsewhere bypass this guard.
+  the process. The guard fails **closed** — an unrecognized metadata shape
+  (an AgentKit bump changing the registration model) throws rather than
+  silently disarming — and zero-action providers stamp a sentinel so they
+  count as the one provider. Raw `customActionProvider` calls elsewhere
+  bypass this guard.
 - **Action names are prefixed.** AgentKit stamps `${ClassName}_${name}` on
   every custom action, so `proposeAction` surfaces to the model as
   `CustomActionProvider_proposeAction`.
