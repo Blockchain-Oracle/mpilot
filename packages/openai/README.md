@@ -101,14 +101,22 @@ for (const block of message.content) {
 - **No abort propagation.** Cancelling the model request does NOT cancel an
   in-flight tool call: `ConciergeTool.invoke` takes no abort signal, so a
   started execution (e.g. an on-chain transaction) runs to completion.
-- **Not strict-mode ready.** OpenAI `strict: true` requires
+- **A failed `dispatch` mid-loop leaves `messages` inconsistent.** The
+  assistant message is pushed before the tool replies, so if one call's
+  dispatch rejects, the calls already answered orphan their siblings and a
+  retried `create()` 400s on the unanswered `tool_call_id`s. Either reply
+  with an error-string tool message for the failed call, or drop the
+  assistant message before retrying.
+- **Not strict-mode ready with optionals.** OpenAI `strict: true` requires
   `additionalProperties: false` (emitted — fine) AND every property `required`
-  — but `.optional()` properties are omitted from `required`, so schemas with
-  optionals fail strict validation. Leave `strict` unset (the default).
-- **`.transform()`/`.pipe()` input schemas throw at construction time** — the
-  schema advertised to the model must match what `inputSchema.parse()`
-  accepts. Normalize inside `invoke()` instead.
-- **`.refine()`/`z.custom()` are invisible to the model.** Refinements are
-  stripped from the emitted JSON Schema (they still validate at dispatch) and
-  `z.custom()` emits an unconstrained `{}` — so the model can't see the
-  constraint and will violate it. Put the rule in `.describe()` text too.
+  — `.optional()` properties are omitted from `required`, so schemas with
+  optionals fail strict validation. `.default()` properties are fine: they
+  STAY in `required` (parse fills them). Leave `strict` unset (the default)
+  unless your schemas avoid `.optional()`.
+- **`.transform()`/`.pipe()`/`z.custom()` input schemas throw at construction
+  time** — `.transform()` and `z.custom()` cannot be represented in JSON
+  Schema at all, and a plain `.pipe()` would silently advertise what `parse()`
+  *returns* instead of what it *accepts*. Normalize inside `invoke()` instead.
+- **`.refine()` is invisible to the model.** Refinements are stripped from the
+  emitted JSON Schema (they still validate at dispatch) — the model can't see
+  the constraint and will violate it. Put the rule in `.describe()` text too.
