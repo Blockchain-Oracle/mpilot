@@ -173,7 +173,8 @@ stories:
       ]
     issue_url: ""
     pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/30"
-    merged_at: "2026-06-10T19:18:37Z"
+    sweep_pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/31"
+    merged_at: "2026-06-10T21:12:00Z"
   - id: story-23-sdk-error-types
     epic: "Epic E2 — Shared SDK Core"
     status: PENDING
