@@ -3,13 +3,16 @@
 // content is a deterministic string under the adapter's control: LangChain
 // v1 would otherwise coerce objects itself (its tool output type is `any`),
 // turning an `undefined` return into a silent empty-success message and
-// throwing cryptically on wei-scale bigint values.
+// silently coercing an object containing wei-scale bigints to
+// `"[object Object]"` (its stringify fallback swallows the BigInt TypeError).
 
 import {
   bigintSafeStringify,
   type ConciergeAgentLike,
   type ConciergeTool,
   createConciergeTools,
+  isZodObject,
+  isZodPipe,
   type ProviderToolFactory,
 } from '@concierge/tools';
 import { tool as lcTool, type StructuredToolInterface } from '@langchain/core/tools';
@@ -20,12 +23,31 @@ import { tool as lcTool, type StructuredToolInterface } from '@langchain/core/to
  * the exact same Zod schema before delegating — `invoke` receives the PARSED
  * value (defaults applied, unknown keys stripped), never the raw args.
  *
- * The tool must satisfy the registry invariants (a Zod OBJECT inputSchema,
- * no transforms): a non-object schema would make LangChain's `tool()` build
- * a string-input DynamicTool, silently violating the Concierge invoke
- * contract. `createConciergeTools` enforces this; direct callers own it.
+ * Throws a `TypeError` when `inputSchema` is not a Zod object — the registry
+ * invariant `createConciergeTools` already enforces. Without the guard, a
+ * missing or plain-string schema would make LangChain's `tool()` build a
+ * string-input DynamicTool that feeds raw strings into an `invoke` expecting
+ * a parsed object, and other non-object schemas surface only as confusing
+ * call-time parse failures or quiet pass-throughs, never as a
+ * construction-time error.
  */
 export function toLangChainTool(t: ConciergeTool): StructuredToolInterface {
+  // Guards run against a local so their narrowing cannot leak into the
+  // `schema:` argument below: narrowing to the unrefined
+  // z.ZodObject<z.ZodRawShape> flips LangChain's tool() overload resolution
+  // onto its string-input DynamicTool arm, which fails to typecheck under
+  // exactOptionalPropertyTypes.
+  const inputSchema = t.inputSchema;
+  if (isZodPipe(inputSchema)) {
+    throw new TypeError(
+      `Tool "${t.name}" inputSchema uses .transform() or .pipe(); perform normalization inside invoke() instead — LangChain must parse with the plain z.object shape.`,
+    );
+  }
+  if (!isZodObject(inputSchema)) {
+    throw new TypeError(
+      `Tool "${t.name}" has a non-object inputSchema; ConciergeTool requires a Zod object schema (z.object({ ... })).`,
+    );
+  }
   return lcTool(async (args) => bigintSafeStringify(await t.invoke(args)), {
     name: t.name,
     description: t.description,
