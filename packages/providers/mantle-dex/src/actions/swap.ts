@@ -30,10 +30,13 @@ export const SwapInput = z.object({
 });
 
 export const SwapOutput = z.object({
-  txHash: z.string().describe('Transaction hash of the swap'),
+  txHash: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/)
+    .describe('Transaction hash of the swap'),
   venue: VENUE_NAME.describe('DEX venue used for execution'),
-  amountIn: z.string(),
-  amountOut: z.string(),
+  amountIn: z.string().regex(/^\d+$/),
+  amountOut: z.string().regex(/^\d+$/),
   attestationPayload: AttestationPayloadSchema,
 });
 
@@ -101,12 +104,16 @@ export async function executeSwap(
     venues.map((v) => v.quote({ tokenIn, tokenOut, amountIn, account, slippageBps })),
   );
 
-  const quotes: VenueQuoteResult[] = settled
-    .filter(
-      (s): s is PromiseFulfilledResult<VenueQuoteResult> =>
-        s.status === 'fulfilled' && s.value !== null,
-    )
-    .map((s) => s.value);
+  const quotes: VenueQuoteResult[] = [];
+  settled.forEach((s, i) => {
+    const venueName = venues[i]?.name ?? `venue[${i}]`;
+    if (s.status === 'rejected') {
+      // Log but don't throw — one venue failure should not block others.
+      console.error(`[@concierge/mantle-dex] swap: ${venueName} quote rejected:`, s.reason);
+    } else if (s.value !== null) {
+      quotes.push(s.value);
+    }
+  });
 
   if (quotes.length === 0) {
     throw new ConciergeError(
@@ -180,16 +187,28 @@ export async function executeSwap(
     );
   }
 
-  const attestationPayload = buildAttestationPayload({
-    venue: bestQuote.venue,
-    chainId: ctx.chainId,
-    tokenIn,
-    tokenOut,
-    amountIn,
-    amountOut: swapResult.amountOut,
-    quotedOut: bestQuote.amountOut,
-    txHash: swapResult.txHash,
-  });
+  let attestationPayload: ReturnType<typeof buildAttestationPayload>;
+  try {
+    attestationPayload = buildAttestationPayload({
+      venue: bestQuote.venue,
+      chainId: ctx.chainId,
+      tokenIn,
+      tokenOut,
+      amountIn,
+      amountOut: swapResult.amountOut,
+      quotedOut: bestQuote.amountOut,
+      slippageBps,
+      txHash: swapResult.txHash,
+    });
+  } catch (err) {
+    // Swap already committed — wrap Zod error so caller gets a typed ConciergeError with txHash.
+    throw new ConciergeError(
+      'AttestationFailed',
+      `[@concierge/mantle-dex] swap: attestation schema validation failed after swap ${swapResult.txHash}`,
+      err instanceof Error ? err : undefined,
+      { txHash: swapResult.txHash, venue: bestQuote.venue },
+    );
+  }
 
   return {
     txHash: swapResult.txHash,

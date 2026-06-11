@@ -1,7 +1,7 @@
 import { tool } from '@concierge/tools';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
-import { NON_ZERO_ADDRESS, VENUE_NAME } from '../_schema.ts';
+import { HEX_ADDRESS, NON_NEG_INT_STR, NON_ZERO_ADDRESS, VENUE_NAME } from '../_schema.ts';
 import type { Venue, VenueName, VenueQuoteResult } from '../_types.ts';
 import { createAgniVenue } from '../venues/agni.ts';
 import { createFusionXVenue } from '../venues/fusionx.ts';
@@ -24,7 +24,11 @@ export const QuoteInput = z.object({
 });
 
 const RouteResult = z.union([
-  z.object({ amountOut: z.string(), gasEstimate: z.string().optional() }),
+  z.object({
+    amountOut: NON_NEG_INT_STR,
+    gasEstimate: NON_NEG_INT_STR.optional(),
+    approvalAddress: HEX_ADDRESS.optional(),
+  }),
   z.object({ amountOut: z.null(), reason: z.literal('no_route') }),
 ]);
 
@@ -85,7 +89,9 @@ export async function executeQuote(
   settled.forEach((s, i) => {
     const venue = venues[i]?.name;
     if (!venue) return;
-    if (s.status === 'fulfilled' && s.value !== null) {
+    if (s.status === 'rejected') {
+      console.error(`[@concierge/mantle-dex] quote: ${venue} rejected:`, s.reason);
+    } else if (s.value !== null) {
       routeMap[venue] = s.value;
     }
   });
@@ -103,22 +109,21 @@ export async function executeQuote(
     );
   }
 
+  function toRouteEntry(r: VenueQuoteResult | null) {
+    if (r === null) return { amountOut: null as null, reason: 'no_route' as const };
+    return {
+      amountOut: r.amountOut.toString(),
+      ...(r.gasEstimate !== undefined && { gasEstimate: r.gasEstimate.toString() }),
+      ...(r.approvalAddress !== undefined && { approvalAddress: r.approvalAddress }),
+    };
+  }
+
   const allRoutes = {
-    merchantMoe: routeMap.merchantMoe
-      ? { amountOut: routeMap.merchantMoe.amountOut.toString() }
-      : { amountOut: null as null, reason: 'no_route' as const },
-    agni: routeMap.agni
-      ? { amountOut: routeMap.agni.amountOut.toString() }
-      : { amountOut: null as null, reason: 'no_route' as const },
-    fusionx: routeMap.fusionx
-      ? { amountOut: routeMap.fusionx.amountOut.toString() }
-      : { amountOut: null as null, reason: 'no_route' as const },
-    woofi: routeMap.woofi
-      ? { amountOut: routeMap.woofi.amountOut.toString() }
-      : { amountOut: null as null, reason: 'no_route' as const },
-    lifi: routeMap.lifi
-      ? { amountOut: routeMap.lifi.amountOut.toString() }
-      : { amountOut: null as null, reason: 'no_route' as const },
+    merchantMoe: toRouteEntry(routeMap.merchantMoe),
+    agni: toRouteEntry(routeMap.agni),
+    fusionx: toRouteEntry(routeMap.fusionx),
+    woofi: toRouteEntry(routeMap.woofi),
+    lifi: toRouteEntry(routeMap.lifi),
   };
 
   return {

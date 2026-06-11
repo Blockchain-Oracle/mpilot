@@ -129,6 +129,9 @@ importers:
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
+      '@types/node':
+        specifier: 22.19.20
+        version: 22.19.20
       tsup:
         specifier: 8.5.0
         version: 8.5.0(jiti@2.6.1)(postcss@8.5.15)(typescript@6.0.3)(yaml@2.9.0)
