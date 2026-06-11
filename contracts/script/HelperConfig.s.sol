@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Script} from "forge-std/Script.sol";
+import { Script } from "forge-std/Script.sol";
 
 import {
     AAVE_V3_POOL_MAINNET,
@@ -21,16 +21,16 @@ import {
     ERC8004_REPUTATION_SEPOLIA,
     EMODE_STABLECOIN_CATEGORY
 } from "./lib/Addresses.sol";
-import {SepoliaSeedPrices} from "./lib/SepoliaSeedPrices.sol";
+import { SepoliaSeedPrices } from "./lib/SepoliaSeedPrices.sol";
 
-import {MockAavePool} from "../src/mocks/MockAavePool.sol";
-import {MockAaveOracle} from "../src/mocks/MockAaveOracle.sol";
-import {MockSUSDe} from "../src/mocks/MockSUSDe.sol";
-import {MockUSDC} from "../src/mocks/MockUSDC.sol";
-import {MockUSDe} from "../src/mocks/MockUSDe.sol";
-import {MockUSDY} from "../src/mocks/MockUSDY.sol";
-import {MockMETH} from "../src/mocks/MockMETH.sol";
-import {MockWMNT} from "../src/mocks/MockWMNT.sol";
+import { MockAavePool } from "../src/mocks/MockAavePool.sol";
+import { MockAaveOracle } from "../src/mocks/MockAaveOracle.sol";
+import { MockSUSDe } from "../src/mocks/MockSUSDe.sol";
+import { MockUSDC } from "../src/mocks/MockUSDC.sol";
+import { MockUSDe } from "../src/mocks/MockUSDe.sol";
+import { MockUSDY } from "../src/mocks/MockUSDY.sol";
+import { MockMETH } from "../src/mocks/MockMETH.sol";
+import { MockWMNT } from "../src/mocks/MockWMNT.sol";
 
 error UnsupportedChain(uint256 chainId);
 
@@ -90,7 +90,9 @@ contract HelperConfig is Script {
     function _getSepoliaConfig() internal returns (NetworkConfig memory) {
         if (_sepoliaCached) return _sepoliaConfig;
 
-        address deployer = msg.sender;
+        // tx.origin is the EOA in both test and broadcast contexts;
+        // msg.sender would be the caller script contract under vm.startBroadcast.
+        address deployer = tx.origin;
 
         // Deploy oracle with address(this) as admin so HelperConfig can seed prices,
         // then hand admin rights to the deployer.

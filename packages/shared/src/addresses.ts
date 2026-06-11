@@ -108,6 +108,8 @@ export const ADDRESSES = deepFreeze({
         factory: ZERO_ADDRESS,
       },
     },
+    // Filled in by story-18 (DeployAll.s.sol + write-addresses.mjs)
+    conciergeRegistry: ZERO_ADDRESS,
   },
 } as const);
 
@@ -115,10 +117,10 @@ export const ADDRESSES = deepFreeze({
  * Resolve the addresses block for a given Mantle chain id.
  *
  * Returns the union of both block shapes — the generic-conditional pattern was
- * decorative (Mainnet and Sepolia are structurally identical today, so the
- * narrowing didn't catch anything AND required an `as never` cast in the impl
- * that could mask a branch-swap typo). When the shapes intentionally diverge
- * (story-192 mock-deploy may add Sepolia-only fields), promote to overloads.
+ * decorative (narrowing required an `as never` cast in the impl that could mask
+ * a branch-swap typo). The two shapes intentionally diverge: mantleSepolia
+ * carries `conciergeRegistry` (Sepolia-only) that mantleMainnet does not.
+ * When more chain-specific fields land, promote to overloads.
  *
  * Inputs are validated for type (string from env / bigint from JSON-parse fail
  * with a typed TypeError, not the generic "unsupported chain id" message).
@@ -153,10 +155,9 @@ type LeafPath<T> = T extends Address
 export type SepoliaAddressPath = LeafPath<typeof ADDRESSES.mantleSepolia>;
 
 /**
- * Dot-paths valid on BOTH chains — the intersection self-maintains: today the
- * two shapes are structurally identical, but the moment one chain grows a
- * chain-only slot (story-192 may add Sepolia-only mock fields), that path
- * drops out of this union and cross-chain lookups fail at compile time
+ * Dot-paths valid on BOTH chains — the intersection self-maintains: when one
+ * chain grows a chain-only slot (e.g. `conciergeRegistry` on Sepolia), that
+ * path drops out of this union and cross-chain lookups fail at compile time
  * instead of at runtime.
  */
 export type AddressPath = LeafPath<typeof ADDRESSES.mantleMainnet> & SepoliaAddressPath;
@@ -175,6 +176,7 @@ export const SEPOLIA_PENDING_ADDRESS_SLOTS = Object.freeze([
   'aave.oracle',
   'aave.pool',
   'aave.protocolDataProvider',
+  'conciergeRegistry',
   'lifi.diamond',
   'mantleDex.agni.factory',
   'mantleDex.merchantMoe.lbRouter',
