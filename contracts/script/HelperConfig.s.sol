@@ -90,7 +90,9 @@ contract HelperConfig is Script {
     function _getSepoliaConfig() internal returns (NetworkConfig memory) {
         if (_sepoliaCached) return _sepoliaConfig;
 
-        address deployer = msg.sender;
+        // tx.origin is the EOA in both test and broadcast contexts;
+        // msg.sender would be the caller script contract under vm.startBroadcast.
+        address deployer = tx.origin;
 
         // Deploy oracle with address(this) as admin so HelperConfig can seed prices,
         // then hand admin rights to the deployer.

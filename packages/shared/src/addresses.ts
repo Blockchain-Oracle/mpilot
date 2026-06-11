@@ -108,6 +108,8 @@ export const ADDRESSES = deepFreeze({
         factory: ZERO_ADDRESS,
       },
     },
+    // Filled in by story-18 (DeployAll.s.sol + write-addresses.mjs)
+    conciergeRegistry: ZERO_ADDRESS,
   },
 } as const);
 
@@ -175,6 +177,7 @@ export const SEPOLIA_PENDING_ADDRESS_SLOTS = Object.freeze([
   'aave.oracle',
   'aave.pool',
   'aave.protocolDataProvider',
+  'conciergeRegistry',
   'lifi.diamond',
   'mantleDex.agni.factory',
   'mantleDex.merchantMoe.lbRouter',

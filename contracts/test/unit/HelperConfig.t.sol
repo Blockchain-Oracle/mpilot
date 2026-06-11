@@ -95,10 +95,12 @@ contract HelperConfigTest is Test {
 
     function test_HelperConfig_Sepolia_AdminHandoff() public {
         vm.chainId(5003);
+        // HelperConfig uses tx.origin to identify the deployer (correct in broadcast context).
+        // In a Foundry test, tx.origin == the forge-std default sender address.
+        address expectedDeployer = tx.origin;
         NetworkConfig memory cfg = config.getConfig();
         MockAaveOracle oracle = MockAaveOracle(cfg.aaveOracle);
-        // msg.sender in this test context is the HelperConfigTest contract
-        address deployer = address(this);
+        address deployer = expectedDeployer;
         assertTrue(oracle.hasRole(oracle.DEFAULT_ADMIN_ROLE(), deployer), "deployer has DEFAULT_ADMIN_ROLE");
         assertTrue(oracle.hasRole(oracle.ORACLE_ADMIN_ROLE(), deployer), "deployer has ORACLE_ADMIN_ROLE");
         // HelperConfig must NOT retain admin after handoff
