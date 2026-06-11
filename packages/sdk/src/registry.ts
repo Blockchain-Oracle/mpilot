@@ -80,9 +80,11 @@ export class ConciergeRegistry implements ConciergeAgentLike {
       );
     }
     if (leaf === ZERO_ADDRESS) {
+      const pendingConst =
+        this.chainId === 5000 ? 'MAINNET_PENDING_ADDRESS_SLOTS' : 'SEPOLIA_PENDING_ADDRESS_SLOTS';
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge/sdk] address slot "${path}" is not deployed on chain ${this.chainId} — it is a pending zero-address placeholder (see SEPOLIA_PENDING_ADDRESS_SLOTS). Use ConciergeRegistry.mainnet() or wait for the Sepolia mock deploys.`,
+        `[@concierge/sdk] address slot "${path}" is not deployed on chain ${this.chainId} — it is a pending zero-address placeholder (see ${pendingConst} in @concierge/shared).`,
       );
     }
     return leaf as Address;

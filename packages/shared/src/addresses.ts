@@ -71,6 +71,8 @@ export const ADDRESSES = deepFreeze({
         factory: '0x25780dc8Fc3cfBD75F33bFDAB65e969b603b2035' as Address,
       },
     },
+    // Filled in by story-19 (deploy-mainnet.sh + write-addresses.mjs --network mainnet)
+    conciergeRegistry: ZERO_ADDRESS,
   },
   mantleSepolia: {
     aave: {
@@ -151,6 +153,9 @@ type LeafPath<T> = T extends Address
       }[keyof T & string]
     : never;
 
+/** Valid dot-paths on `ADDRESSES.mantleMainnet` (compile-time enforced). */
+export type MainnetAddressPath = LeafPath<typeof ADDRESSES.mantleMainnet>;
+
 /** Valid dot-paths on `ADDRESSES.mantleSepolia` (compile-time enforced). */
 export type SepoliaAddressPath = LeafPath<typeof ADDRESSES.mantleSepolia>;
 
@@ -188,3 +193,13 @@ export const SEPOLIA_PENDING_ADDRESS_SLOTS = Object.freeze([
   'tokens.mETH',
   'tokens.sUSDe',
 ] as const satisfies readonly SepoliaAddressPath[]);
+
+/**
+ * Slot paths on `ADDRESSES.mantleMainnet` that hold zero-address placeholders until
+ * the Mainnet production deploy (story-19 `deploy-mainnet.sh`) runs. Mirrors the
+ * Sepolia lockbox pattern — deleted entries signal that `write-addresses.mjs
+ * --network mainnet` has populated the real deployed address.
+ */
+export const MAINNET_PENDING_ADDRESS_SLOTS = Object.freeze([
+  'conciergeRegistry',
+] as const satisfies readonly MainnetAddressPath[]);
