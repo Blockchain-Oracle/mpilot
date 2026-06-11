@@ -1,7 +1,7 @@
 import { ConciergeError } from '@concierge/sdk';
 import type { Address, Hex } from '@concierge/shared';
 import type { WalletClient } from 'viem';
-import { parseAbi, parseEventLogs } from 'viem';
+import { ContractFunctionExecutionError, parseAbi, parseEventLogs } from 'viem';
 import type { ActionContext } from './_context.ts';
 
 export const WOOFI_ABI = parseAbi([
@@ -38,11 +38,16 @@ export async function queryMinOut(
     })
     .catch((err: unknown) => {
       if (err instanceof ConciergeError) throw err;
-      throw new ConciergeError(
-        'InsufficientLiquidity',
-        `${tag}: WooFi querySwap reverted — token pair may not be supported`,
-        err instanceof Error ? err : undefined,
-      );
+      // Only classify on-chain reverts as InsufficientLiquidity — network/timeout
+      // errors are not liquidity failures and must propagate for proper retry logic.
+      if (err instanceof ContractFunctionExecutionError) {
+        throw new ConciergeError(
+          'InsufficientLiquidity',
+          `${tag}: WooFi querySwap reverted — token pair may not be supported`,
+          err,
+        );
+      }
+      throw err;
     });
   if (quoted === 0n) {
     throw new ConciergeError('InsufficientLiquidity', `${tag}: WooFi has no route`);
