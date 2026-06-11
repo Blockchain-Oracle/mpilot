@@ -38,13 +38,14 @@ contract SeedSepolia is Script {
 
         // Pre-flight: verify the broadcaster holds MINTER_ROLE on every token.
         // mint() is privileged; missing the role causes a silent revert inside broadcast.
+        // MINTER_ROLE is read per-token in case a token uses a different role hash.
         address minter = tx.origin;
-        bytes32 minterRole = MockFaucetToken(sUSDe).MINTER_ROLE();
         address[4] memory tokens = [sUSDe, USDC, USDY, mETH];
         string[4] memory names = ["sUSDe", "USDC", "USDY", "mETH"];
         for (uint256 i = 0; i < tokens.length; i++) {
+            bytes32 role = MockFaucetToken(tokens[i]).MINTER_ROLE();
             require(
-                IAccessControl(tokens[i]).hasRole(minterRole, minter),
+                IAccessControl(tokens[i]).hasRole(role, minter),
                 string.concat("SeedSepolia: missing MINTER_ROLE on ", names[i])
             );
         }

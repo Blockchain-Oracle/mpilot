@@ -58,7 +58,7 @@ for entry in "${CONTRACTS[@]}"; do
     EXTRA_FLAGS+=(--guess-constructor-args)
   fi
 
-  STDERR_OUT=$(mktemp)
+  STDERR_OUT=$(mktemp) || { echo "ERROR: mktemp failed — cannot capture forge stderr"; exit 1; }
   if forge verify-contract \
       --chain 5003 \
       --rpc-url "$MANTLE_SEPOLIA_RPC_URL" \

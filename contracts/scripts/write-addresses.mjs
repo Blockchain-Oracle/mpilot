@@ -107,22 +107,39 @@ if (sepoliaStart === -1) {
 const prefix = fullContent.slice(0, sepoliaStart);
 let sepoliaBlock = fullContent.slice(sepoliaStart);
 
+// Safety: if mantleMainnet appears after mantleSepolia: { in the file, the scoping is unsafe —
+// replacing fields in sepoliaBlock would also hit Mainnet fields. Abort loudly instead.
+if (sepoliaBlock.includes('mantleMainnet')) {
+  console.error(
+    'FATAL: mantleMainnet block detected after mantleSepolia in addresses.ts.\n' +
+      'Cannot safely scope replacements. Ensure mantleSepolia is the last chain block.',
+  );
+  process.exit(1);
+}
+
 // ADDRESS_RE matches: `ZERO_ADDRESS` or `'0xABCD…1234' as Address`
 const ADDRESS_RE = `(ZERO_ADDRESS|'0x[a-fA-F0-9]{40}'(?:\\s+as\\s+Address)?)`;
 
+let fieldMissing = false;
 for (const { contractName, fieldName, addr } of updates) {
   // Anchored pattern: match the field name followed by a colon, then the current address value.
   // Applied only to sepoliaBlock so mantleMainnet fields with the same name are never touched.
   const re = new RegExp(`(\\b${fieldName}:\\s*)${ADDRESS_RE}`, 'g');
   const next = sepoliaBlock.replace(re, `$1'${addr}' as Address`);
   if (next === sepoliaBlock) {
-    console.warn(
-      `  ⚠ Field '${fieldName}' not found in mantleSepolia block (contract: ${contractName})`,
+    console.error(
+      `  ✗ Field '${fieldName}' not found in mantleSepolia block (contract: ${contractName})`,
     );
+    fieldMissing = true;
   } else {
     console.log(`  ✓ ${contractName} → ${fieldName}: ${addr}`);
     sepoliaBlock = next;
   }
+}
+
+if (fieldMissing) {
+  console.error('One or more fields missing from mantleSepolia block. Aborting without write.');
+  process.exit(1);
 }
 
 const content = prefix + sepoliaBlock;
