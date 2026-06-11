@@ -1,7 +1,7 @@
 import { ConciergeError } from '@concierge/sdk';
 import type { Address } from '@concierge/shared';
 import type { PublicClient, WalletClient } from 'viem';
-import { ContractFunctionRevertedError, parseAbi } from 'viem';
+import { BaseError, ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
   Venue,
   VenueQuoteParams,
@@ -62,7 +62,10 @@ export function createMerchantMoeVenue(
         args: [[tokenIn, tokenOut], amountIn as unknown as bigint],
       })
       .catch((err: unknown) => {
-        if (err instanceof ContractFunctionRevertedError) {
+        if (
+          err instanceof BaseError &&
+          err.walk((e) => e instanceof ContractFunctionRevertedError)
+        ) {
           throw new ConciergeError(
             'InsufficientLiquidity',
             `[@concierge/mantle-dex] merchantMoe.swap: no route at execution time for ${tokenIn} → ${tokenOut}`,

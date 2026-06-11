@@ -1,7 +1,7 @@
 import { tool } from '@concierge/tools';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
-import { NON_ZERO_ADDRESS, VENUE_NAME } from '../_schema.ts';
+import { HEX_ADDRESS, NON_NEG_INT_STR, NON_ZERO_ADDRESS, VENUE_NAME } from '../_schema.ts';
 import type { Venue, VenueName, VenueQuoteResult } from '../_types.ts';
 import { createAgniVenue } from '../venues/agni.ts';
 import { createFusionXVenue } from '../venues/fusionx.ts';
@@ -25,9 +25,9 @@ export const QuoteInput = z.object({
 
 const RouteResult = z.union([
   z.object({
-    amountOut: z.string(),
-    gasEstimate: z.string().optional(),
-    approvalAddress: z.string().optional(),
+    amountOut: NON_NEG_INT_STR,
+    gasEstimate: NON_NEG_INT_STR.optional(),
+    approvalAddress: HEX_ADDRESS.optional(),
   }),
   z.object({ amountOut: z.null(), reason: z.literal('no_route') }),
 ]);

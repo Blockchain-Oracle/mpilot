@@ -1,4 +1,5 @@
 import { ConciergeError } from '@concierge/sdk';
+import type { EvmChainId } from '@concierge/shared';
 import { describe, expect, it } from 'vitest';
 import { ATTESTATION_SCHEMAS, buildAttestationPayload } from '../attestation.ts';
 import { createMantleDexProvider } from '../provider.ts';
@@ -54,7 +55,15 @@ describe('createMantleDexProvider', () => {
       rpcUrls: { default: { http: ['https://eth.llamarpc.com'] } },
     });
     const wc = createWalletClient({ chain: notMantle, transport: http() });
-    expect(() => createMantleDexProvider({ walletClient: wc })).toThrow(ConciergeError);
+    let caught: unknown;
+    try {
+      createMantleDexProvider({ walletClient: wc });
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toSatisfy(
+      (e: unknown) => e instanceof ConciergeError && e.type === 'NetworkUnsupported',
+    );
   });
 
   it('throws NetworkUnsupported for a non-Mantle publicClient chain', async () => {
@@ -66,7 +75,15 @@ describe('createMantleDexProvider', () => {
       rpcUrls: { default: { http: ['https://eth.llamarpc.com'] } },
     });
     const pc = createPublicClient({ chain: notMantle, transport: http() });
-    expect(() => createMantleDexProvider({ publicClient: pc })).toThrow(ConciergeError);
+    let caught: unknown;
+    try {
+      createMantleDexProvider({ publicClient: pc });
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toSatisfy(
+      (e: unknown) => e instanceof ConciergeError && e.type === 'NetworkUnsupported',
+    );
   });
 });
 
@@ -82,7 +99,7 @@ describe('attestation schemas', () => {
 
 const ATTESTATION_BASE = {
   venue: 'woofi' as const,
-  chainId: 5000,
+  chainId: 5000 as EvmChainId,
   tokenIn: '0x09bc4e0d864854c6afb6eb9a9cdf58ac190d0df9' as `0x${string}`,
   tokenOut: '0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34' as `0x${string}`,
   amountIn: 1_000_000n,

@@ -1,7 +1,7 @@
 import { ConciergeError } from '@concierge/sdk';
 import type { Address } from '@concierge/shared';
 import type { PublicClient, WalletClient } from 'viem';
-import { ContractFunctionRevertedError, parseAbi } from 'viem';
+import { BaseError, ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
   Venue,
   VenueQuoteParams,
@@ -51,7 +51,10 @@ async function quoteSingleFee(
     if (amountOut === 0n) return null;
     return { amountOut, fee };
   } catch (err) {
-    if (err instanceof ContractFunctionRevertedError) return null;
+    // readContract wraps reverts in ContractFunctionExecutionError; walk() finds the inner revert.
+    if (err instanceof BaseError && err.walk((e) => e instanceof ContractFunctionRevertedError)) {
+      return null;
+    }
     throw err;
   }
 }

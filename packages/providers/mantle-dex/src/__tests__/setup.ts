@@ -15,8 +15,8 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
-export const MANTLE_MAINNET_RPC = process.env.MANTLE_RPC_URL ?? 'https://rpc.mantle.xyz';
-const ANVIL_BIN = process.env.ANVIL_BIN ?? 'anvil';
+export const MANTLE_MAINNET_RPC = process.env['MANTLE_RPC_URL'] ?? 'https://rpc.mantle.xyz';
+const ANVIL_BIN = process.env['ANVIL_BIN'] ?? 'anvil';
 
 // Deterministic Anvil test account #0 — 10k ETH, unlocked.
 export const TEST_PRIVATE_KEY =

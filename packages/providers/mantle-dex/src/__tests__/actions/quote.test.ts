@@ -8,7 +8,7 @@ import { createMantleDexProvider } from '../../provider.ts';
 import { type AnvilFork, startAnvilFork } from '../setup.ts';
 
 const USDC = ADDRESSES.mantleMainnet.tokens.USDC;
-const sUSDe = ADDRESSES.mantleMainnet.tokens.sUSDe;
+const USDe = ADDRESSES.mantleMainnet.tokens.USDe;
 const USDC_AMOUNT = 100_000_000n; // 100 USDC (6 decimals)
 
 // Single fork shared across all describe blocks in this file.
@@ -34,7 +34,7 @@ describe('quote action (Mainnet fork integration)', () => {
   it('returns allRoutes with all 5 venue keys', async () => {
     const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
-      tokenOut: sUSDe,
+      tokenOut: USDe,
       amountIn: USDC_AMOUNT,
       slippageBps: 50,
     });
@@ -49,7 +49,7 @@ describe('quote action (Mainnet fork integration)', () => {
   it('bestAmountOut equals max of all successful venue amountOuts', async () => {
     const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
-      tokenOut: sUSDe,
+      tokenOut: USDe,
       amountIn: USDC_AMOUNT,
       slippageBps: 50,
     });
@@ -66,7 +66,7 @@ describe('quote action (Mainnet fork integration)', () => {
   it('bestRoute corresponds to the venue with highest amountOut', async () => {
     const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
-      tokenOut: sUSDe,
+      tokenOut: USDe,
       amountIn: USDC_AMOUNT,
       slippageBps: 50,
     });
@@ -79,7 +79,7 @@ describe('quote action (Mainnet fork integration)', () => {
   it('venue with no route returns { amountOut: null, reason: "no_route" }', async () => {
     const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
-      tokenOut: sUSDe,
+      tokenOut: USDe,
       amountIn: USDC_AMOUNT,
       slippageBps: 50,
     });

@@ -17,7 +17,6 @@ describe('createWooFiVenue — quote', () => {
           abi: [],
           functionName: 'querySwap',
           message: 'no listing',
-          args: [],
         }),
       ),
     };

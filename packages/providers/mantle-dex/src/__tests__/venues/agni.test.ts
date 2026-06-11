@@ -53,7 +53,6 @@ describe('createAgniVenue — quote fee ordering', () => {
           abi: [],
           functionName: 'quoteExactInputSingle',
           message: 'no pool',
-          args: [],
         }),
       ),
     };

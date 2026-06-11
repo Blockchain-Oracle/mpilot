@@ -37,18 +37,28 @@ async function fetchLifiQuote(
 ): Promise<LifiQuoteResponse | null> {
   const slippage = (slippageBps / 10_000).toFixed(6);
   const url = `${LIFI_API}?fromChain=${chainId}&toChain=${chainId}&fromToken=${fromToken}&toToken=${toToken}&fromAmount=${fromAmount.toString()}&fromAddress=${fromAddress}&slippage=${slippage}&order=CHEAPEST`;
+  let res: Response;
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-    if (!res.ok) {
-      console.warn(`[@concierge/mantle-dex] lifi: HTTP ${res.status} from Li.Fi quote API`);
+    res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+  } catch (err) {
+    // AbortSignal.timeout() fires TimeoutError; manually aborted signals fire AbortError.
+    if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
       return null;
     }
-    return (await res.json()) as LifiQuoteResponse;
-  } catch (err) {
-    // Only swallow timeouts — DNS failures, JSON parse errors, etc. must propagate so
-    // Promise.allSettled can log them rather than silently treating them as no-route.
-    if (err instanceof DOMException && err.name === 'AbortError') return null;
     throw err;
+  }
+  if (!res.ok) {
+    console.warn(`[@concierge/mantle-dex] lifi: HTTP ${res.status} from Li.Fi quote API`);
+    return null;
+  }
+  try {
+    return (await res.json()) as LifiQuoteResponse;
+  } catch {
+    // Malformed JSON (e.g. CDN returns HTML on 200) — treat as no-route, not a crash.
+    console.warn(
+      `[@concierge/mantle-dex] lifi: malformed JSON in Li.Fi response (HTTP ${res.status})`,
+    );
+    return null;
   }
 }
 

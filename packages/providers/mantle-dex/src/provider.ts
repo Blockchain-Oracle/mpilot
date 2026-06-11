@@ -73,7 +73,7 @@ export function createMantleDexProvider(opts: MantleDexProviderOptions = {}): Ma
 
   const ctx: ActionContext = {
     publicClient,
-    walletClient: opts.walletClient,
+    ...(opts.walletClient !== undefined && { walletClient: opts.walletClient }),
     chainId,
     addresses: {
       merchantMoe: {

@@ -187,17 +187,28 @@ export async function executeSwap(
     );
   }
 
-  const attestationPayload = buildAttestationPayload({
-    venue: bestQuote.venue,
-    chainId: ctx.chainId,
-    tokenIn,
-    tokenOut,
-    amountIn,
-    amountOut: swapResult.amountOut,
-    quotedOut: bestQuote.amountOut,
-    slippageBps,
-    txHash: swapResult.txHash,
-  });
+  let attestationPayload: ReturnType<typeof buildAttestationPayload>;
+  try {
+    attestationPayload = buildAttestationPayload({
+      venue: bestQuote.venue,
+      chainId: ctx.chainId,
+      tokenIn,
+      tokenOut,
+      amountIn,
+      amountOut: swapResult.amountOut,
+      quotedOut: bestQuote.amountOut,
+      slippageBps,
+      txHash: swapResult.txHash,
+    });
+  } catch (err) {
+    // Swap already committed — wrap Zod error so caller gets a typed ConciergeError with txHash.
+    throw new ConciergeError(
+      'AttestationFailed',
+      `[@concierge/mantle-dex] swap: attestation schema validation failed after swap ${swapResult.txHash}`,
+      err instanceof Error ? err : undefined,
+      { txHash: swapResult.txHash, venue: bestQuote.venue },
+    );
+  }
 
   return {
     txHash: swapResult.txHash,
