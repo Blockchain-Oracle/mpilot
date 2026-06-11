@@ -55,7 +55,8 @@ describe('createMethStakingProvider — MissingDependency fail-fast', () => {
   it('throws MissingDependency when dexProvider is absent (test_constructor_MissingDexProvider)', () => {
     let thrown: unknown;
     try {
-      createMethStakingProvider({ chain: 'mantle-mainnet' });
+      // biome-ignore lint/suspicious/noExplicitAny: intentional test of runtime guard for JS callers
+      createMethStakingProvider({ chain: 'mantle-mainnet' }, undefined as any);
     } catch (e) {
       thrown = e;
     }

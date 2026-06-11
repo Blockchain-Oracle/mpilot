@@ -4,7 +4,11 @@ import { z } from 'zod';
 import { computeRateFromSqrt, fetchPoolState } from '../_agni.ts';
 import type { ActionContext } from '../_context.ts';
 import { NON_NEG_INT_STR, NON_ZERO_ADDRESS } from '../_validators.ts';
-import { METH_UNWRAP_SCHEMA, UnwrapAttestationPayloadSchema } from '../attestation.ts';
+import {
+  METH_UNWRAP_SCHEMA,
+  type UnwrapAttestationPayload,
+  UnwrapAttestationPayloadSchema,
+} from '../attestation.ts';
 
 export const GetUnwrapToWETHInput = z.object({
   amountMeth: z.coerce
@@ -18,7 +22,9 @@ export const GetUnwrapToWETHInput = z.object({
     .max(5000)
     .default(50)
     .describe('Max slippage in bps (default 50 = 0.5%)'),
-  recipient: NON_ZERO_ADDRESS.describe('Address to receive WETH proceeds'),
+  recipient: NON_ZERO_ADDRESS.transform((v) => v as `0x${string}`).describe(
+    'Address to receive WETH proceeds',
+  ),
 });
 
 export const GetUnwrapToWETHOutput = z.object({
@@ -40,11 +46,21 @@ export async function executeGetUnwrapToWETH(
   const { amountMeth, slippageBps, recipient } = args;
 
   // Compute oracle-based expected output BEFORE the swap for attestation anchoring.
-  const { sqrtPriceX96 } = await fetchPoolState(
-    ctx.publicClient,
-    ctx.addresses.agniMethWeth,
-    'getUnwrapToWETH',
-  );
+  // Failure here is safe to retry — no funds have moved yet.
+  let sqrtPriceX96: bigint;
+  try {
+    ({ sqrtPriceX96 } = await fetchPoolState(
+      ctx.publicClient,
+      ctx.addresses.agniMethWeth,
+      'getUnwrapToWETH',
+    ));
+  } catch (err) {
+    throw new ConciergeError(
+      'OracleUnavailable',
+      '[@concierge/meth-staking] getUnwrapToWETH: oracle price read failed before swap — no funds moved, safe to retry',
+      err instanceof Error ? err : undefined,
+    );
+  }
   const rate = computeRateFromSqrt(sqrtPriceX96);
   const expectedEthOut = (amountMeth * rate) / 10n ** 18n;
 
@@ -55,7 +71,7 @@ export async function executeGetUnwrapToWETH(
       tokenOut: ctx.addresses.weth,
       amountIn: amountMeth,
       slippageBps,
-      recipient: recipient as `0x${string}`,
+      recipient,
     });
   } catch (err) {
     if (err instanceof ConciergeError) throw err;
@@ -68,15 +84,25 @@ export async function executeGetUnwrapToWETH(
 
   const dexTxHash = swapResult.txHash as `0x${string}`;
 
-  const attestationPayload = UnwrapAttestationPayloadSchema.parse({
-    schema: METH_UNWRAP_SCHEMA,
-    chain: ctx.chainId,
-    dexTxHash,
-    amountMethIn: amountMeth.toString(),
-    expectedEthOut: expectedEthOut.toString(),
-    slippageBps,
-    ts: Math.floor(Date.now() / 1000),
-  });
+  // Swap executed — wrap any attestation failure with the txHash so it can be recorded manually.
+  let attestationPayload: UnwrapAttestationPayload;
+  try {
+    attestationPayload = UnwrapAttestationPayloadSchema.parse({
+      schema: METH_UNWRAP_SCHEMA,
+      chain: ctx.chainId,
+      dexTxHash,
+      amountMethIn: amountMeth.toString(),
+      expectedEthOut: expectedEthOut.toString(),
+      slippageBps,
+      ts: Math.floor(Date.now() / 1000),
+    });
+  } catch (err) {
+    throw new ConciergeError(
+      'AttestationFailed',
+      `[@concierge/meth-staking] getUnwrapToWETH: swap executed (txHash: ${dexTxHash}) but attestation payload validation failed — record the tx hash manually`,
+      err instanceof Error ? err : undefined,
+    );
+  }
 
   return { dexTxHash, expectedEthOut: expectedEthOut.toString(), attestationPayload };
 }

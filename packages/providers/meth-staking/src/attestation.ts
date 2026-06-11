@@ -8,7 +8,7 @@ export const METH_UNWRAP_SCHEMA = 'concierge.meth.unwrap-via-dex.v1' as const;
 
 export const ReadAttestationPayloadSchema = z.object({
   schema: z.literal(METH_READ_SCHEMA),
-  chain: z.number().int().positive(),
+  chain: z.literal(5000),
   user: NON_ZERO_ADDRESS,
   balance: NON_NEG_INT_STR,
   exchangeRate: POSITIVE_INT_STR,
@@ -18,7 +18,7 @@ export const ReadAttestationPayloadSchema = z.object({
 
 export const UnwrapAttestationPayloadSchema = z.object({
   schema: z.literal(METH_UNWRAP_SCHEMA),
-  chain: z.number().int().positive(),
+  chain: z.literal(5000),
   dexTxHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
   amountMethIn: POSITIVE_INT_STR,
   expectedEthOut: NON_NEG_INT_STR,

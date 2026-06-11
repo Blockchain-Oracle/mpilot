@@ -106,7 +106,15 @@ export async function fetchYieldBps(
     );
   }
 
-  const yieldBps = computeYieldBps(tick, cumulatives[0][0]!, cumulatives[0][1]!);
+  const t0 = cumulatives[0][0];
+  const t1 = cumulatives[0][1];
+  if (t0 === undefined || t1 === undefined) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/meth-staking] ${tag}: observe() returned fewer tick cumulatives than expected`,
+    );
+  }
+  const yieldBps = computeYieldBps(tick, t0, t1);
   if (yieldBps <= 0) {
     throw new ConciergeError(
       'InsufficientLiquidity',

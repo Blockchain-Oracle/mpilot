@@ -67,3 +67,36 @@ describe('getExchangeRate — happy path (mocked)', () => {
     expect(rate).toBeLessThan(1_100_000_000_000_000_000n);
   });
 });
+
+describe('getExchangeRate — monotonic rate property (test_getExchangeRate_Monotonic)', () => {
+  it('higher sqrtPriceX96 produces a strictly higher rate (mETH appreciation is order-preserving)', async () => {
+    // 2^96 → rate = exactly 1.0e18 (peg, no yield accrued yet)
+    const SQRT_AT_PAR = 79_228_162_514_264_337_593_543_950_336n;
+    // real on-chain value → rate ≈ 1.092e18 (staking yield accrued)
+    const SQRT_APPRECIATED = 82_798_739_410_433_829_082_732_242_045n;
+
+    const mockDex = { actions: { swap: { invoke: vi.fn() } } };
+    // biome-ignore lint/suspicious/noExplicitAny: minimal mock
+    const makeClient = (sqrt: bigint): any => ({
+      readContract: vi.fn().mockResolvedValue([sqrt, 0, 0, 1, 1, 0, true]),
+    });
+
+    const parCtx = {
+      publicClient: makeClient(SQRT_AT_PAR),
+      chainId: 5000 as const,
+      addresses,
+      dexProvider: mockDex,
+    };
+    const appreciatedCtx = {
+      publicClient: makeClient(SQRT_APPRECIATED),
+      chainId: 5000 as const,
+      addresses,
+      dexProvider: mockDex,
+    };
+
+    const parResult = await executeGetExchangeRate(parCtx);
+    const appreciatedResult = await executeGetExchangeRate(appreciatedCtx);
+
+    expect(BigInt(appreciatedResult.rate)).toBeGreaterThan(BigInt(parResult.rate));
+  });
+});

@@ -56,7 +56,7 @@ function resolveChain(opts: MethStakingProviderOpts): { viemChain: Chain; chainI
 
 export function createMethStakingProvider(
   opts: MethStakingProviderOpts = {},
-  deps?: MethStakingDeps,
+  deps: MethStakingDeps,
 ): MethStakingProvider {
   // Fail-fast at construction if dexProvider is absent — unwrapToWETH would silently break.
   if (!deps?.dexProvider) {
