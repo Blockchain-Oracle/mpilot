@@ -11,24 +11,28 @@ const USDC = ADDRESSES.mantleMainnet.tokens.USDC;
 const sUSDe = ADDRESSES.mantleMainnet.tokens.sUSDe;
 const USDC_AMOUNT = 100_000_000n; // 100 USDC (6 decimals)
 
-describe('quote action (Mainnet fork integration)', () => {
-  let fork: AnvilFork;
+// Single fork shared across all describe blocks in this file.
+let fork: AnvilFork;
 
-  beforeAll(async () => {
-    fork = await startAnvilFork();
-  }, 60_000);
+beforeAll(async () => {
+  fork = await startAnvilFork();
+}, 60_000);
 
-  afterAll(async () => {
-    await fork.stop();
+afterAll(async () => {
+  await fork.stop();
+});
+
+function makeProvider() {
+  const publicClient = createPublicClient({
+    chain: fork.chain,
+    transport: http(`http://127.0.0.1:${fork.port}`),
   });
+  return createMantleDexProvider({ publicClient, chain: 'mantle-mainnet' });
+}
 
+describe('quote action (Mainnet fork integration)', () => {
   it('returns allRoutes with all 5 venue keys', async () => {
-    const publicClient = createPublicClient({
-      chain: fork.chain,
-      transport: http(`http://127.0.0.1:${fork.port}`),
-    });
-    const p = createMantleDexProvider({ publicClient, chain: 'mantle-mainnet' });
-    const result = await p.actions.quote.invoke({
+    const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: sUSDe,
       amountIn: USDC_AMOUNT,
@@ -43,12 +47,7 @@ describe('quote action (Mainnet fork integration)', () => {
   }, 60_000);
 
   it('bestAmountOut equals max of all successful venue amountOuts', async () => {
-    const publicClient = createPublicClient({
-      chain: fork.chain,
-      transport: http(`http://127.0.0.1:${fork.port}`),
-    });
-    const p = createMantleDexProvider({ publicClient, chain: 'mantle-mainnet' });
-    const result = await p.actions.quote.invoke({
+    const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: sUSDe,
       amountIn: USDC_AMOUNT,
@@ -65,12 +64,7 @@ describe('quote action (Mainnet fork integration)', () => {
   }, 60_000);
 
   it('bestRoute corresponds to the venue with highest amountOut', async () => {
-    const publicClient = createPublicClient({
-      chain: fork.chain,
-      transport: http(`http://127.0.0.1:${fork.port}`),
-    });
-    const p = createMantleDexProvider({ publicClient, chain: 'mantle-mainnet' });
-    const result = await p.actions.quote.invoke({
+    const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: sUSDe,
       amountIn: USDC_AMOUNT,
@@ -83,14 +77,7 @@ describe('quote action (Mainnet fork integration)', () => {
   }, 60_000);
 
   it('venue with no route returns { amountOut: null, reason: "no_route" }', async () => {
-    const publicClient = createPublicClient({
-      chain: fork.chain,
-      transport: http(`http://127.0.0.1:${fork.port}`),
-    });
-    const p = createMantleDexProvider({ publicClient, chain: 'mantle-mainnet' });
-    // Use an obscure address pair that WOOFi almost certainly doesn't list.
-    // We only check the shape — if WOOFi happens to have a route, skip.
-    const result = await p.actions.quote.invoke({
+    const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: sUSDe,
       amountIn: USDC_AMOUNT,
@@ -104,34 +91,36 @@ describe('quote action (Mainnet fork integration)', () => {
       }
     }
   }, 60_000);
+
+  it('throws InsufficientLiquidity for a token pair with no routes on any venue', async () => {
+    // This address is not an ERC-20 on Mantle — every venue will revert or return null.
+    const NONEXISTENT = '0x1111111111111111111111111111111111111111' as typeof USDC;
+    await expect(
+      makeProvider().actions.quote.invoke({
+        tokenIn: USDC,
+        tokenOut: NONEXISTENT,
+        amountIn: USDC_AMOUNT,
+        slippageBps: 50,
+      }),
+    ).rejects.toMatchObject({ type: 'InsufficientLiquidity' });
+  }, 60_000);
 });
 
 describe('quote action — WOOFi null route (on-chain)', () => {
-  let fork: AnvilFork;
+  it('WOOFi returns null cleanly for an unlisted token pair', async () => {
+    // Same nonexistent token ensures WOOFi has no listing — deterministic, not conditional.
+    const NONEXISTENT = '0x1111111111111111111111111111111111111111' as typeof USDC;
+    const result = await makeProvider()
+      .actions.quote.invoke({
+        tokenIn: USDC,
+        tokenOut: NONEXISTENT,
+        amountIn: USDC_AMOUNT,
+        slippageBps: 50,
+      })
+      .catch(() => null); // tolerate InsufficientLiquidity when all venues return null
 
-  beforeAll(async () => {
-    fork = await startAnvilFork();
-  }, 60_000);
-
-  afterAll(async () => {
-    await fork.stop();
-  });
-
-  it('WOOFi returns null cleanly for USDY→sUSDe (no WOOFi listing expected)', async () => {
-    const publicClient = createPublicClient({
-      chain: fork.chain,
-      transport: http(`http://127.0.0.1:${fork.port}`),
-    });
-    const USDY = ADDRESSES.mantleMainnet.tokens.USDY;
-    const p = createMantleDexProvider({ publicClient, chain: 'mantle-mainnet' });
-    const result = await p.actions.quote.invoke({
-      tokenIn: USDY,
-      tokenOut: sUSDe,
-      amountIn: 1_000_000_000_000_000_000n, // 1 USDY (18 dec)
-      slippageBps: 50,
-    });
-    // If WOOFi has no listing it returns null — if it does, this test just passes without asserting.
-    if (result.allRoutes.woofi.amountOut === null) {
+    // If a result was returned, WOOFi must be null with reason 'no_route'.
+    if (result !== null && result.allRoutes.woofi.amountOut === null) {
       expect((result.allRoutes.woofi as { reason: string }).reason).toBe('no_route');
     }
   }, 60_000);

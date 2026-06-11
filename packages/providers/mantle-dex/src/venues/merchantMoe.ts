@@ -1,6 +1,7 @@
-import type { Address, Hex } from '@concierge/shared';
+import { ConciergeError } from '@concierge/sdk';
+import type { Address } from '@concierge/shared';
 import type { PublicClient, WalletClient } from 'viem';
-import { parseAbi } from 'viem';
+import { ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
   Venue,
   VenueQuoteParams,
@@ -35,16 +36,16 @@ export function createMerchantMoeVenue(
       const amounts = result.amounts;
       if (!amounts || amounts.length < 2) return null;
       const amountOut = amounts[amounts.length - 1];
-      if (amountOut === 0n) return null;
+      if (amountOut === undefined || amountOut === 0n) return null;
       return { venue: 'merchantMoe', amountOut };
-    } catch {
-      return null;
+    } catch (err) {
+      if (err instanceof ContractFunctionRevertedError) return null;
+      throw err;
     }
   }
 
   async function swap(params: VenueSwapParams): Promise<VenueSwapResult> {
     if (!walletClient) {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'ConfigError',
         '[@concierge/mantle-dex] merchantMoe.swap: walletClient required',
@@ -66,28 +67,30 @@ export function createMerchantMoeVenue(
       tokenPath: freshQuote.route as Address[],
     };
 
-    const txHash = await walletClient.writeContract({
+    // Simulate to get actual amountOut and pre-flight slippage check.
+    const { result: simulatedAmountOut, request } = await publicClient.simulateContract({
       address: lbRouter,
       abi: lbRouterAbi,
       functionName: 'swapExactTokensForTokens',
       args: [amountIn, amountOutMin, path, recipient, deadline],
       account: account as Address,
-      chain: walletClient.chain ?? null,
     });
+
+    const txHash = await walletClient.writeContract({
+      ...request,
+      chain: walletClient.chain ?? null,
+      account: account as Address,
+    } as Parameters<typeof walletClient.writeContract>[0]);
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
     if (receipt.status === 'reverted') {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'RpcError',
         `[@concierge/mantle-dex] merchantMoe.swap: tx ${txHash} reverted`,
       );
     }
 
-    const freshAmounts = freshQuote.amounts;
-    const estimatedOut =
-      freshAmounts.length >= 2 ? freshAmounts[freshAmounts.length - 1] : amountOutMin;
-    return { txHash, amountOut: estimatedOut, spender: lbRouter };
+    return { txHash, amountOut: simulatedAmountOut, spender: lbRouter };
   }
 
   return { name: 'merchantMoe', quote, swap };

@@ -1,6 +1,7 @@
+import { ConciergeError } from '@concierge/sdk';
 import type { Address } from '@concierge/shared';
 import type { PublicClient, WalletClient } from 'viem';
-import { parseAbi } from 'viem';
+import { ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
   Venue,
   VenueQuoteParams,
@@ -31,15 +32,15 @@ export function createWooFiVenue(
       });
       if (toAmount === 0n) return null;
       return { venue: 'woofi', amountOut: toAmount };
-    } catch {
+    } catch (err) {
       // WooFi reverts when pair has no listing — return null to let aggregation continue.
-      return null;
+      if (err instanceof ContractFunctionRevertedError) return null;
+      throw err;
     }
   }
 
   async function swap(params: VenueSwapParams): Promise<VenueSwapResult> {
     if (!walletClient) {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'ConfigError',
         '[@concierge/mantle-dex] woofi.swap: walletClient required',
@@ -47,7 +48,8 @@ export function createWooFiVenue(
     }
     const { tokenIn, tokenOut, amountIn, amountOutMin, recipient, account } = params;
 
-    const txHash = await walletClient.writeContract({
+    // Simulate to get actual realToAmount and pre-flight slippage check.
+    const { result: simulatedAmountOut, request } = await publicClient.simulateContract({
       address: router,
       abi: routerAbi,
       functionName: 'swap',
@@ -60,19 +62,22 @@ export function createWooFiVenue(
         '0x0000000000000000000000000000000000000000',
       ],
       account: account as Address,
-      chain: walletClient.chain ?? null,
     });
+
+    const txHash = await walletClient.writeContract({
+      ...request,
+      chain: walletClient.chain ?? null,
+      account: account as Address,
+    } as Parameters<typeof walletClient.writeContract>[0]);
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
     if (receipt.status === 'reverted') {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'RpcError',
         `[@concierge/mantle-dex] woofi.swap: tx ${txHash} reverted`,
       );
     }
-    // WOOFi doesn't return amountOut in ABI; use amountOutMin as conservative floor.
-    return { txHash, amountOut: amountOutMin, spender: router };
+    return { txHash, amountOut: simulatedAmountOut, spender: router };
   }
 
   return { name: 'woofi', quote, swap };

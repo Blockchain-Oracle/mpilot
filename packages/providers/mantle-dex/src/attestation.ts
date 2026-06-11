@@ -11,18 +11,20 @@ export const ATTESTATION_SCHEMAS = {
   lifi: 'concierge.mantle-dex.lifi.swap.v1',
 } as const satisfies Record<VenueName, string>;
 
+const ATTESTATION_SCHEMA_VALUES = Object.values(ATTESTATION_SCHEMAS) as [string, ...string[]];
+
 export const AttestationPayloadSchema = z.object({
-  schema: z.string(),
-  chain: z.number(),
-  venue: z.string(),
-  tokenIn: z.string(),
-  tokenOut: z.string(),
-  amountIn: z.string(),
-  amountOut: z.string(),
-  slippageBps: z.number(),
-  quotedOut: z.string(),
-  txHash: z.string(),
-  ts: z.number(),
+  schema: z.enum(ATTESTATION_SCHEMA_VALUES),
+  chain: z.number().int().positive(),
+  venue: z.enum(['merchantMoe', 'agni', 'fusionx', 'woofi', 'lifi']),
+  tokenIn: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  tokenOut: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  amountIn: z.string().regex(/^\d+$/),
+  amountOut: z.string().regex(/^\d+$/),
+  slippageBps: z.number().int().min(0).max(10000),
+  quotedOut: z.string().regex(/^\d+$/),
+  txHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+  ts: z.number().int().positive(),
 });
 
 export type AttestationPayload = z.infer<typeof AttestationPayloadSchema>;

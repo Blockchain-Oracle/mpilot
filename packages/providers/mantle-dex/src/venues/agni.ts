@@ -1,6 +1,7 @@
+import { ConciergeError } from '@concierge/sdk';
 import type { Address } from '@concierge/shared';
 import type { PublicClient, WalletClient } from 'viem';
-import { parseAbi } from 'viem';
+import { ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
   Venue,
   VenueQuoteParams,
@@ -10,7 +11,7 @@ import type {
 } from '../_types.ts';
 
 const quoterAbi = parseAbi([
-  'function quoteExactInputSingle((address tokenIn, address tokenOut, uint256 amountIn, uint24 fee, uint160 sqrtPriceLimitX96) params) returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)',
+  'function quoteExactInputSingle((address tokenIn, address tokenOut, uint256 amountIn, uint24 fee, uint160 sqrtPriceLimitX96) params) view returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)',
 ]);
 
 const routerAbi = parseAbi([
@@ -49,8 +50,9 @@ async function quoteSingleFee(
     });
     if (amountOut === 0n) return null;
     return { amountOut, fee };
-  } catch {
-    return null;
+  } catch (err) {
+    if (err instanceof ContractFunctionRevertedError) return null;
+    throw err;
   }
 }
 
@@ -64,7 +66,7 @@ export function createAgniVenue(
     const { tokenIn, tokenOut, amountIn } = params;
     const feesToTry = isStablePair(tokenIn, tokenOut)
       ? FEE_TIERS
-      : [FEE_TIERS[2], FEE_TIERS[1], FEE_TIERS[3], FEE_TIERS[0]];
+      : ([FEE_TIERS[2], FEE_TIERS[1], FEE_TIERS[3], FEE_TIERS[0]] as number[]);
 
     const results = await Promise.all(
       feesToTry.map((fee) =>
@@ -81,7 +83,6 @@ export function createAgniVenue(
 
   async function swap(params: VenueSwapParams): Promise<VenueSwapResult> {
     if (!walletClient) {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'ConfigError',
         '[@concierge/mantle-dex] agni.swap: walletClient required',
@@ -92,7 +93,7 @@ export function createAgniVenue(
     // Re-quote to get the best fee tier at execute time.
     const feesToTry = isStablePair(tokenIn, tokenOut)
       ? FEE_TIERS
-      : [FEE_TIERS[2], FEE_TIERS[1], FEE_TIERS[3], FEE_TIERS[0]];
+      : ([FEE_TIERS[2], FEE_TIERS[1], FEE_TIERS[3], FEE_TIERS[0]] as number[]);
     const results = await Promise.all(
       feesToTry.map((fee) =>
         quoteSingleFee(publicClient, quoterV2, tokenIn, tokenOut, amountIn, fee),
@@ -103,14 +104,14 @@ export function createAgniVenue(
       .sort((a, b) => (b.amountOut > a.amountOut ? 1 : -1))[0];
 
     if (!best) {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'InsufficientLiquidity',
         `[@concierge/mantle-dex] agni.swap: no route for ${tokenIn} → ${tokenOut}`,
       );
     }
 
-    const txHash = await walletClient.writeContract({
+    // Simulate to get actual amountOut and pre-flight slippage check.
+    const { result: simulatedAmountOut, request } = await publicClient.simulateContract({
       address: swapRouter,
       abi: routerAbi,
       functionName: 'exactInputSingle',
@@ -127,18 +128,22 @@ export function createAgniVenue(
         },
       ],
       account: account as Address,
-      chain: walletClient.chain ?? null,
     });
+
+    const txHash = await walletClient.writeContract({
+      ...request,
+      chain: walletClient.chain ?? null,
+      account: account as Address,
+    } as Parameters<typeof walletClient.writeContract>[0]);
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
     if (receipt.status === 'reverted') {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'RpcError',
         `[@concierge/mantle-dex] agni.swap: tx ${txHash} reverted`,
       );
     }
-    return { txHash, amountOut: best.amountOut, spender: swapRouter };
+    return { txHash, amountOut: simulatedAmountOut, spender: swapRouter };
   }
 
   return { name: 'agni', quote, swap };

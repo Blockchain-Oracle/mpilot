@@ -67,10 +67,10 @@ export async function executeQuote(
   ctx: ActionContext,
   args: z.infer<typeof QuoteInput>,
 ): Promise<QuoteOutputType> {
-  const { tokenIn, tokenOut, amountIn, account } = args;
+  const { tokenIn, tokenOut, amountIn, account, slippageBps } = args;
   const venues = buildVenues(ctx);
 
-  const baseParams = { tokenIn, tokenOut, amountIn };
+  const baseParams = { tokenIn, tokenOut, amountIn, slippageBps };
   const quoteParams = account !== undefined ? { ...baseParams, account } : baseParams;
   const settled = await Promise.allSettled(venues.map((v) => v.quote(quoteParams)));
 

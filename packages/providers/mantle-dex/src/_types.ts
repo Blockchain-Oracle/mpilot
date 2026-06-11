@@ -7,12 +7,14 @@ export interface VenueQuoteParams {
   tokenOut: Address;
   amountIn: bigint;
   account?: Address;
+  slippageBps?: number;
 }
 
 export interface VenueQuoteResult {
   venue: VenueName;
   amountOut: bigint;
   gasEstimate?: bigint;
+  approvalAddress?: Address;
 }
 
 export interface VenueSwapParams {
@@ -20,6 +22,7 @@ export interface VenueSwapParams {
   tokenOut: Address;
   amountIn: bigint;
   amountOutMin: bigint;
+  slippageBps: number;
   recipient: Address;
   account: Address;
   deadline: bigint;

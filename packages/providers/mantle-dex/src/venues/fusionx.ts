@@ -1,6 +1,7 @@
+import { ConciergeError } from '@concierge/sdk';
 import type { Address } from '@concierge/shared';
 import type { PublicClient, WalletClient } from 'viem';
-import { parseAbi } from 'viem';
+import { ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
   Venue,
   VenueQuoteParams,
@@ -11,7 +12,7 @@ import type {
 
 // Algebra V3 QuoterV2 — individual params, no fee tier input.
 const quoterAbi = parseAbi([
-  'function quoteExactInputSingle(address tokenIn, address tokenOut, uint256 amountIn, uint160 limitSqrtPrice) returns (uint256 amountOut, uint16 fee, uint32 initializedTicksCrossed, uint256 gasEstimate)',
+  'function quoteExactInputSingle(address tokenIn, address tokenOut, uint256 amountIn, uint160 limitSqrtPrice) view returns (uint256 amountOut, uint16 fee, uint32 initializedTicksCrossed, uint256 gasEstimate)',
 ]);
 
 // Algebra V3 SwapRouter — no fee in ExactInputSingleParams.
@@ -36,14 +37,14 @@ export function createFusionXVenue(
       });
       if (amountOut === 0n) return null;
       return { venue: 'fusionx', amountOut };
-    } catch {
-      return null;
+    } catch (err) {
+      if (err instanceof ContractFunctionRevertedError) return null;
+      throw err;
     }
   }
 
   async function swap(params: VenueSwapParams): Promise<VenueSwapResult> {
     if (!walletClient) {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'ConfigError',
         '[@concierge/mantle-dex] fusionx.swap: walletClient required',
@@ -51,7 +52,7 @@ export function createFusionXVenue(
     }
     const { tokenIn, tokenOut, amountIn, amountOutMin, recipient, account, deadline } = params;
 
-    // Re-quote for freshness.
+    // Re-quote for freshness — discriminate revert (no route) from system errors.
     let freshAmountOut: bigint;
     try {
       const [ao] = await publicClient.readContract({
@@ -60,17 +61,27 @@ export function createFusionXVenue(
         functionName: 'quoteExactInputSingle',
         args: [tokenIn, tokenOut, amountIn, 0n],
       });
-      if (ao === 0n) throw new Error('zero');
+      if (ao === 0n) {
+        throw new ConciergeError(
+          'InsufficientLiquidity',
+          `[@concierge/mantle-dex] fusionx.swap: quoter returned zero for ${tokenIn} → ${tokenOut}`,
+        );
+      }
       freshAmountOut = ao;
-    } catch {
-      const { ConciergeError } = await import('@concierge/sdk');
-      throw new ConciergeError(
-        'InsufficientLiquidity',
-        `[@concierge/mantle-dex] fusionx.swap: no route for ${tokenIn} → ${tokenOut}`,
-      );
+    } catch (err) {
+      if (err instanceof ConciergeError) throw err;
+      if (err instanceof ContractFunctionRevertedError) {
+        throw new ConciergeError(
+          'InsufficientLiquidity',
+          `[@concierge/mantle-dex] fusionx.swap: no route for ${tokenIn} → ${tokenOut}`,
+        );
+      }
+      throw err;
     }
+    void freshAmountOut; // used below via simulateContract result
 
-    const txHash = await walletClient.writeContract({
+    // Simulate to get actual amountOut and pre-flight slippage check.
+    const { result: simulatedAmountOut, request } = await publicClient.simulateContract({
       address: swapRouter,
       abi: routerAbi,
       functionName: 'exactInputSingle',
@@ -86,18 +97,22 @@ export function createFusionXVenue(
         },
       ],
       account: account as Address,
-      chain: walletClient.chain ?? null,
     });
+
+    const txHash = await walletClient.writeContract({
+      ...request,
+      chain: walletClient.chain ?? null,
+      account: account as Address,
+    } as Parameters<typeof walletClient.writeContract>[0]);
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
     if (receipt.status === 'reverted') {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'RpcError',
         `[@concierge/mantle-dex] fusionx.swap: tx ${txHash} reverted`,
       );
     }
-    return { txHash, amountOut: freshAmountOut, spender: swapRouter };
+    return { txHash, amountOut: simulatedAmountOut, spender: swapRouter };
   }
 
   return { name: 'fusionx', quote, swap };

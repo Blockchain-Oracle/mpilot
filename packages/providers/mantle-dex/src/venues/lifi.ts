@@ -1,3 +1,4 @@
+import { ConciergeError } from '@concierge/sdk';
 import type { Address, EvmChainId, Hex } from '@concierge/shared';
 import type { PublicClient, WalletClient } from 'viem';
 import type {
@@ -16,9 +17,10 @@ interface LifiQuoteResponse {
   estimate?: {
     toAmountMin?: string;
     toAmount?: string;
+    approvalAddress?: string;
   };
   transactionRequest?: {
-    to: string;
+    to?: string;
     data: string;
     value: string;
     gasLimit?: string;
@@ -53,30 +55,40 @@ export function createLifiVenue(
   async function quote(params: VenueQuoteParams): Promise<VenueQuoteResult | null> {
     const { tokenIn, tokenOut, amountIn } = params;
     const fromAddress = params.account ?? QUOTE_FROM;
-    const data = await fetchLifiQuote(chainId, tokenIn, tokenOut, amountIn, fromAddress, 50);
+    const slippageBps = params.slippageBps ?? 50;
+    const data = await fetchLifiQuote(
+      chainId,
+      tokenIn,
+      tokenOut,
+      amountIn,
+      fromAddress,
+      slippageBps,
+    );
     if (!data?.estimate?.toAmount) return null;
     const amountOut = BigInt(data.estimate.toAmount);
     if (amountOut === 0n) return null;
+    if (data.estimate.approvalAddress) {
+      return {
+        venue: 'lifi',
+        amountOut,
+        approvalAddress: data.estimate.approvalAddress as Address,
+      };
+    }
     return { venue: 'lifi', amountOut };
   }
 
   async function swap(params: VenueSwapParams): Promise<VenueSwapResult> {
     if (!walletClient) {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'ConfigError',
         '[@concierge/mantle-dex] lifi.swap: walletClient required',
       );
     }
-    const { tokenIn, tokenOut, amountIn, account } = params;
-    const slippageBps =
-      params.amountOutMin > 0n
-        ? Number(((amountIn - params.amountOutMin) * 10_000n) / amountIn)
-        : 50;
+    const { tokenIn, tokenOut, amountIn, account, slippageBps } = params;
 
+    // Use the threaded slippageBps directly — avoids cross-token decimal math.
     const data = await fetchLifiQuote(chainId, tokenIn, tokenOut, amountIn, account, slippageBps);
     if (!data?.transactionRequest) {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'InsufficientLiquidity',
         `[@concierge/mantle-dex] lifi.swap: no route from Li.Fi for ${tokenIn} → ${tokenOut}`,
@@ -84,8 +96,15 @@ export function createLifiVenue(
     }
 
     const req = data.transactionRequest;
+    if (!req.to) {
+      throw new ConciergeError(
+        'RpcError',
+        '[@concierge/mantle-dex] lifi.swap: Li.Fi response missing transactionRequest.to',
+      );
+    }
+
     const txHash = await walletClient.sendTransaction({
-      to: (req.to ?? diamond) as Address,
+      to: req.to as Address,
       data: req.data as Hex,
       value: req.value ? BigInt(req.value) : 0n,
       account: account as Address,
@@ -94,7 +113,6 @@ export function createLifiVenue(
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
     if (receipt.status === 'reverted') {
-      const { ConciergeError } = await import('@concierge/sdk');
       throw new ConciergeError(
         'RpcError',
         `[@concierge/mantle-dex] lifi.swap: tx ${txHash} reverted`,
@@ -103,7 +121,11 @@ export function createLifiVenue(
     const amountOut = data.estimate?.toAmount
       ? BigInt(data.estimate.toAmount)
       : params.amountOutMin;
-    return { txHash, amountOut, spender: diamond };
+    return {
+      txHash,
+      amountOut,
+      spender: (data.estimate?.approvalAddress as Address | undefined) ?? diamond,
+    };
   }
 
   return { name: 'lifi', quote, swap };

@@ -6,7 +6,7 @@ import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 import { requireWallet } from '../_context.ts';
 import { NON_ZERO_ADDRESS, VENUE_NAME } from '../_schema.ts';
-import type { VenueQuoteResult } from '../_types.ts';
+import type { VenueName, VenueQuoteResult } from '../_types.ts';
 import { AttestationPayloadSchema, buildAttestationPayload } from '../attestation.ts';
 import { buildVenues } from './quote.ts';
 
@@ -71,7 +71,16 @@ async function ensureApproval(
       err instanceof Error ? err : undefined,
     );
   }
-  const receipt = await ctx.publicClient.waitForTransactionReceipt({ hash: approveHash });
+  let receipt: Awaited<ReturnType<typeof ctx.publicClient.waitForTransactionReceipt>>;
+  try {
+    receipt = await ctx.publicClient.waitForTransactionReceipt({ hash: approveHash });
+  } catch (err) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/mantle-dex] swap: timed out waiting for approve tx ${approveHash}`,
+      err instanceof Error ? err : undefined,
+    );
+  }
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'RpcError',
@@ -89,7 +98,7 @@ export async function executeSwap(
 
   const venues = buildVenues(ctx);
   const settled = await Promise.allSettled(
-    venues.map((v) => v.quote({ tokenIn, tokenOut, amountIn, account })),
+    venues.map((v) => v.quote({ tokenIn, tokenOut, amountIn, account, slippageBps })),
   );
 
   const quotes: VenueQuoteResult[] = settled
@@ -125,20 +134,15 @@ export async function executeSwap(
     );
   }
 
-  const spenderMap: Record<string, Address> = {
+  const spenderMap: Record<VenueName, Address> = {
     merchantMoe: ctx.addresses.merchantMoe.lbRouter,
     agni: ctx.addresses.agni.swapRouter,
     fusionx: ctx.addresses.fusionx.swapRouter,
     woofi: ctx.addresses.woofi.router,
     lifi: ctx.addresses.lifi.diamond,
   };
-  const spender = spenderMap[bestQuote.venue];
-  if (!spender) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge/mantle-dex] swap: unknown venue ${bestQuote.venue}`,
-    );
-  }
+  // Li.Fi routes through executor-specific contracts; use the quoted approvalAddress when provided.
+  const spender = bestQuote.approvalAddress ?? spenderMap[bestQuote.venue];
 
   await ensureApproval(ctx, tokenIn, spender, amountIn, account, walletClient);
 
@@ -149,6 +153,7 @@ export async function executeSwap(
       tokenOut,
       amountIn,
       amountOutMin,
+      slippageBps,
       recipient,
       account,
       deadline,
