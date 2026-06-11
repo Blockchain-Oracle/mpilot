@@ -59,4 +59,22 @@ contract DeployAllGuardTest is Test {
         vm.expectRevert("DeployAll: deployer balance < 0.1 MNT, top up first");
         script.run();
     }
+
+    function test_DeployAll_RevertsWhenBalanceIsOneWeiBelowThreshold() public {
+        vm.chainId(5003);
+        vm.deal(tx.origin, 0.1 ether - 1); // exact boundary: just below the 0.1 MNT floor
+        vm.expectRevert("DeployAll: deployer balance < 0.1 MNT, top up first");
+        script.run();
+    }
+
+    // ─── Happy-path ───────────────────────────────────────────────────────────
+
+    function test_DeployAll_Sepolia_DoesNotRevert() public {
+        vm.chainId(5003);
+        // setUp already deals 1 ether to tx.origin — above the 0.1 MNT threshold.
+        // run() on Sepolia deploys mock contracts then ConciergeRegistry impl + proxy.
+        // If it reverts for any reason (HelperConfig revert, ConciergeRegistry constructor
+        // failure, etc.) this test catches the regression.
+        script.run();
+    }
 }

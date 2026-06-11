@@ -14,7 +14,7 @@ export MANTLESCAN_API_KEY="<your-mantlescan-api-key>"
 ### Checklist
 - [ ] CI is green on `main` (`gh run list --branch main --limit 1`)
 - [ ] Working tree is clean (`git status`)
-- [ ] Deployer has ≥ 0.3 MNT (`cast balance $(cast wallet address --private-key $OPS_PRIVATE_KEY) --rpc-url $MANTLE_RPC_URL`)
+- [ ] Deployer has ≥ 0.5 MNT (`cast balance $(cast wallet address --private-key $OPS_PRIVATE_KEY) --rpc-url $MANTLE_RPC_URL`)
 - [ ] `contracts/script/DeployAll.s.sol` has been reviewed — the same script runs on Sepolia; ensure chainid guard is present (`block.chainid == 5000 || block.chainid == 5003`)
 - [ ] `packages/shared/src/addresses.ts` has been reviewed — `mantleMainnet.conciergeRegistry` should be `ZERO_ADDRESS` (the slot `write-addresses.mjs` will populate)
 - [ ] You are NOT on a VPN or behind a firewall that blocks `rpc.mantle.xyz`
@@ -95,11 +95,13 @@ If the proxy itself is broken (e.g., storage layout corruption):
 
 ## Gas price guidance
 
-Mantle uses EIP-1559. At time of writing, typical base fees are < 0.01 Gwei. The deploy consumes approximately:
-- `ConciergeRegistry` implementation: ~2.5M gas
-- `ConciergeRegistryProxy` (ERC1967): ~200K gas
+Mantle uses EIP-1559. Live `forge script` dry-run against `rpc.mantle.xyz` (2026-06-11) estimates:
 
-At 0.02 Gwei base fee, total cost ≈ 0.054 MNT. The 0.3 MNT pre-flight requirement gives ~5× headroom.
+```
+Estimated amount required: ~0.30 MNT
+```
+
+The 0.5 MNT pre-flight floor provides ~1.67× headroom over the live estimate. Fund the deployer wallet with ≥ 0.5 MNT before running the script.
 
 The script does **not** pass `--legacy` — Mantle supports EIP-1559, and EIP-1559 is safer for front-running protection.
 

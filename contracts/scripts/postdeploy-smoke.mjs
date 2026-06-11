@@ -62,7 +62,7 @@ const addrs = {
 // Guard: abort early if conciergeRegistry was not yet populated (pre-deploy run)
 if (!addrs.conciergeRegistry || addrs.conciergeRegistry === ZERO_ADDR) {
   console.error(
-    'SMOKE FAIL: conciergeRegistry in addresses.ts is still zero-address — ' +
+    'SMOKE FAIL: conciergeRegistry addresses not yet populated — ' +
       'run `node contracts/scripts/write-addresses.mjs --network mainnet` first.',
   );
   process.exit(1);

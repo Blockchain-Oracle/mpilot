@@ -71,20 +71,28 @@ describe('ConciergeRegistry.requireAddress (zero-address enforcement)', () => {
     }
   });
 
-  it('throws NetworkUnsupported (not TypeError) for conciergeRegistry on mainnet — pending mainnet deploy', () => {
-    // conciergeRegistry is in MAINNET_PENDING_ADDRESS_SLOTS: zero-address placeholder on mainnet.
-    // Callers checking switch(err.type) must see NetworkUnsupported, not a false "typo" TypeError.
+  it('throws ConciergeError(NetworkUnsupported) for EVERY pending mainnet slot', () => {
+    // Mirrors the Sepolia lockbox loop — when MAINNET_PENDING_ADDRESS_SLOTS grows a second entry,
+    // it is automatically covered without needing a new named test.
     const mainnet = ConciergeRegistry.mainnet();
-    let thrown: unknown;
-    try {
-      mainnet.requireAddress('conciergeRegistry');
-    } catch (err) {
-      thrown = err;
+    for (const slot of MAINNET_PENDING_ADDRESS_SLOTS) {
+      let thrown: unknown;
+      try {
+        mainnet.requireAddress(slot);
+      } catch (err) {
+        thrown = err;
+      }
+      expect(thrown, `expected pending slot "${slot}" to throw`).toBeInstanceOf(ConciergeError);
+      expect((thrown as ConciergeError).type).toBe('NetworkUnsupported');
+      expect((thrown as ConciergeError).message).toContain(slot);
+      expect((thrown as ConciergeError).message, 'error must self-locate its chain').toContain(
+        '5000',
+      );
+      expect(
+        (thrown as ConciergeError).message,
+        'error must name MAINNET_PENDING_ADDRESS_SLOTS so the developer knows where to look',
+      ).toContain('MAINNET_PENDING_ADDRESS_SLOTS');
     }
-    expect(thrown).toBeInstanceOf(ConciergeError);
-    expect((thrown as ConciergeError).type).toBe('NetworkUnsupported');
-    expect((thrown as ConciergeError).message).toContain('conciergeRegistry');
-    expect((thrown as ConciergeError).message).toContain('5000');
   });
 
   it('mainnet has NO pending slots — every cross-chain lockbox path resolves there (except MAINNET_PENDING_ADDRESS_SLOTS)', () => {

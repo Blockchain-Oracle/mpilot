@@ -46,9 +46,11 @@ export ETH_PRIVATE_KEY="$OPS_PRIVATE_KEY"
 export ETHERSCAN_API_KEY="$MANTLESCAN_API_KEY"
 
 # --- Derive deployer address ---
-# cast wallet address reads ETH_PRIVATE_KEY from env; key does not appear in process argv.
+# cast wallet address requires explicit credentials via --private-key; it does NOT read ETH_PRIVATE_KEY.
+# forge script --broadcast DOES read ETH_PRIVATE_KEY (exported above) so the key stays out of the
+# broadcast argv. The pre-flight derivation here passes it explicitly — visible in ps aux for ~ms.
 
-DEPLOYER=$(cast wallet address) || {
+DEPLOYER=$(cast wallet address --private-key "$ETH_PRIVATE_KEY") || {
   echo "ERROR: Cannot derive deployer address — is OPS_PRIVATE_KEY a valid hex private key?" >&2
   exit 1
 }
@@ -64,9 +66,9 @@ if ! [[ "$BALANCE_WEI" =~ ^[0-9]+$ ]]; then
   echo "ERROR: Balance response is not a positive integer: '${BALANCE_WEI}' — RPC may be returning an error body." >&2
   exit 1
 fi
-REQUIRED_WEI=300000000000000000 # 0.3 MNT in wei
+REQUIRED_WEI=500000000000000000 # 0.5 MNT in wei (live dry-run estimate: ~0.30 MNT; 0.5 provides headroom)
 if (( BALANCE_WEI < REQUIRED_WEI )); then
-  echo "ERROR: Insufficient MNT for deploy (need ≥ 0.3 MNT [${REQUIRED_WEI} wei], have ${BALANCE_WEI} wei)" >&2
+  echo "ERROR: Insufficient MNT for deploy (need ≥ 0.5 MNT [${REQUIRED_WEI} wei], have ${BALANCE_WEI} wei)" >&2
   exit 1
 fi
 echo "Balance OK: ${BALANCE_WEI} wei"
@@ -82,22 +84,32 @@ if [[ -n "$GIT_STATUS" ]]; then
   exit 1
 fi
 
-# --- CI green check (most recent run on main) ---
+# --- CI green check (most recent run on main, must match HEAD SHA) ---
+# Verifies that the commit we are about to broadcast has been through CI — not just that some
+# prior commit was green. An operator with unpushed commits would pass a SHA-blind check.
 
-CI_CONCLUSION=$(gh run list \
+LOCAL_SHA=$(git -C "$REPO_ROOT" rev-parse HEAD) || {
+  echo "ERROR: Cannot determine HEAD SHA — is this a git repository?" >&2
+  exit 1
+}
+
+CI_RESULT=$(gh run list \
   --repo Blockchain-Oracle/concierge \
   --branch main \
   --limit 1 \
-  --json conclusion \
-  --jq '.[0].conclusion') || {
+  --json conclusion,headSha \
+  --jq '.[0] | "\(.conclusion)|\(.headSha)"') || {
   echo "WARNING: Cannot fetch CI status — gh may not be authenticated." >&2
   read -rp "CI check failed. Type YES to continue anyway (or anything else to abort): " ci_confirm
   if [[ "$ci_confirm" != "YES" ]]; then
     echo "Aborted." >&2
     exit 1
   fi
-  CI_CONCLUSION="unknown-skip"
+  CI_RESULT="unknown-skip|"
 }
+
+CI_CONCLUSION="${CI_RESULT%%|*}"
+CI_SHA="${CI_RESULT##*|}"
 
 if [[ -z "$CI_CONCLUSION" || "$CI_CONCLUSION" == "null" ]]; then
   echo "WARNING: No CI runs found for main — cannot verify green CI." >&2
@@ -113,6 +125,19 @@ elif [[ "$CI_CONCLUSION" != "success" && "$CI_CONCLUSION" != "unknown-skip" ]]; 
   if [[ "$ci_confirm" != "YES" ]]; then
     echo "Aborted." >&2
     exit 1
+  fi
+fi
+
+# Verify HEAD SHA matches the CI run — guards against deploying an unpushed commit.
+if [[ "$CI_CONCLUSION" != "unknown-skip" && -n "$CI_SHA" && "$CI_SHA" != "null" ]]; then
+  if [[ "$LOCAL_SHA" != "$CI_SHA" ]]; then
+    echo "WARNING: Local HEAD (${LOCAL_SHA:0:8}) does not match latest CI SHA (${CI_SHA:0:8})." >&2
+    echo "         Push your commits first, or the broadcast may deploy code CI never validated." >&2
+    read -rp "SHA mismatch. Type YES to continue anyway (or anything else to abort): " sha_confirm
+    if [[ "$sha_confirm" != "YES" ]]; then
+      echo "Aborted." >&2
+      exit 1
+    fi
   fi
 fi
 
