@@ -8,15 +8,16 @@ import { execSync } from 'node:child_process';
  *   node contracts/scripts/write-addresses.mjs [--network sepolia]
  *
  * Reads: contracts/broadcast/DeployAll.s.sol/5003/run-latest.json
- * Writes: packages/shared/src/addresses.ts  (mantleSepolia block only)
+ * Writes: packages/shared/src/addresses.ts  (mantleSepolia block + lockbox)
  *
- * Each field is updated with a targeted replacement that matches the
- * field name + its current value (ZERO_ADDRESS or an existing 0x address),
- * so the script is idempotent and safe to re-run on updated deployments.
+ * Two edits are made atomically:
+ *   1. Each field in the mantleSepolia block is replaced with the deployed address.
+ *   2. The corresponding entry in SEPOLIA_PENDING_ADDRESS_SLOTS is removed so the
+ *      lockbox test keeps passing after deploy.
  *
- * The replacement is scoped to the mantleSepolia block only — both
- * mantleMainnet and mantleSepolia share field names (pool, oracle, USDC, …)
- * and a global regex would silently clobber 8 audited Mainnet addresses.
+ * The replacement is scoped to the mantleSepolia block only — both mantleMainnet
+ * and mantleSepolia share field names (pool, oracle, USDC, …) and a global regex
+ * would silently clobber 8 audited Mainnet addresses.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -65,28 +66,28 @@ for (const tx of artifact.transactions ?? []) {
 
 // --- Map Solidity contract names to addresses.ts field names ---
 
-// Each entry: [Solidity contract name, leaf field name in addresses.ts mantleSepolia block]
+// Each entry: [Solidity contract name, leaf field name, full Sepolia dot-path for lockbox]
 const CONTRACT_FIELD_MAP = [
-  ['MockAavePool', 'pool'],
-  ['MockAaveOracle', 'oracle'],
-  ['MockSUSDe', 'sUSDe'],
-  ['MockUSDC', 'USDC'],
-  ['MockUSDe', 'USDe'],
-  ['MockUSDY', 'USDY'],
-  ['MockMETH', 'mETH'],
-  ['MockWMNT', 'WMNT'],
-  ['ConciergeRegistryProxy', 'conciergeRegistry'],
+  ['MockAavePool', 'pool', 'aave.pool'],
+  ['MockAaveOracle', 'oracle', 'aave.oracle'],
+  ['MockSUSDe', 'sUSDe', 'tokens.sUSDe'],
+  ['MockUSDC', 'USDC', 'tokens.USDC'],
+  ['MockUSDe', 'USDe', 'tokens.USDe'],
+  ['MockUSDY', 'USDY', 'tokens.USDY'],
+  ['MockMETH', 'mETH', 'tokens.mETH'],
+  ['MockWMNT', 'WMNT', 'tokens.WMNT'],
+  ['ConciergeRegistryProxy', 'conciergeRegistry', 'conciergeRegistry'],
 ];
 
 const updates = [];
 const missing = [];
-for (const [contractName, fieldName] of CONTRACT_FIELD_MAP) {
+for (const [contractName, fieldName, sepoliaPath] of CONTRACT_FIELD_MAP) {
   const addr = deployed[contractName];
   if (!addr) {
     console.error(`  ✗ ${contractName} not found in broadcast artifact`);
     missing.push(contractName);
   } else {
-    updates.push({ contractName, fieldName, addr });
+    updates.push({ contractName, fieldName, sepoliaPath, addr });
   }
 }
 if (missing.length > 0) {
@@ -121,7 +122,7 @@ if (sepoliaBlock.includes('mantleMainnet')) {
 const ADDRESS_RE = `(ZERO_ADDRESS|'0x[a-fA-F0-9]{40}'(?:\\s+as\\s+Address)?)`;
 
 let fieldMissing = false;
-for (const { contractName, fieldName, addr } of updates) {
+for (const { contractName, fieldName, sepoliaPath, addr } of updates) {
   // Anchored pattern: match the field name followed by a colon, then the current address value.
   // Applied only to sepoliaBlock so mantleMainnet fields with the same name are never touched.
   const re = new RegExp(`(\\b${fieldName}:\\s*)${ADDRESS_RE}`, 'g');
@@ -134,6 +135,11 @@ for (const { contractName, fieldName, addr } of updates) {
   } else {
     console.log(`  ✓ ${contractName} → ${fieldName}: ${addr}`);
     sepoliaBlock = next;
+
+    // Remove this path from SEPOLIA_PENDING_ADDRESS_SLOTS so the lockbox test keeps passing.
+    // sepoliaBlock contains the full file tail including the lockbox constant.
+    const escapedPath = sepoliaPath.replace(/\./g, '\\.');
+    sepoliaBlock = sepoliaBlock.replace(new RegExp(`\\n\\s*'${escapedPath}',`), '');
   }
 }
 
@@ -150,11 +156,8 @@ if (content === fullContent) {
   writeFileSync(addressesPath, content, 'utf8');
   console.log(`\nWrote: ${addressesPath}`);
 
-  // Verify the updated file passes both typecheck AND the addresses lockbox test.
-  // typecheck alone is insufficient: the SEPOLIA_PENDING_ADDRESS_SLOTS lockbox test
-  // asserts that the pending-slot list matches every zero-address Sepolia path — after
-  // a successful deploy the populated slots must be removed from that list or the test fails.
-  console.log('Running pnpm typecheck + test…');
+  // Verify the updated file passes typecheck AND the addresses lockbox test.
+  console.log('Running pnpm typecheck + shared test…');
   try {
     execSync('pnpm run typecheck', { cwd: REPO_ROOT, stdio: 'inherit' });
     execSync('pnpm --filter @concierge/shared run test', { cwd: REPO_ROOT, stdio: 'inherit' });
