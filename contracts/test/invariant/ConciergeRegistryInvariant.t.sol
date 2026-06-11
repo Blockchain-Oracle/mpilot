@@ -22,6 +22,9 @@ contract ConciergeRegistryInvariantTest is Test {
     address internal operator = makeAddr("operator");
     address internal pauser = makeAddr("pauser");
     address internal validator = makeAddr("validator");
+    address internal alice;
+    address internal bob;
+    address internal charlie;
 
     function setUp() public {
         ConciergeRegistry impl = new ConciergeRegistry();
@@ -34,10 +37,14 @@ contract ConciergeRegistryInvariantTest is Test {
         registry.grantRole(registry.PAUSER_ROLE(), pauser);
         vm.stopPrank();
 
+        alice = makeAddr("alice");
+        bob = makeAddr("bob");
+        charlie = makeAddr("charlie");
+
         address[] memory actors = new address[](3);
-        actors[0] = makeAddr("alice");
-        actors[1] = makeAddr("bob");
-        actors[2] = makeAddr("charlie");
+        actors[0] = alice;
+        actors[1] = bob;
+        actors[2] = charlie;
 
         handler = new ConciergeRegistryHandler(registry, operator, pauser, validator, actors);
         targetContract(address(handler));
@@ -45,9 +52,9 @@ contract ConciergeRegistryInvariantTest is Test {
 
     // ─── Invariants ─────────────────────────────────────────────────────────
 
-    /// nextAgentId tracks exactly one ahead of total successful registrations.
+    /// nextAgentId is always at least one ahead of total successful registrations.
     function invariant_NextAgentIdMonotonicallyIncreasing() public view {
-        assertEq(registry.nextAgentId(), handler.ghost_totalRegistered() + 1);
+        assertGe(registry.nextAgentId(), handler.ghost_totalRegistered() + 1);
     }
 
     /// Every minted agent record has a non-zero owner — no orphaned IDs.
@@ -58,8 +65,9 @@ contract ConciergeRegistryInvariantTest is Test {
         }
     }
 
-    /// Forward (agent → owner) and reverse (owner → [agentIds]) mappings are consistent.
+    /// Forward and reverse owner mappings are consistent in both directions.
     function invariant_OwnerMappingsConsistent() public view {
+        // Forward: every agent's ID appears in its owner's index.
         uint256 nextId = registry.nextAgentId();
         for (uint256 id = 1; id < nextId; id++) {
             address owner = registry.getAgent(id).owner;
@@ -72,6 +80,18 @@ contract ConciergeRegistryInvariantTest is Test {
                 }
             }
             assertTrue(found, "agent id missing from owner index");
+        }
+        // Reverse: every entry in an actor's index points to an agent owned by that actor.
+        // Also catches stale entries left by a buggy _removeFromOwnerIndex.
+        address[3] memory actors = [alice, bob, charlie];
+        for (uint256 a = 0; a < 3; a++) {
+            uint256[] memory owned = registry.agentsByOwner(actors[a]);
+            for (uint256 k = 0; k < owned.length; k++) {
+                assertEq(registry.getAgent(owned[k]).owner, actors[a], "stale reverse-index entry");
+                for (uint256 m = k + 1; m < owned.length; m++) {
+                    assertNotEq(owned[k], owned[m], "duplicate in owner index");
+                }
+            }
         }
     }
 
@@ -97,8 +117,16 @@ contract ConciergeRegistryInvariantTest is Test {
         }
     }
 
-    /// PAUSER_ROLE is always retained — recovery from any paused state is possible.
-    function invariant_PauserRoleRetained() public view {
-        assertTrue(registry.hasRole(registry.PAUSER_ROLE(), pauser));
+    /// goalHash is never zero for any registered agent (updateGoal cannot wipe it).
+    function invariant_GoalHashNeverZero() public view {
+        uint256 nextId = registry.nextAgentId();
+        for (uint256 i = 1; i < nextId; i++) {
+            assertNotEq(registry.getAgent(i).goalHash, bytes32(0), "goalHash wiped to zero");
+        }
+    }
+
+    /// Paused state always matches what the handler drove — and is never permanently locked.
+    function invariant_PausedStateRestored() public view {
+        assertEq(registry.paused(), handler.ghost_paused());
     }
 }

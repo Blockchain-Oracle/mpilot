@@ -19,6 +19,7 @@ contract ConciergeRegistryHandler is Test {
     /// Ghost variables mirror expected on-chain state.
     uint256 public ghost_totalRegistered;
     uint256 public ghost_activeCount;
+    bool public ghost_paused;
     mapping(uint256 => address) public ghost_ownerOf;
 
     constructor(
@@ -118,13 +119,29 @@ contract ConciergeRegistryHandler is Test {
         } catch { }
     }
 
+    function updateValidator_h(
+        uint256 idSeed,
+        address newValidator
+    ) external {
+        if (ghost_totalRegistered == 0) return;
+        uint256 id = bound(idSeed, 1, ghost_totalRegistered);
+        address owner = ghost_ownerOf[id];
+
+        vm.prank(owner);
+        try registry.updateValidator(id, newValidator) { } catch { }
+    }
+
     function pause_h() external {
         vm.prank(pauser);
-        try registry.pause() { } catch { }
+        try registry.pause() {
+            ghost_paused = true;
+        } catch { }
     }
 
     function unpause_h() external {
         vm.prank(pauser);
-        try registry.unpause() { } catch { }
+        try registry.unpause() {
+            ghost_paused = false;
+        } catch { }
     }
 }
