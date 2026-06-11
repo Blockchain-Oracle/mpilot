@@ -28,7 +28,9 @@ beforeAll(async () => {
   mocks = await deployMocks(anvil);
 }, 30_000);
 
-afterAll(() => anvil.stop());
+afterAll(async () => {
+  if (anvil) await anvil.stop();
+});
 
 describe('getUserAccountData', () => {
   it('returns zeroes for a fresh account with no positions', async () => {

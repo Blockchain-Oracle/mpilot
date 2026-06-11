@@ -29,7 +29,9 @@ beforeAll(async () => {
   setUserEMode = provider.actions.setUserEMode;
 }, 30_000);
 
-afterAll(() => anvil.stop());
+afterAll(async () => {
+  if (anvil) await anvil.stop();
+});
 
 describe('setUserEMode action', () => {
   it('post-state: getUserEMode returns 1 after setUserEMode(1)', async () => {
@@ -77,8 +79,8 @@ describe('setUserEMode action', () => {
     const eMode2 = await getUserEMode(publicClient, mocks.pool, acct2Addr);
     expect(eMode2).toBe(1);
 
-    // Main account's eMode is independently managed
+    // Main account's eMode is independently managed (still at 1 from the preceding test)
     const eMode1 = await getUserEMode(publicClient, mocks.pool, TEST_ACCOUNT);
-    expect(typeof eMode1).toBe('number');
+    expect(eMode1).toBe(1);
   });
 });

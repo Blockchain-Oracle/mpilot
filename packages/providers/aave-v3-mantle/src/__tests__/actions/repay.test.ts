@@ -78,7 +78,9 @@ beforeAll(async () => {
   mocks = await deployMocks(anvil);
 }, 30_000);
 
-afterAll(() => anvil.stop());
+afterAll(async () => {
+  if (anvil) await anvil.stop();
+});
 
 describe('repay action', () => {
   it('partial repay: debt decreases by repaid amount', async () => {

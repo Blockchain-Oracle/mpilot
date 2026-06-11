@@ -39,7 +39,9 @@ beforeAll(async () => {
   });
 }, 30_000);
 
-afterAll(() => anvil.stop());
+afterAll(async () => {
+  if (anvil) await anvil.stop();
+});
 
 describe('borrow — E-Mode silent-fail trap', () => {
   it('throws EModeNotEnabled BEFORE submitting tx when user has aSUSDe but no E-Mode', async () => {
@@ -72,13 +74,10 @@ describe('borrow — E-Mode silent-fail trap', () => {
       address: TEST_ACCOUNT,
     });
 
-    const borrowPromise = provider.actions.borrow.invoke({
-      asset: mocks.usdc,
-      amount: '50000000',
-    });
-    await expect(borrowPromise).rejects.toThrow(ConciergeError);
-
-    const err = await borrowPromise.catch((e: unknown) => e);
+    const err = await provider.actions.borrow
+      .invoke({ asset: mocks.usdc, amount: '50000000' })
+      .catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ConciergeError);
     expect((err as InstanceType<typeof ConciergeError>).type).toBe('EModeNotEnabled');
 
     // Critical: no tx submitted to chain — the guard fires before pool.borrow()
@@ -142,16 +141,51 @@ describe('borrow — happy path with E-Mode', () => {
     expect(result.attestationPayload.schema).toBe('concierge.aave.v3.borrow.v1');
     expect(result.attestationPayload.eMode).toBe(1);
 
-    // HF > 1.5 after borrow
+    // HF > 1.5 after borrow; postHF must be strictly less than preHF
     const hfBig = BigInt(result.attestationPayload.postHF);
+    const preHF = BigInt(result.attestationPayload.preHF);
     expect(hfBig).toBeGreaterThan(1_500_000_000_000_000_000n);
+    expect(preHF).toBeGreaterThan(hfBig);
   });
 
   it('throws RpcError when borrow exceeds available collateral', async () => {
     const { ConciergeError } = await import('@concierge/sdk');
-    // TEST_ACCOUNT has sUSDe collateral but borrowing 10B USDC is impossibly large
-    await expect(
-      provider.actions.borrow.invoke({ asset: mocks.usdc, amount: '10000000000000' }),
-    ).rejects.toThrow(ConciergeError);
+    // Use Anvil account #2 — no aSUsde balance, so EModeNotEnabled guard won't fire.
+    // Supply a small amount of USDC, then attempt an impossibly large borrow → RpcError.
+    const addr = ANVIL_ACCOUNTS[1] as Address;
+    await mintToken(anvil, mocks.usdc, addr, 100_000_000n);
+    await anvil.walletClient.writeContract({
+      address: mocks.usdc,
+      abi: erc20Abi,
+      functionName: 'approve',
+      args: [mocks.pool, 2n ** 256n - 1n],
+      account: addr,
+      chain: anvil.chain,
+    });
+    await anvil.walletClient.writeContract({
+      address: mocks.pool,
+      abi: poolAbi,
+      functionName: 'supply',
+      args: [mocks.usdc, 100_000_000n, addr, 0],
+      account: addr,
+      chain: anvil.chain,
+    });
+
+    const wc = createWalletClient({
+      transport: http(`http://127.0.0.1:${anvil.port}`),
+      account: addr,
+    });
+    const p = createAaveV3MantleProvider({
+      walletClient: wc,
+      publicClient: anvil.publicClient,
+      chain: anvil.chain,
+      addresses: { pool: mocks.pool, oracle: mocks.oracle, sUsde: mocks.sUsde },
+    });
+
+    const err = await p.actions.borrow
+      .invoke({ asset: mocks.usdc, amount: '10000000000000' }) // 10B USDC — far exceeds collateral
+      .catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ConciergeError);
+    expect((err as InstanceType<typeof ConciergeError>).type).toBe('RpcError');
   });
 });

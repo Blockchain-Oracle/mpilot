@@ -21,7 +21,9 @@ import { privateKeyToAccount } from 'viem/accounts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONTRACTS_OUT = resolve(__dirname, '../../../../../contracts/out');
-const ANVIL_PATH = resolve('/Users/abu/.foundry/bin/anvil');
+// Resolve via env override first, then fall back to PATH lookup so CI and
+// other machines work without per-developer path configuration.
+const ANVIL_BIN = process.env.ANVIL_BIN ?? 'anvil';
 
 // Anvil deterministic accounts from mnemonic "test test ... junk" — 10_000 ETH each, all unlocked.
 // These must be used as JSON-RPC accounts in tests; arbitrary private keys fail with "No Signer".
@@ -43,11 +45,11 @@ export const ANVIL_ACCOUNTS = [
 ] as const satisfies Address[];
 
 export interface AnvilInstance {
-  port: number;
-  chain: Chain;
-  publicClient: PublicClient;
-  walletClient: WalletClient;
-  stop: () => void;
+  readonly port: number;
+  readonly chain: Chain;
+  readonly publicClient: PublicClient;
+  readonly walletClient: WalletClient;
+  stop: () => Promise<void>;
 }
 
 function getFreePort(): Promise<number> {
@@ -66,18 +68,32 @@ export async function startAnvil(): Promise<AnvilInstance> {
 
   return new Promise((resolve, reject) => {
     // No --block-time: Anvil defaults to instant mining (one block per tx).
-    const proc = spawn(ANVIL_PATH, ['--port', String(port)], {
+    const proc = spawn(ANVIL_BIN, ['--port', String(port)], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
     let started = false;
     const buf: string[] = [];
 
+    // Cleared on success to prevent a timer fire against an already-resolved promise.
+    const timer = setTimeout(() => {
+      if (!started) {
+        proc.kill('SIGTERM');
+        reject(
+          new Error(
+            `Anvil startup timed out after 15s. ` +
+              `Install Foundry (https://getfoundry.sh) or set ANVIL_BIN=/path/to/anvil.`,
+          ),
+        );
+      }
+    }, 15_000);
+
     const onData = (chunk: Buffer) => {
       buf.push(chunk.toString());
       const text = buf.join('');
       if (!started && text.includes('Listening on')) {
         started = true;
+        clearTimeout(timer);
         const chain = defineChain({
           id: 31337,
           name: 'Anvil',
@@ -88,34 +104,59 @@ export async function startAnvil(): Promise<AnvilInstance> {
         const account = privateKeyToAccount(TEST_PRIVATE_KEY);
         // walletClient has no chain so resolveChain falls through to opts.chain
         // (the SUPPORTED_CHAIN_IDS guard only fires when walletClient.chain is set).
-        resolve({
-          port,
-          chain,
-          publicClient: createPublicClient({ chain, transport }),
-          walletClient: createWalletClient({ transport, account }),
-          stop: () => proc.kill('SIGTERM'),
-        });
+        const publicClient = createPublicClient({ chain, transport });
+        const walletClient = createWalletClient({ transport, account });
+
+        const stop = () =>
+          new Promise<void>((res) => {
+            proc.once('exit', () => res());
+            proc.kill('SIGTERM');
+          });
+
+        resolve({ port, chain, publicClient, walletClient, stop });
       }
     };
 
     proc.stdout.on('data', onData);
     proc.stderr.on('data', onData);
-    proc.on('error', reject);
-    proc.on('exit', (code) => {
-      if (!started) reject(new Error(`Anvil exited with code ${String(code)} before listening`));
+    proc.on('error', (err) => {
+      clearTimeout(timer);
+      reject(
+        new Error(
+          `Failed to start Anvil ("${ANVIL_BIN}"): ${err.message}. ` +
+            `Install Foundry (https://getfoundry.sh) or set ANVIL_BIN=/path/to/anvil.`,
+        ),
+      );
     });
-    setTimeout(() => {
-      if (!started) reject(new Error('Anvil startup timed out'));
-    }, 15_000);
+    proc.on('exit', (code) => {
+      if (!started) {
+        clearTimeout(timer);
+        reject(new Error(`Anvil exited with code ${String(code)} before listening`));
+      }
+    });
   });
 }
 
 export function loadArtifact(contractName: string): { abi: unknown[]; bytecode: Hex } {
-  const path = resolve(CONTRACTS_OUT, `${contractName}.sol/${contractName}.json`);
-  const raw = JSON.parse(readFileSync(path, 'utf-8')) as {
-    abi: unknown[];
-    bytecode: { object: Hex };
-  };
+  const artifactPath = resolve(CONTRACTS_OUT, `${contractName}.sol/${contractName}.json`);
+  let raw: { abi: unknown[]; bytecode: { object: Hex } };
+  try {
+    raw = JSON.parse(readFileSync(artifactPath, 'utf-8')) as {
+      abi: unknown[];
+      bytecode: { object: Hex };
+    };
+  } catch (err) {
+    throw new Error(
+      `loadArtifact: failed to read "${artifactPath}". ` +
+        `Run "cd contracts && forge build" first.\nCause: ${String(err)}`,
+    );
+  }
+  if (!raw.bytecode?.object) {
+    throw new Error(
+      `loadArtifact: ${contractName} artifact has no bytecode. ` +
+        `Verify the contract compiled successfully.`,
+    );
+  }
   return { abi: raw.abi, bytecode: raw.bytecode.object };
 }
 
@@ -127,6 +168,8 @@ export interface MockAddresses {
   debtUsdc: Address;
   sUsde: Address;
   aSUsde: Address;
+  rewardsController: Address;
+  wmnt: Address; // reward token used by MockRewardsController
 }
 
 const USDC_PRICE_USD8 = 1_00_000_000n; // $1.00 with 8 decimals
@@ -143,24 +186,53 @@ const mockOracleSetPriceAbi = parseAbi([
 
 const mockMintAbi = parseAbi(['function mint(address to, uint256 amount) external']);
 
+const mockRewardsSetAbi = parseAbi([
+  'function mockSetReward(address token, uint256 amount) external',
+]);
+
 export async function deployMocks(anvil: AnvilInstance): Promise<MockAddresses> {
   const { publicClient, walletClient } = anvil;
   const oracleArtifact = loadArtifact('MockAaveOracle');
   const poolArtifact = loadArtifact('MockAavePool');
   const usdcArtifact = loadArtifact('MockUSDC');
   const sUsdeArtifact = loadArtifact('MockSUSDe');
+  const wmntArtifact = loadArtifact('MockWMNT');
+  const rewardsArtifact = loadArtifact('MockRewardsController');
+
+  const account = privateKeyToAccount(TEST_PRIVATE_KEY);
 
   async function deploy(artifact: { abi: unknown[]; bytecode: Hex }, args: unknown[] = []) {
     const hash = await walletClient.deployContract({
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       args,
-      account: privateKeyToAccount(TEST_PRIVATE_KEY),
+      account,
       chain: anvil.chain,
     });
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
     if (!receipt.contractAddress) throw new Error('Deploy failed: no contractAddress');
     return receipt.contractAddress as Address;
+  }
+
+  async function writeAndConfirm(
+    address: Address,
+    abi: ReturnType<typeof parseAbi>,
+    functionName: string,
+    args: unknown[],
+    label: string,
+  ) {
+    const hash = await walletClient.writeContract({
+      address,
+      abi,
+      functionName,
+      args,
+      account,
+      chain: anvil.chain,
+    } as Parameters<typeof walletClient.writeContract>[0]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    if (receipt.status === 'reverted') {
+      throw new Error(`deployMocks: ${label} reverted (tx ${hash})`);
+    }
   }
 
   // Deploy oracle (admin = TEST_ACCOUNT)
@@ -173,8 +245,9 @@ export async function deployMocks(anvil: AnvilInstance): Promise<MockAddresses> 
   const debtUsdc = await deploy(usdcArtifact, [TEST_ACCOUNT]);
   const sUsde = await deploy(sUsdeArtifact, [TEST_ACCOUNT]);
   const aSUsde = await deploy(sUsdeArtifact, [TEST_ACCOUNT]);
-
-  const account = privateKeyToAccount(TEST_PRIVATE_KEY);
+  // Deploy reward token (WMNT) and rewards controller
+  const wmnt = await deploy(wmntArtifact, [TEST_ACCOUNT]);
+  const rewardsController = await deploy(rewardsArtifact, [TEST_ACCOUNT]);
 
   // Set oracle prices
   for (const [asset, price] of [
@@ -183,59 +256,63 @@ export async function deployMocks(anvil: AnvilInstance): Promise<MockAddresses> 
     [sUsde, SUSDE_PRICE_USD8],
     [aSUsde, SUSDE_PRICE_USD8],
   ] as [Address, bigint][]) {
-    await walletClient.writeContract({
-      address: oracle,
-      abi: mockOracleSetPriceAbi,
-      functionName: 'setAssetPrice',
-      args: [asset, price],
-      account,
-      chain: anvil.chain,
-    });
+    await writeAndConfirm(
+      oracle,
+      mockOracleSetPriceAbi,
+      'setAssetPrice',
+      [asset, price],
+      `setAssetPrice(${asset})`,
+    );
   }
 
   // Initialize USDC reserve: ltv=7500bps, lt=8000bps, borrowingEnabled=true, eMode=0
-  await walletClient.writeContract({
-    address: pool,
-    abi: mockPoolInitAbi,
-    functionName: 'mockInitReserve',
-    args: [usdc, 6, aUsdc, debtUsdc, 300, 500, 7500, 8000, true, 0],
-    account,
-    chain: anvil.chain,
-  });
+  await writeAndConfirm(
+    pool,
+    mockPoolInitAbi,
+    'mockInitReserve',
+    [usdc, 6, aUsdc, debtUsdc, 300, 500, 7500, 8000, true, 0],
+    'mockInitReserve(usdc)',
+  );
 
   // Initialize sUSDe reserve: ltv=0 in general mode, lt=8500bps, borrowingEnabled=false, eMode=1
-  await walletClient.writeContract({
-    address: pool,
-    abi: mockPoolInitAbi,
-    functionName: 'mockInitReserve',
-    args: [sUsde, 18, aSUsde, aSUsde, 200, 0, 0, 8500, false, 1],
-    account,
-    chain: anvil.chain,
-  });
+  await writeAndConfirm(
+    pool,
+    mockPoolInitAbi,
+    'mockInitReserve',
+    [sUsde, 18, aSUsde, aSUsde, 200, 0, 0, 8500, false, 1],
+    'mockInitReserve(sUsde)',
+  );
 
   // E-Mode category 1 (sUSDe/USDC): ltv=9200bps, lt=9400bps
-  await walletClient.writeContract({
-    address: pool,
-    abi: mockPoolInitAbi,
-    functionName: 'mockSetEmodeCategory',
-    args: [1, 9200, 9400, 10500, 'sUSDe / stablecoins'],
-    account,
-    chain: anvil.chain,
-  });
+  await writeAndConfirm(
+    pool,
+    mockPoolInitAbi,
+    'mockSetEmodeCategory',
+    [1, 9200, 9400, 10500, 'sUSDe / stablecoins'],
+    'mockSetEmodeCategory(1)',
+  );
+
+  // Configure rewards controller: 10 WMNT per claim
+  await writeAndConfirm(
+    rewardsController,
+    mockRewardsSetAbi,
+    'mockSetReward',
+    [wmnt, 10n * 10n ** 18n],
+    'mockSetReward(wmnt)',
+  );
 
   // Pre-mint tokens to test wallet for actions that need an existing balance
   for (const token of [usdc, sUsde]) {
-    await walletClient.writeContract({
-      address: token,
-      abi: mockMintAbi,
-      functionName: 'mint',
-      args: [TEST_ACCOUNT, 1_000_000_000_000n], // 1M tokens
-      account,
-      chain: anvil.chain,
-    });
+    await writeAndConfirm(
+      token,
+      mockMintAbi,
+      'mint',
+      [TEST_ACCOUNT, 1_000_000_000_000n], // 1M tokens
+      `mint(${token}, TEST_ACCOUNT)`,
+    );
   }
 
-  return { pool, oracle, usdc, aUsdc, debtUsdc, sUsde, aSUsde };
+  return { pool, oracle, usdc, aUsdc, debtUsdc, sUsde, aSUsde, rewardsController, wmnt };
 }
 
 export async function mintToken(
@@ -244,7 +321,7 @@ export async function mintToken(
   to: Address,
   amount: bigint,
 ): Promise<void> {
-  await anvil.walletClient.writeContract({
+  const hash = await anvil.walletClient.writeContract({
     address: token,
     abi: mockMintAbi,
     functionName: 'mint',
@@ -252,4 +329,5 @@ export async function mintToken(
     account: privateKeyToAccount(TEST_PRIVATE_KEY),
     chain: anvil.chain,
   });
+  await anvil.publicClient.waitForTransactionReceipt({ hash });
 }

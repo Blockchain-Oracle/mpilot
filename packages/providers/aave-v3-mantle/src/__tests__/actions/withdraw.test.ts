@@ -77,7 +77,9 @@ beforeAll(async () => {
   mocks = await deployMocks(anvil);
 }, 30_000);
 
-afterAll(() => anvil.stop());
+afterAll(async () => {
+  if (anvil) await anvil.stop();
+});
 
 describe('withdraw action', () => {
   it('throws InsufficientLiquidity when pre-withdraw HF < 1.5', async () => {

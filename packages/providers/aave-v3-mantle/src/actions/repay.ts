@@ -1,13 +1,21 @@
 import { ConciergeError } from '@concierge/sdk';
 import { erc20Abi, ipoolAbi } from '@concierge/shared/abi';
 import { tool } from '@concierge/tools';
-import { maxUint256 } from 'viem';
+import type { Hex } from 'viem';
+import { decodeEventLog, encodeEventTopics, maxUint256, parseAbi } from 'viem';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 import { requireWallet } from '../_context.ts';
 import { HEX_ADDRESS, POSITIVE_BIGINT } from '../_schema.ts';
 import { AttestationPayloadSchema, buildAttestationPayload } from '../attestation.ts';
 import { getUserAccountData, getUserEMode } from '../selectors.ts';
+
+// Repay event: emitted by Aave pool on successful repayment. We parse this from the
+// receipt to get the exact token-unit amount repaid — race-free vs. simulateContract.
+const repayEventAbi = parseAbi([
+  'event Repay(address indexed reserve, address indexed user, address indexed repayer, uint256 amount, bool useATokens)',
+]);
+const REPAY_TOPIC = encodeEventTopics({ abi: repayEventAbi })[0] as Hex;
 
 const RepayInput = z.object({
   asset: HEX_ADDRESS.describe('ERC-20 debt token address to repay'),
@@ -60,24 +68,13 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
     }
   }
 
-  // Simulate before submitting to get the actual token-unit amount the pool will accept.
-  // pool.repay() caps the repaid amount at the current debt when rawAmount = maxUint256.
-  const repayArgs = [asset, rawAmount, 2n, account] as const;
-  const { result: actualRepaid } = await publicClient.simulateContract({
-    address: poolAddress,
-    abi: ipoolAbi,
-    functionName: 'repay',
-    args: repayArgs,
-    account,
-  });
-
   let txHash: `0x${string}`;
   try {
     txHash = await walletClient.writeContract({
       address: poolAddress,
       abi: ipoolAbi,
       functionName: 'repay',
-      args: repayArgs,
+      args: [asset, rawAmount, 2n, account], // interestRateMode=2 (variable)
       account,
       chain: walletClient.chain ?? null,
     });
@@ -100,6 +97,21 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
     );
   }
   const postState = await getUserAccountData(publicClient, poolAddress, account);
+
+  // Parse the Repay event from the receipt to get the exact token-unit amount repaid.
+  // This is race-free: the value comes from what actually executed on-chain, not a
+  // pre-tx simulation that could observe different state than what the tx landed on.
+  const repayLog = receipt.logs.find((log) => log.topics[0] === REPAY_TOPIC);
+  let actualRepaid = 0n;
+  if (repayLog) {
+    const { args } = decodeEventLog({
+      abi: repayEventAbi,
+      data: repayLog.data as Hex,
+      topics: repayLog.topics as [Hex, ...Hex[]],
+    });
+    actualRepaid = (args as { amount: bigint }).amount;
+  }
+
   const attestationPayload = buildAttestationPayload({
     action: 'repay',
     chainId,

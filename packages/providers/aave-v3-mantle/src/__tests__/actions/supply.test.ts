@@ -30,7 +30,9 @@ beforeAll(async () => {
   supply = provider.actions.supply;
 }, 30_000);
 
-afterAll(() => anvil.stop());
+afterAll(async () => {
+  if (anvil) await anvil.stop();
+});
 
 describe('supply action', () => {
   it('happy path: supply USDC → collateral increases, txHash is 32-byte hex', async () => {
@@ -59,10 +61,13 @@ describe('supply action', () => {
     expect(post.totalCollateralBase).toBeGreaterThan(pre.totalCollateralBase);
   });
 
-  it('throws when pool reverts for an unsupported asset', async () => {
+  it('throws RpcError when pool reverts for an unsupported asset', async () => {
+    const { ConciergeError } = await import('@concierge/sdk');
     // Address not initialized in MockAavePool → AssetNotSupported revert
     const fakeAsset = '0x1111111111111111111111111111111111111111';
-    await expect(supply.invoke({ asset: fakeAsset, amount: '1000000' })).rejects.toThrow();
+    const err = await supply.invoke({ asset: fakeAsset, amount: '1000000' }).catch((e) => e);
+    expect(err).toBeInstanceOf(ConciergeError);
+    expect((err as InstanceType<typeof ConciergeError>).type).toBe('RpcError');
   });
 
   it('attestation payload passes schema validation', async () => {
