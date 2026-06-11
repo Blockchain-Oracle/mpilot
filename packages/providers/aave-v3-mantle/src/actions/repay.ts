@@ -60,13 +60,24 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
     }
   }
 
+  // Simulate before submitting to get the actual token-unit amount the pool will accept.
+  // pool.repay() caps the repaid amount at the current debt when rawAmount = maxUint256.
+  const repayArgs = [asset, rawAmount, 2n, account] as const;
+  const { result: actualRepaid } = await publicClient.simulateContract({
+    address: poolAddress,
+    abi: ipoolAbi,
+    functionName: 'repay',
+    args: repayArgs,
+    account,
+  });
+
   let txHash: `0x${string}`;
   try {
     txHash = await walletClient.writeContract({
       address: poolAddress,
       abi: ipoolAbi,
       functionName: 'repay',
-      args: [asset, rawAmount, 2n, account], // interestRateMode=2 (variable)
+      args: repayArgs,
       account,
       chain: walletClient.chain ?? null,
     });
@@ -89,11 +100,6 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
     );
   }
   const postState = await getUserAccountData(publicClient, poolAddress, account);
-
-  const debtDelta = preState.totalDebtBase - postState.totalDebtBase;
-  // When debtDelta <= 0 (interest accrued faster than repay, or debt already 0), avoid
-  // recording maxUint256 as amountBase for the 'max' path — use 0n as the safe sentinel.
-  const actualRepaid = debtDelta > 0n ? debtDelta : rawAmount === maxUint256 ? 0n : rawAmount;
   const attestationPayload = buildAttestationPayload({
     action: 'repay',
     chainId,

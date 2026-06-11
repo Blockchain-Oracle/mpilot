@@ -27,7 +27,16 @@ export async function requireWallet(
       `[@concierge/aave-v3-mantle] ${action}: walletClient is required for write operations. Initialise AaveV3MantleProvider with a connected WalletClient.`,
     );
   }
-  const [account] = await ctx.walletClient.getAddresses();
+  // Prefer the account already bound to the wallet client (covers JSON-RPC accounts
+  // created with `createWalletClient({ account: "0xaddr" })`). Falling back to
+  // getAddresses()[0] would return ALL node accounts on a dev node (Anvil returns 10),
+  // and the first of those is always the node's default account, not the caller's.
+  let account: Address | undefined;
+  if (ctx.walletClient.account) {
+    account = ctx.walletClient.account.address as Address;
+  } else {
+    account = (await ctx.walletClient.getAddresses())[0] as Address | undefined;
+  }
   if (!account) {
     throw new ConciergeError(
       'ConfigError',
