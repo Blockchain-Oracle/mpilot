@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import { Script } from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
 
 import {
     AAVE_V3_POOL_MAINNET,
@@ -21,14 +21,16 @@ import {
     ERC8004_REPUTATION_SEPOLIA,
     EMODE_STABLECOIN_CATEGORY
 } from "./lib/Addresses.sol";
-import { SepoliaSeedPrices } from "./lib/SepoliaSeedPrices.sol";
+import {SepoliaSeedPrices} from "./lib/SepoliaSeedPrices.sol";
 
-import { MockAavePool } from "../src/mocks/MockAavePool.sol";
-import { MockAaveOracle } from "../src/mocks/MockAaveOracle.sol";
-import { MockSUSDe } from "../src/mocks/MockSUSDe.sol";
-import { MockUSDC } from "../src/mocks/MockUSDC.sol";
-import { MockUSDY } from "../src/mocks/MockUSDY.sol";
-import { MockMETH } from "../src/mocks/MockMETH.sol";
+import {MockAavePool} from "../src/mocks/MockAavePool.sol";
+import {MockAaveOracle} from "../src/mocks/MockAaveOracle.sol";
+import {MockSUSDe} from "../src/mocks/MockSUSDe.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
+import {MockUSDe} from "../src/mocks/MockUSDe.sol";
+import {MockUSDY} from "../src/mocks/MockUSDY.sol";
+import {MockMETH} from "../src/mocks/MockMETH.sol";
+import {MockWMNT} from "../src/mocks/MockWMNT.sol";
 
 error UnsupportedChain(uint256 chainId);
 
@@ -97,11 +99,10 @@ contract HelperConfig is Script {
         // Deploy mock tokens
         MockSUSDe susde = new MockSUSDe(deployer);
         MockUSDC usdc = new MockUSDC(deployer);
-        // MockUSDe reuses MockSUSDe base (same decimals/faucet, different metadata in prod)
-        MockSUSDe usde = new MockSUSDe(deployer);
+        MockUSDe usde = new MockUSDe(deployer);
         MockUSDY usdy = new MockUSDY(deployer);
         MockMETH meth = new MockMETH(deployer);
-        MockSUSDe wmnt = new MockSUSDe(deployer); // WMNT stand-in
+        MockWMNT wmnt = new MockWMNT(deployer);
 
         // Seed oracle with Mainnet-snapshot prices
         address[] memory assets = new address[](6);
@@ -113,9 +114,12 @@ contract HelperConfig is Script {
         assets[5] = address(wmnt);
         oracle.setAssetPrices(assets, SepoliaSeedPrices.getSeedPrices());
 
-        // Hand oracle admin role to deployer so they can tune prices post-deploy
+        // Hand oracle admin role to deployer so they can tune prices post-deploy,
+        // then revoke this contract's own admin rights — address(this) must not retain access.
         oracle.grantRole(oracle.DEFAULT_ADMIN_ROLE(), deployer);
         oracle.grantRole(oracle.ORACLE_ADMIN_ROLE(), deployer);
+        oracle.revokeRole(oracle.ORACLE_ADMIN_ROLE(), address(this));
+        oracle.revokeRole(oracle.DEFAULT_ADMIN_ROLE(), address(this));
 
         // Deploy mock pool wired to oracle
         MockAavePool pool = new MockAavePool(address(oracle), deployer);

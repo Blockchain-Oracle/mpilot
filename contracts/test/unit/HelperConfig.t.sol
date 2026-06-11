@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import { Test } from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
-import { HelperConfig, NetworkConfig, UnsupportedChain } from "../../script/HelperConfig.s.sol";
-import { SepoliaSeedPrices } from "../../script/lib/SepoliaSeedPrices.sol";
+import {HelperConfig, NetworkConfig, UnsupportedChain} from "../../script/HelperConfig.s.sol";
+import {SepoliaSeedPrices} from "../../script/lib/SepoliaSeedPrices.sol";
 import {
     AAVE_V3_POOL_MAINNET,
     AAVE_V3_ORACLE_MAINNET,
+    AAVE_V3_ADDRESSES_PROVIDER_MAINNET,
+    AAVE_V3_PROTOCOL_DATA_PROVIDER_MAINNET,
     SUSDE_MAINNET,
     USDC_MAINNET,
+    USDE_MAINNET,
     USDY_MAINNET,
     METH_MAINNET,
+    WMNT_MAINNET,
     ERC8004_IDENTITY_MAINNET,
     ERC8004_REPUTATION_MAINNET,
     LIFI_DIAMOND,
@@ -19,7 +23,7 @@ import {
     ERC8004_REPUTATION_SEPOLIA,
     EMODE_STABLECOIN_CATEGORY
 } from "../../script/lib/Addresses.sol";
-import { MockAaveOracle } from "../../src/mocks/MockAaveOracle.sol";
+import {MockAaveOracle} from "../../src/mocks/MockAaveOracle.sol";
 
 contract HelperConfigTest is Test {
     HelperConfig internal config;
@@ -35,10 +39,14 @@ contract HelperConfigTest is Test {
         NetworkConfig memory cfg = config.getConfig();
         assertEq(cfg.aavePool, AAVE_V3_POOL_MAINNET, "aavePool");
         assertEq(cfg.aaveOracle, AAVE_V3_ORACLE_MAINNET, "aaveOracle");
+        assertEq(cfg.aaveAddressesProvider, AAVE_V3_ADDRESSES_PROVIDER_MAINNET, "aaveAddressesProvider");
+        assertEq(cfg.aaveProtocolDataProvider, AAVE_V3_PROTOCOL_DATA_PROVIDER_MAINNET, "aaveProtocolDataProvider");
         assertEq(cfg.sUSDe, SUSDE_MAINNET, "sUSDe");
         assertEq(cfg.USDC, USDC_MAINNET, "USDC");
+        assertEq(cfg.USDe, USDE_MAINNET, "USDe");
         assertEq(cfg.USDY, USDY_MAINNET, "USDY");
         assertEq(cfg.mETH, METH_MAINNET, "mETH");
+        assertEq(cfg.WMNT, WMNT_MAINNET, "WMNT");
         assertEq(cfg.erc8004Identity, ERC8004_IDENTITY_MAINNET, "identity");
         assertEq(cfg.erc8004Reputation, ERC8004_REPUTATION_MAINNET, "reputation");
         assertEq(cfg.lifiDiamond, LIFI_DIAMOND, "lifi");
@@ -60,17 +68,48 @@ contract HelperConfigTest is Test {
         assertTrue(cfg.aaveOracle != address(0), "oracle deployed");
         assertTrue(cfg.sUSDe != address(0), "sUSDe deployed");
         assertTrue(cfg.USDC != address(0), "USDC deployed");
+        assertTrue(cfg.USDe != address(0), "USDe deployed");
         assertTrue(cfg.USDY != address(0), "USDY deployed");
         assertTrue(cfg.mETH != address(0), "mETH deployed");
+        assertTrue(cfg.WMNT != address(0), "WMNT deployed");
     }
 
-    function test_HelperConfig_Sepolia_OracleSeeded() public {
+    function test_HelperConfig_Sepolia_ProvidersAreZero() public {
+        vm.chainId(5003);
+        NetworkConfig memory cfg = config.getConfig();
+        assertEq(cfg.aaveAddressesProvider, address(0), "Sepolia: no addresses provider (mock stack)");
+        assertEq(cfg.aaveProtocolDataProvider, address(0), "Sepolia: no data provider (mock stack)");
+    }
+
+    function test_HelperConfig_Sepolia_OracleSeededAllAssets() public {
         vm.chainId(5003);
         NetworkConfig memory cfg = config.getConfig();
         MockAaveOracle oracle = MockAaveOracle(cfg.aaveOracle);
-        assertGt(oracle.getAssetPrice(cfg.sUSDe), 0, "sUSDe price seeded");
-        assertGt(oracle.getAssetPrice(cfg.USDC), 0, "USDC price seeded");
-        assertGt(oracle.getAssetPrice(cfg.mETH), 0, "mETH price seeded");
+        assertEq(oracle.getAssetPrice(cfg.sUSDe), 123_214_617, "sUSDe price");
+        assertEq(oracle.getAssetPrice(cfg.USDC), 99_968_000, "USDC price");
+        assertEq(oracle.getAssetPrice(cfg.USDe), 100_000_000, "USDe price");
+        assertEq(oracle.getAssetPrice(cfg.USDY), 100_000_000, "USDY price");
+        assertEq(oracle.getAssetPrice(cfg.mETH), 109_297_978, "mETH price");
+        assertEq(oracle.getAssetPrice(cfg.WMNT), 100_000_000, "WMNT price");
+    }
+
+    function test_HelperConfig_Sepolia_AdminHandoff() public {
+        vm.chainId(5003);
+        NetworkConfig memory cfg = config.getConfig();
+        MockAaveOracle oracle = MockAaveOracle(cfg.aaveOracle);
+        // msg.sender in this test context is the HelperConfigTest contract
+        address deployer = address(this);
+        assertTrue(oracle.hasRole(oracle.DEFAULT_ADMIN_ROLE(), deployer), "deployer has DEFAULT_ADMIN_ROLE");
+        assertTrue(oracle.hasRole(oracle.ORACLE_ADMIN_ROLE(), deployer), "deployer has ORACLE_ADMIN_ROLE");
+        // HelperConfig must NOT retain admin after handoff
+        assertFalse(
+            oracle.hasRole(oracle.DEFAULT_ADMIN_ROLE(), address(config)),
+            "HelperConfig must not retain DEFAULT_ADMIN_ROLE"
+        );
+        assertFalse(
+            oracle.hasRole(oracle.ORACLE_ADMIN_ROLE(), address(config)),
+            "HelperConfig must not retain ORACLE_ADMIN_ROLE"
+        );
     }
 
     function test_HelperConfig_Sepolia_UsesSepolia8004Addresses() public {
@@ -84,9 +123,10 @@ contract HelperConfigTest is Test {
         vm.chainId(5003);
         NetworkConfig memory first = config.getConfig();
         NetworkConfig memory second = config.getConfig();
-        // Same addresses → no redeploy
         assertEq(first.aavePool, second.aavePool, "pool not redeployed");
+        assertEq(first.aaveOracle, second.aaveOracle, "oracle not redeployed");
         assertEq(first.sUSDe, second.sUSDe, "sUSDe not redeployed");
+        assertEq(first.USDY, second.USDY, "USDY not redeployed");
     }
 
     // ─── Unsupported chain ────────────────────────────────────────────────────
@@ -117,8 +157,13 @@ contract HelperConfigTest is Test {
         }
     }
 
-    function test_SeedPrices_SUSDePriceMatchesSnapshot() public pure {
+    function test_SeedPrices_MatchSnapshot() public pure {
         uint256[] memory prices = SepoliaSeedPrices.getSeedPrices();
-        assertEq(prices[0], 123_214_617, "sUSDe price matches 2026-06-03 snapshot");
+        assertEq(prices[0], 123_214_617, "sUSDe snapshot");
+        assertEq(prices[1], 99_968_000, "USDC snapshot");
+        assertEq(prices[2], 100_000_000, "USDe snapshot");
+        assertEq(prices[3], 100_000_000, "USDY snapshot");
+        assertEq(prices[4], 109_297_978, "mETH snapshot");
+        assertEq(prices[5], 100_000_000, "WMNT snapshot");
     }
 }
