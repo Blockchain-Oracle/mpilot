@@ -2,7 +2,10 @@
 pragma solidity 0.8.26;
 
 interface IERC20Transfer {
-    function transfer(address to, uint256 amount) external returns (bool);
+    function transfer(
+        address to,
+        uint256 amount
+    ) external returns (bool);
 }
 
 /// @notice Minimal Aave rewards controller mock for integration testing.
@@ -26,14 +29,19 @@ contract MockRewardsController {
     address public rewardToken;
     uint256 public rewardAmount;
 
-    constructor(address admin_) {
+    constructor(
+        address admin_
+    ) {
         require(admin_ != address(0), "zero admin");
         admin = admin_;
     }
 
     // ─── Admin config ─────────────────────────────────────────────────────────
 
-    function mockSetReward(address token, uint256 amount) external {
+    function mockSetReward(
+        address token,
+        uint256 amount
+    ) external {
         require(msg.sender == admin, "not admin");
         require(token != address(0), "zero token");
         rewardToken = token;
