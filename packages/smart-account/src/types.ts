@@ -3,17 +3,6 @@ import type { CHAIN_CONFIGS } from './constants.ts';
 
 export type SupportedChain = keyof typeof CHAIN_CONFIGS;
 
-export interface ConciergeAccountConfig {
-  owner: { address: Address; sign?: unknown };
-  chain: SupportedChain;
-}
-
-export interface ConnectAccountConfig {
-  address: Address;
-  owner: { address: Address; sign?: unknown };
-  chain: SupportedChain;
-}
-
 /**
  * Core account bundle returned by createConciergeAccount / connectToConciergeAccount.
  *
@@ -24,7 +13,7 @@ export interface ConnectAccountConfig {
  * ZeroDev SDK ships types compiled against viem 2.38 while the project uses viem 2.52.
  */
 export interface ConciergeAccount {
-  smartAccountAddress: Address;
-  kernelAccount: { address: Address } & object;
-  clientPromise: Promise<object>;
+  readonly smartAccountAddress: Address;
+  readonly kernelAccount: { readonly address: Address } & object;
+  readonly clientPromise: Promise<object>;
 }

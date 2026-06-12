@@ -2,6 +2,8 @@ import { ConciergeError } from '@concierge/sdk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ENTRYPOINT_V07_ADDRESS } from '../constants.ts';
 
+const TEST_PIMLICO_KEY = 'test-pimlico-api-key';
+
 // Stable mock address derived from owner to simulate CREATE2 determinism
 function deterministicAddress(owner: `0x${string}`): `0x${string}` {
   return `0x${owner.slice(2, 42).padStart(40, '0')}` as `0x${string}`;
@@ -12,7 +14,7 @@ vi.mock('viem', async () => {
   return {
     ...actual,
     createPublicClient: vi.fn().mockReturnValue({ type: 'publicClient' }),
-    http: vi.fn().mockReturnValue({ type: 'transport' }),
+    http: vi.fn().mockImplementation((url: string) => ({ type: 'transport', url })),
   };
 });
 
@@ -62,6 +64,7 @@ const MOCK_OWNER = { address: OWNER_ADDRESS, sign: vi.fn() } as any;
 describe('createConciergeAccount — return shape', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
   });
 
   it('returns smartAccountAddress, kernelAccount, and clientPromise', async () => {
@@ -91,6 +94,7 @@ describe('createConciergeAccount — return shape', () => {
 describe('createConciergeAccount — CREATE2 determinism', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
   });
 
   it('same owner + chain returns same smartAccountAddress', async () => {
@@ -111,6 +115,7 @@ describe('createConciergeAccount — CREATE2 determinism', () => {
 describe('createConciergeAccount — ZeroDev parameters', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
   });
 
   it('calls getEntryPoint with "0.7"', async () => {
@@ -141,7 +146,49 @@ describe('createConciergeAccount — ZeroDev parameters', () => {
   });
 });
 
+describe('createConciergeAccount — bundler URL', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
+  });
+
+  it('passes Pimlico mainnet URL with API key to createKernelAccountClient', async () => {
+    const { createKernelAccountClient } = await import('@zerodev/sdk');
+    const { http } = await import('viem');
+    await createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-mainnet' });
+    const httpCalls = vi.mocked(http).mock.calls.map((c) => c[0]);
+    expect(httpCalls).toContain(`https://api.pimlico.io/v2/mantle/rpc?apikey=${TEST_PIMLICO_KEY}`);
+    expect(createKernelAccountClient).toHaveBeenCalled();
+  });
+
+  it('passes Pimlico sepolia URL with API key to createKernelAccountClient', async () => {
+    const { http } = await import('viem');
+    await createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' });
+    const httpCalls = vi.mocked(http).mock.calls.map((c) => c[0]);
+    expect(httpCalls).toContain(
+      `https://api.pimlico.io/v2/mantle-sepolia/rpc?apikey=${TEST_PIMLICO_KEY}`,
+    );
+  });
+
+  it('throws ConfigError when PIMLICO_API_KEY is missing', async () => {
+    vi.unstubAllEnvs();
+    await expect(
+      createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' }),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof ConciergeError &&
+        e.type === 'ConfigError' &&
+        String(e.message).includes("MissingEnvVar('PIMLICO_API_KEY')"),
+    );
+  });
+});
+
 describe('createConciergeAccount — chain guard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
+  });
+
   it('throws ConciergeError(ConfigError) for unsupported chain', async () => {
     await expect(
       // biome-ignore lint/suspicious/noExplicitAny: testing invalid chain input
@@ -167,11 +214,12 @@ describe('createConciergeAccount — chain guard', () => {
   });
 });
 
-describe('connectToConciergeAccount — shape', () => {
-  const EXISTING_ADDRESS = '0x1234567890123456789012345678901234567890' as const;
+const EXISTING_ADDRESS = '0x1234567890123456789012345678901234567890' as const;
 
+describe('connectToConciergeAccount — shape', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
   });
 
   it('returns same shape as createConciergeAccount', async () => {
@@ -183,6 +231,15 @@ describe('connectToConciergeAccount — shape', () => {
     expect(result).toHaveProperty('smartAccountAddress');
     expect(result).toHaveProperty('kernelAccount');
     expect(result).toHaveProperty('clientPromise');
+  });
+
+  it('smartAccountAddress equals the provided address', async () => {
+    const result = await connectToConciergeAccount({
+      address: EXISTING_ADDRESS,
+      owner: MOCK_OWNER,
+      chain: 'mantle-sepolia',
+    });
+    expect(result.smartAccountAddress.toLowerCase()).toBe(EXISTING_ADDRESS.toLowerCase());
   });
 
   it('passes address to createKernelAccount', async () => {
@@ -197,6 +254,26 @@ describe('connectToConciergeAccount — shape', () => {
       expect.objectContaining({ address: EXISTING_ADDRESS }),
     );
   });
+});
+
+describe('connectToConciergeAccount — bundler URL + guards', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
+  });
+
+  it('passes Pimlico sepolia URL with API key for connect', async () => {
+    const { http } = await import('viem');
+    await connectToConciergeAccount({
+      address: EXISTING_ADDRESS,
+      owner: MOCK_OWNER,
+      chain: 'mantle-sepolia',
+    });
+    const httpCalls = vi.mocked(http).mock.calls.map((c) => c[0]);
+    expect(httpCalls).toContain(
+      `https://api.pimlico.io/v2/mantle-sepolia/rpc?apikey=${TEST_PIMLICO_KEY}`,
+    );
+  });
 
   it('throws ConciergeError(ConfigError) for unsupported chain', async () => {
     await expect(
@@ -207,6 +284,22 @@ describe('connectToConciergeAccount — shape', () => {
         chain: 'ethereum-mainnet' as any,
       }),
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
+  });
+
+  it('throws ConfigError when PIMLICO_API_KEY is missing', async () => {
+    vi.unstubAllEnvs();
+    await expect(
+      connectToConciergeAccount({
+        address: EXISTING_ADDRESS,
+        owner: MOCK_OWNER,
+        chain: 'mantle-sepolia',
+      }),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof ConciergeError &&
+        e.type === 'ConfigError' &&
+        String(e.message).includes("MissingEnvVar('PIMLICO_API_KEY')"),
+    );
   });
 });
 

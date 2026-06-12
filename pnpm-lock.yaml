@@ -324,6 +324,9 @@ importers:
       '@concierge/sdk':
         specifier: workspace:*
         version: link:../sdk
+      '@concierge/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@zerodev/ecdsa-validator':
         specifier: 5.4.9
         version: 5.4.9(@zerodev/sdk@5.5.10(viem@2.52.2(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3)))(viem@2.52.2(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3))
