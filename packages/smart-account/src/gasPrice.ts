@@ -1,5 +1,6 @@
 import { ConciergeError } from '@concierge/sdk';
 import { CHAIN_CONFIGS } from './constants.ts';
+import { sanitizeCause } from './internal.ts';
 import type { SupportedChain } from './types.ts';
 
 export interface UserOpGasPrice {
@@ -164,21 +165,18 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
       }),
     });
   } catch (fetchErr) {
-    const cause =
-      fetchErr instanceof Error && fetchErr.message.includes(apiKey)
-        ? new Error(fetchErr.message.replaceAll(apiKey, '[REDACTED]'))
-        : fetchErr;
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] getUserOpGasPrice: network error reaching Pimlico (chain: '${config.chain}')`,
-      cause,
+      sanitizeCause(fetchErr, apiKey),
     );
   }
   if (!res.ok) {
     const { text: body, cause } = await readErrorBody(res);
+    const safeBody = body.replaceAll(apiKey, '[REDACTED]');
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: BundlerError({ status: ${res.status}, chain: '${config.chain}' })${body ? ` — ${body.slice(0, 200)}` : ''}`,
+      `[@concierge/smart-account] getUserOpGasPrice: BundlerError({ status: ${res.status}, chain: '${config.chain}' })${safeBody ? ` — ${safeBody.slice(0, 200)}` : ''}`,
       cause,
     );
   }

@@ -5,7 +5,7 @@ import { getEntryPoint, KERNEL_V3_1 } from '@zerodev/sdk/constants';
 import type { LocalAccount } from 'viem';
 import { createPublicClient, http } from 'viem';
 import type { CHAIN_CONFIGS } from './constants.ts';
-import { resolveChainConfig, rpcCatch } from './internal.ts';
+import { resolveChainConfig, rpcCatch, sanitizeCause } from './internal.ts';
 import { createPaymasterClient } from './paymaster.ts';
 import type { ConciergeAccount, KernelClientStub, SupportedChain } from './types.ts';
 
@@ -80,14 +80,10 @@ export async function createConciergeAccount(
       }),
     }) as unknown as KernelClientStub & object;
   } catch (err) {
-    const cause =
-      err instanceof Error && err.message.includes(apiKey)
-        ? new Error(err.message.replaceAll(apiKey, '[REDACTED]'))
-        : err;
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] createConciergeAccount: kernel client init failed (chain: '${config.chain}')`,
-      cause,
+      sanitizeCause(err, apiKey),
     );
   }
   return { smartAccountAddress, kernelAccount, kernelClient };

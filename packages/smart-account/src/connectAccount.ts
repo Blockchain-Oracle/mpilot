@@ -5,7 +5,7 @@ import { getEntryPoint, KERNEL_V3_1 } from '@zerodev/sdk/constants';
 import type { Address, LocalAccount } from 'viem';
 import { createPublicClient, http, isAddress } from 'viem';
 import type { CHAIN_CONFIGS } from './constants.ts';
-import { resolveChainConfig, rpcCatch } from './internal.ts';
+import { resolveChainConfig, rpcCatch, sanitizeCause } from './internal.ts';
 import { createPaymasterClient } from './paymaster.ts';
 import type { ConciergeAccount, KernelClientStub, SupportedChain } from './types.ts';
 
@@ -72,7 +72,7 @@ export async function connectToConciergeAccount(
     kernelVersion: KERNEL_V3_1,
     address: config.address,
   }).catch(rpcCatch('connectToConciergeAccount: kernel account init failed', config.chain));
-  if (kernelAccount.address.toLowerCase() !== config.address.toLowerCase()) {
+  if (kernelAccount.address?.toLowerCase() !== config.address.toLowerCase()) {
     throw new ConciergeError(
       'ConfigError',
       `[@concierge/smart-account] connectToConciergeAccount: address mismatch — supplied '${config.address}' but kernel account resolved to '${kernelAccount.address}'. Verify the owner key matches this smart account address.`,
@@ -102,14 +102,10 @@ export async function connectToConciergeAccount(
       }),
     }) as unknown as KernelClientStub & object;
   } catch (err) {
-    const cause =
-      err instanceof Error && err.message.includes(apiKey)
-        ? new Error(err.message.replaceAll(apiKey, '[REDACTED]'))
-        : err;
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] connectToConciergeAccount: kernel client init failed (chain: '${config.chain}')`,
-      cause,
+      sanitizeCause(err, apiKey),
     );
   }
   return { smartAccountAddress, kernelAccount, kernelClient };

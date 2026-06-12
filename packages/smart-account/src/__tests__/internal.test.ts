@@ -1,6 +1,6 @@
 import { ConciergeError } from '@concierge/sdk';
 import { describe, expect, it } from 'vitest';
-import { resolveChainConfig, rpcCatch } from '../internal.ts';
+import { resolveChainConfig, rpcCatch, sanitizeCause } from '../internal.ts';
 
 describe('rpcCatch', () => {
   function invoke(cb: (err: unknown) => never, err: unknown): unknown {
@@ -55,6 +55,7 @@ describe('resolveChainConfig', () => {
     } catch (e) {
       return e;
     }
+    return undefined;
   }
 
   it('throws ConfigError for unsupported chain', () => {
@@ -75,14 +76,64 @@ describe('resolveChainConfig', () => {
     );
   });
 
-  it('returns bundlerUrl containing the apiKey', () => {
-    const { bundlerUrl } = resolveChainConfig('test', 'mantle-sepolia', 'my-test-key');
-    expect(bundlerUrl).toContain('my-test-key');
+  it('returns bundlerUrl containing the percent-encoded apiKey', () => {
+    const { bundlerUrl } = resolveChainConfig('test', 'mantle-sepolia', 'key+with/special=chars');
+    expect(bundlerUrl).toContain('key%2Bwith%2Fspecial%3Dchars');
   });
 
   it('includes callerName in ConfigError messages', () => {
     expect(tryGet('myFunc', 'mantle-sepolia', undefined)).toSatisfy(
       (e: unknown) => e instanceof ConciergeError && String(e.message).includes('myFunc'),
     );
+  });
+});
+
+describe('sanitizeCause', () => {
+  const KEY = 'secret-api-key';
+
+  it('returns non-Error, non-string values unchanged (identity-equal)', () => {
+    const obj = { foo: 'bar' };
+    expect(sanitizeCause(obj, KEY)).toBe(obj);
+    expect(sanitizeCause(null, KEY)).toBeNull();
+    expect(sanitizeCause(undefined, KEY)).toBeUndefined();
+    expect(sanitizeCause(42, KEY)).toBe(42);
+  });
+
+  it('returns a non-matching Error unchanged (identity-equal)', () => {
+    const err = new TypeError('unrelated error');
+    expect(sanitizeCause(err, KEY)).toBe(err);
+  });
+
+  it('returns a non-matching string unchanged', () => {
+    expect(sanitizeCause('harmless error', KEY)).toBe('harmless error');
+  });
+
+  it('redacts apiKey from matching string', () => {
+    const result = sanitizeCause(`url?apikey=${KEY}`, KEY);
+    expect(result).toBe('url?apikey=[REDACTED]');
+  });
+
+  it('preserves prototype identity when redacting Error.message', () => {
+    const err = new TypeError(`fetch failed with apikey=${KEY}`);
+    const result = sanitizeCause(err, KEY);
+    expect(result).toBeInstanceOf(TypeError);
+    expect((result as Error).message).toBe('fetch failed with apikey=[REDACTED]');
+    expect((result as TypeError).message).not.toContain(KEY);
+  });
+
+  it('scrubs apiKey from Error.stack', () => {
+    const err = new Error(`msg with ${KEY}`);
+    err.stack = `Error: msg with ${KEY}\n    at somewhere`;
+    const result = sanitizeCause(err, KEY) as Error;
+    expect(result.stack).not.toContain(KEY);
+    expect(result.stack).toContain('[REDACTED]');
+  });
+
+  it('redacts when only stack (not message) contains the apiKey', () => {
+    const err = new Error('clean message');
+    err.stack = `Error: clean message\n    at https://host/rpc?apikey=${KEY}`;
+    const result = sanitizeCause(err, KEY) as Error;
+    expect(result.stack).not.toContain(KEY);
+    expect((result as Error).message).toBe('clean message');
   });
 });

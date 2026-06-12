@@ -3,6 +3,29 @@ import { CHAIN_CONFIGS } from './constants.ts';
 import type { SupportedChain } from './types.ts';
 
 /**
+ * Redacts apiKey from an error's message and stack while preserving prototype identity.
+ * Also handles plain string rejections. Non-matching values pass through unchanged.
+ */
+export function sanitizeCause(err: unknown, apiKey: string): unknown {
+  if (typeof err === 'string' && err.includes(apiKey)) {
+    return err.replaceAll(apiKey, '[REDACTED]');
+  }
+  if (err instanceof Error && (err.message.includes(apiKey) || err.stack?.includes(apiKey))) {
+    const clone = Object.create(Object.getPrototypeOf(err)) as Error;
+    Object.assign(clone, err);
+    Object.defineProperty(clone, 'message', {
+      value: err.message.replaceAll(apiKey, '[REDACTED]'),
+      configurable: true,
+      writable: true,
+      enumerable: false,
+    });
+    if (err.stack) clone.stack = err.stack.replaceAll(apiKey, '[REDACTED]');
+    return clone;
+  }
+  return err;
+}
+
+/**
  * Returns a .catch() callback that wraps any rejection as a sanitised RpcError.
  * Note: catches ALL rejections including programmer errors (TypeError, RangeError) —
  * always inspect `.cause` when debugging unexpected RpcErrors.

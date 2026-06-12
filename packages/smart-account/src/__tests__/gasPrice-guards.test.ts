@@ -135,7 +135,27 @@ describe('getUserOpGasPrice — security', () => {
         e.type === 'RpcError' &&
         !String(e.message).includes(TEST_PIMLICO_KEY) &&
         // biome-ignore lint/suspicious/noExplicitAny: checking cause.message for API key leak
-        !String((e as any).cause?.message ?? '').includes(TEST_PIMLICO_KEY),
+        !String((e as any).cause?.message ?? '').includes(TEST_PIMLICO_KEY) &&
+        // biome-ignore lint/suspicious/noExplicitAny: checking cause.stack for API key leak
+        !String((e as any).cause?.stack ?? '').includes(TEST_PIMLICO_KEY),
+    );
+  });
+
+  it('HTTP error body containing API key does not leak into error message', async () => {
+    const urlWithKey = `https://api.pimlico.io/v2/mantle-sepolia/rpc?apikey=${TEST_PIMLICO_KEY}`;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        text: () => Promise.resolve(`Unauthorized. Request URL: ${urlWithKey}`),
+      }),
+    );
+    await expect(getUserOpGasPrice({ chain: 'mantle-sepolia' })).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof ConciergeError &&
+        e.type === 'RpcError' &&
+        !String(e.message).includes(TEST_PIMLICO_KEY),
     );
   });
 });

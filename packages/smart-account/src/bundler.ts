@@ -51,7 +51,7 @@ export function createBundlerClient(config: CreateBundlerClientConfig): BundlerB
       `[@concierge/smart-account] createBundlerClient: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
-  const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}`;
+  const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${encodeURIComponent(apiKey)}`;
   let bundlerClient: BundlerClient;
   try {
     bundlerClient = viemCreateBundlerClient({
