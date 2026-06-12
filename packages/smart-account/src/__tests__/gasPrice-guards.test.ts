@@ -199,6 +199,24 @@ describe('getUserOpGasPrice — hex format guards', () => {
         String(e.message).includes('0x-prefixed hex strings'),
     );
   });
+
+  it('throws RpcError when only maxPriorityFeePerGas is missing the 0x prefix', async () => {
+    mockFetchOk({
+      jsonrpc: '2.0',
+      id: 1,
+      result: {
+        standard: { maxFeePerGas: '0x5F5E100', maxPriorityFeePerGas: '1000000000' },
+        slow: {},
+        fast: {},
+      },
+    });
+    await expect(getUserOpGasPrice({ chain: 'mantle-sepolia' })).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof ConciergeError &&
+        e.type === 'RpcError' &&
+        String(e.message).includes('0x-prefixed hex strings'),
+    );
+  });
 });
 
 describe('getUserOpGasPrice — ok-200 body read failure', () => {

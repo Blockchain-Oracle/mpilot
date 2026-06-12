@@ -290,12 +290,25 @@ describe('createConciergeAccount — rpcWrap error classification', () => {
 
   it('maps synchronous createKernelAccountClient throw to RpcError', async () => {
     const { createKernelAccountClient } = await import('@zerodev/sdk');
+    const original = new TypeError('sync client init failure');
     vi.mocked(createKernelAccountClient).mockImplementationOnce(() => {
-      throw new TypeError('sync client init failure');
+      throw original;
     });
     await expect(
       createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' }),
-    ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'RpcError');
+    ).rejects.toSatisfy(
+      (e: unknown) => e instanceof ConciergeError && e.type === 'RpcError' && e.cause === original,
+    );
+  });
+});
+
+describe('createConciergeAccount — security', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('kernel client init error message does not expose the API key', async () => {
