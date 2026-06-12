@@ -1,3 +1,4 @@
+import { ConciergeError } from '@concierge/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';
 import { executeReadReputation } from '../../actions/readReputation.ts';
@@ -96,6 +97,27 @@ describe('readReputation — latestAttestation', () => {
     expect(result.latestAttestation?.schema).toBe('concierge.lifi.bridge.sent.v1');
     expect(result.latestAttestation?.feedbackIndex).toBe(1n);
   });
+
+  it('uses highest feedbackIndex as latest even when entries arrive out of order', async () => {
+    // Contract does not guarantee ascending order — highest index must win
+    const outOfOrder = [
+      [CLIENT, CLIENT, CLIENT],
+      [2n, 0n, 1n],
+      [1n, 1n, 1n],
+      [0, 0, 0],
+      ['concierge.action', 'concierge.action', 'concierge.action'],
+      [
+        'concierge.aave.v3.borrow.v1',
+        'concierge.aave.v3.supply.v1',
+        'concierge.lifi.bridge.sent.v1',
+      ],
+      [false, false, false],
+    ];
+    const ctx = makeReputationCtx(outOfOrder);
+    const result = await executeReadReputation(ctx, { agentId: AGENT_ID });
+    expect(result.latestAttestation?.feedbackIndex).toBe(2n);
+    expect(result.latestAttestation?.schema).toBe('concierge.aave.v3.borrow.v1');
+  });
 });
 
 describe('readReputation — revoked entries', () => {
@@ -133,5 +155,23 @@ describe('readReputation — revoked entries', () => {
     expect(result.totalAttestations).toBe(0);
     expect(result.latestAttestation).toBeNull();
     expect(result.schemaCounts).toStrictEqual({});
+  });
+});
+
+describe('readReputation — malformed contract responses', () => {
+  it('throws RpcError when readAllFeedback array lengths are inconsistent', async () => {
+    const inconsistent = [
+      [CLIENT, CLIENT],
+      [0n, 1n],
+      [1n],
+      [0, 0],
+      ['concierge.action', 'concierge.action'],
+      ['concierge.aave.v3.borrow.v1', 'concierge.lifi.bridge.sent.v1'],
+      [false, false],
+    ];
+    const ctx = makeReputationCtx(inconsistent);
+    await expect(executeReadReputation(ctx, { agentId: AGENT_ID })).rejects.toSatisfy(
+      (e: unknown) => e instanceof ConciergeError && e.type === 'RpcError',
+    );
   });
 });

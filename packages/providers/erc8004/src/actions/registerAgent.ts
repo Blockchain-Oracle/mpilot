@@ -1,9 +1,15 @@
 import { ConciergeError } from '@concierge/sdk';
 import { identityRegistryAbi } from '@concierge/shared/abi';
 import { tool } from '@concierge/tools';
-import { decodeEventLog, zeroAddress } from 'viem';
+import {
+  AbiEventSignatureEmptyTopicsError,
+  AbiEventSignatureNotFoundError,
+  decodeEventLog,
+  zeroAddress,
+} from 'viem';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
+import type { ReceiptLog } from '../_types.ts';
 
 export const RegisterAgentInput = z.object({
   agentURI: z.string().optional().describe('Optional metadata URI for the agent NFT'),
@@ -16,6 +22,39 @@ export const RegisterAgentOutput = z.object({
     .regex(/^0x[0-9a-fA-F]{64}$/)
     .describe('Transaction hash on the source chain'),
 });
+
+function findMintAgentId(
+  logs: readonly ReceiptLog[],
+  identityRegistry: `0x${string}`,
+): bigint | undefined {
+  for (const log of logs) {
+    if (log.removed === true) continue;
+    if (log.address.toLowerCase() !== identityRegistry.toLowerCase()) continue;
+    try {
+      const decoded = decodeEventLog({
+        abi: identityRegistryAbi,
+        eventName: 'Transfer',
+        // biome-ignore lint/suspicious/noExplicitAny: viem expects mutable tuple; receipt.logs topics are readonly
+        topics: log.topics as any,
+        data: log.data,
+      });
+      if (decoded.args.from === zeroAddress) return decoded.args.tokenId;
+    } catch (err) {
+      // Expected: log from IdentityRegistry is not a Transfer event (Approval, ApprovalForAll, etc.)
+      if (
+        err instanceof AbiEventSignatureEmptyTopicsError ||
+        err instanceof AbiEventSignatureNotFoundError
+      )
+        continue;
+      throw new ConciergeError(
+        'RpcError',
+        '[@concierge/erc8004] registerAgent: unexpected error decoding IdentityRegistry log',
+        err,
+      );
+    }
+  }
+  return undefined;
+}
 
 export async function executeRegisterAgent(
   ctx: ActionContext,
@@ -46,7 +85,17 @@ export async function executeRegisterAgent(
     );
   }
 
-  const receipt = await ctx.publicClient.waitForTransactionReceipt({ hash: txHash });
+  const receipt = await (async () => {
+    try {
+      return await ctx.publicClient.waitForTransactionReceipt({ hash: txHash });
+    } catch (err) {
+      throw new ConciergeError(
+        'RpcError',
+        `[@concierge/erc8004] registerAgent: waitForTransactionReceipt failed — ${txHash}`,
+        err,
+      );
+    }
+  })();
 
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
@@ -55,27 +104,14 @@ export async function executeRegisterAgent(
     );
   }
 
-  for (const log of receipt.logs) {
-    try {
-      const decoded = decodeEventLog({
-        abi: identityRegistryAbi,
-        eventName: 'Transfer',
-        topics: log.topics,
-        data: log.data,
-      });
-      // Transfer(0x0, owner, tokenId) is the mint event — tokenId IS the agentId
-      if (decoded.args.from === zeroAddress) {
-        return { agentId: decoded.args.tokenId, txHash };
-      }
-    } catch {
-      // Log is from a different contract or event — skip
-    }
+  const agentId = findMintAgentId(receipt.logs, ctx.identityRegistry);
+  if (agentId === undefined) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/erc8004] registerAgent: no Transfer mint event found in receipt ${txHash} — the register() call may have reverted silently`,
+    );
   }
-
-  throw new ConciergeError(
-    'RpcError',
-    `[@concierge/erc8004] registerAgent: no Transfer mint event found in receipt ${txHash} — the register() call may have reverted silently`,
-  );
+  return { agentId, txHash };
 }
 
 export function createRegisterAgentTool(ctx: ActionContext) {
