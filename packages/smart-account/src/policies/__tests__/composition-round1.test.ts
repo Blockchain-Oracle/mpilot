@@ -166,6 +166,7 @@ describe('createConciergePolicy — round-1 hardening', () => {
         expect.fail('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(ConciergeError);
+        expect((e as ConciergeError).type).toBe('ConfigError');
         expect(String((e as ConciergeError).message)).toContain('wildcard');
       }
     }
@@ -215,6 +216,7 @@ describe('createConciergePolicy — round-1 hardening', () => {
         expect.fail('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(ConciergeError);
+        expect((e as ConciergeError).type).toBe('ConfigError');
         expect(String((e as ConciergeError).message)).toContain('one side carries rules');
       }
     }
@@ -240,6 +242,7 @@ describe('createConciergePolicy — round-1 hardening (case + empty)', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(ConciergeError);
+      expect((e as ConciergeError).type).toBe('ConfigError');
       expect(String((e as ConciergeError).message)).toContain('duplicate spendingLimits');
     }
   });
@@ -253,7 +256,85 @@ describe('createConciergePolicy — round-1 hardening (case + empty)', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(ConciergeError);
+      expect((e as ConciergeError).type).toBe('ConfigError');
       expect(String((e as ConciergeError).message)).toContain('no permissions after merge');
     }
+  });
+
+  it('throws ConfigError with "both sides carry rules" message when BOTH providers carry rules on the same (target, selector)', () => {
+    const ruled1 = {
+      sessionKey: {
+        callPolicy: {
+          permissions: [createErc20TransferLimit({ token: USDC, maxAmountPerTx: 100n })],
+        },
+      },
+    };
+    const ruled2 = {
+      sessionKey: {
+        callPolicy: {
+          permissions: [createErc20TransferLimit({ token: USDC, maxAmountPerTx: 200n })],
+        },
+      },
+    };
+    try {
+      createConciergePolicy({
+        providers: [ruled1, ruled2],
+        spendingLimits: [],
+      });
+      expect.fail('should have thrown');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConciergeError);
+      expect((e as ConciergeError).type).toBe('ConfigError');
+      expect(String((e as ConciergeError).message)).toContain('both sides carries rules');
+    }
+  });
+});
+
+describe('createTimeFramePolicy — validAfter clamp behaviour', () => {
+  it('clamps default validUntil to now + 7d when validAfter is in the past', () => {
+    const now = Math.floor(Date.now() / 1000);
+    const pastAfter = now - 3600;
+    const policy = createTimeFramePolicy({ validAfter: pastAfter });
+    const params = policy.policyParams as { validUntil: number; validAfter: number };
+    // validUntil should be ~now+7d (NOT pastAfter+7d which would shorten the window)
+    expect(params.validUntil).toBeGreaterThanOrEqual(now + 7 * 24 * 60 * 60 - 10);
+    expect(params.validUntil).toBeLessThanOrEqual(now + 7 * 24 * 60 * 60 + 10);
+  });
+
+  it('throws ConfigError when validAfter > 1y in future without explicit validUntil (ms-vs-s guard)', () => {
+    try {
+      // 2 years in the future — would silently produce a 7-day window 2 years out
+      // under the old default rule. New guard catches this.
+      createTimeFramePolicy({
+        validAfter: Math.floor(Date.now() / 1000) + 2 * 365 * 24 * 60 * 60,
+      });
+      expect.fail('should have thrown');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConciergeError);
+      expect((e as ConciergeError).type).toBe('ConfigError');
+      expect(String((e as ConciergeError).message)).toContain('milliseconds');
+    }
+  });
+
+  it('Date.now() (milliseconds) passed as validAfter is rejected when validUntil is unspecified', () => {
+    try {
+      // The exact regression silent-failure IMPORTANT-2 flagged.
+      createTimeFramePolicy({ validAfter: Date.now() });
+      expect.fail('should have thrown');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConciergeError);
+      expect((e as ConciergeError).type).toBe('ConfigError');
+      expect(String((e as ConciergeError).message)).toContain('milliseconds');
+    }
+  });
+
+  it('accepts validAfter > 1y in future when validUntil is explicitly set (acknowledged long-lived intent)', () => {
+    const farFuture = Math.floor(Date.now() / 1000) + 2 * 365 * 24 * 60 * 60;
+    const policy = createTimeFramePolicy({
+      validAfter: farFuture,
+      validUntil: farFuture + 30 * 24 * 60 * 60,
+    });
+    const params = policy.policyParams as { validUntil: number; validAfter: number };
+    expect(params.validAfter).toBe(farFuture);
   });
 });
