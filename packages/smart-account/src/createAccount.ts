@@ -14,8 +14,12 @@ export interface CreateConciergeAccountConfig {
   /**
    * Paymaster strategy. Defaults to 'pimlico' (sponsored) on mantle-sepolia
    * and 'none' (user pays MNT) on mantle-mainnet.
+   * Note: PIMLICO_API_KEY (or apiKey) is required regardless — the Pimlico
+   * bundler authenticates all requests, not just sponsored ones.
    */
   paymaster?: 'pimlico' | 'none';
+  /** Pimlico API key. Defaults to `process.env.PIMLICO_API_KEY`. */
+  apiKey?: string;
 }
 
 const rpcWrap = (err: unknown) => {
@@ -33,11 +37,11 @@ export async function createConciergeAccount(
     );
   }
   // biome-ignore lint/complexity/useLiteralKeys: noPropertyAccessFromIndexSignature requires bracket notation
-  const apiKey = process.env['PIMLICO_API_KEY'];
+  const apiKey = config.apiKey ?? process.env['PIMLICO_API_KEY'];
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      "[@concierge/smart-account] createConciergeAccount: MissingEnvVar('PIMLICO_API_KEY') — set this env var before creating a smart account. Without it, UserOp submissions fail with a cryptic 401.",
+      "[@concierge/smart-account] createConciergeAccount: MissingEnvVar('PIMLICO_API_KEY') — set this env var or pass apiKey in config before creating a smart account.",
     );
   }
   const publicClient = createPublicClient({
@@ -64,22 +68,23 @@ export async function createConciergeAccount(
     paymasterStrategy === 'pimlico'
       ? viemCreatePaymasterClient({ transport: http(bundlerUrl) })
       : null;
-  const clientPromise = new Promise<object>((resolve) =>
-    resolve(
-      createKernelAccountClient({
-        account: kernelAccount,
-        chain: chainConfig.chain,
-        bundlerTransport: http(bundlerUrl),
-        // biome-ignore lint/suspicious/noExplicitAny: publicClient type variance between viem peer dep versions
-        client: publicClient as any,
-        ...(paymasterClient && {
-          paymaster: {
-            getPaymasterData: paymasterClient.getPaymasterData,
-            getPaymasterStubData: paymasterClient.getPaymasterStubData,
-          },
-        }),
+  let kernelClient: object;
+  try {
+    kernelClient = createKernelAccountClient({
+      account: kernelAccount,
+      chain: chainConfig.chain,
+      bundlerTransport: http(bundlerUrl),
+      // biome-ignore lint/suspicious/noExplicitAny: publicClient type variance between viem peer dep versions
+      client: publicClient as any,
+      ...(paymasterClient && {
+        paymaster: {
+          getPaymasterData: paymasterClient.getPaymasterData,
+          getPaymasterStubData: paymasterClient.getPaymasterStubData,
+        },
       }),
-    ),
-  ).catch(rpcWrap);
-  return { smartAccountAddress, kernelAccount, clientPromise };
+    });
+  } catch (err) {
+    throw ConciergeError.fromUnknown(err, 'RpcError');
+  }
+  return { smartAccountAddress, kernelAccount, kernelClient };
 }

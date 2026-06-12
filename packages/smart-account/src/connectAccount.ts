@@ -4,6 +4,7 @@ import { createKernelAccount, createKernelAccountClient } from '@zerodev/sdk';
 import { getEntryPoint, KERNEL_V3_1 } from '@zerodev/sdk/constants';
 import type { Address, LocalAccount } from 'viem';
 import { createPublicClient, http, isAddress } from 'viem';
+import { createPaymasterClient as viemCreatePaymasterClient } from 'viem/account-abstraction';
 import { CHAIN_CONFIGS } from './constants.ts';
 import type { ConciergeAccount, SupportedChain } from './types.ts';
 
@@ -11,27 +12,21 @@ export interface ConnectConciergeAccountConfig {
   address: Address;
   owner: LocalAccount;
   chain: SupportedChain;
+  /**
+   * Paymaster strategy. Defaults to 'pimlico' (sponsored) on mantle-sepolia
+   * and 'none' (user pays MNT) on mantle-mainnet — mirrors createConciergeAccount.
+   * Note: PIMLICO_API_KEY (or apiKey) is required regardless.
+   */
+  paymaster?: 'pimlico' | 'none';
+  /** Pimlico API key. Defaults to `process.env.PIMLICO_API_KEY`. */
+  apiKey?: string;
 }
 
 const rpcWrap = (err: unknown) => {
   throw ConciergeError.fromUnknown(err, 'RpcError');
 };
 
-/**
- * Re-attach to a previously-deployed Kernel account at a known address.
- * No deployment transaction is fired — CREATE2 computes the same address
- * for the same owner + chain, so the account object is reconstructed locally.
- *
- * Note: ZeroDev echoes the supplied address back without cross-validating the
- * owner's CREATE2 derivation. Owner/address consistency is enforced at UserOp
- * submission time (EntryPoint AA24 signature error) rather than here.
- *
- * Unlike createConciergeAccount, no paymaster is wired by default — the caller
- * controls gas sponsorship by configuring the returned clientPromise consumer.
- */
-export async function connectToConciergeAccount(
-  config: ConnectConciergeAccountConfig,
-): Promise<ConciergeAccount> {
+function validateConnectConfig(config: ConnectConciergeAccountConfig) {
   if (!isAddress(config.address)) {
     throw new ConciergeError(
       'ConfigError',
@@ -46,13 +41,29 @@ export async function connectToConciergeAccount(
     );
   }
   // biome-ignore lint/complexity/useLiteralKeys: noPropertyAccessFromIndexSignature requires bracket notation
-  const apiKey = process.env['PIMLICO_API_KEY'];
+  const apiKey = config.apiKey ?? process.env['PIMLICO_API_KEY'];
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      "[@concierge/smart-account] connectToConciergeAccount: MissingEnvVar('PIMLICO_API_KEY') — set this env var before connecting to a smart account. Without it, UserOp submissions fail with a cryptic 401.",
+      "[@concierge/smart-account] connectToConciergeAccount: MissingEnvVar('PIMLICO_API_KEY') — set this env var or pass apiKey in config before connecting to a smart account.",
     );
   }
+  return { chainConfig, apiKey };
+}
+
+/**
+ * Re-attach to a previously-deployed Kernel account at a known address.
+ * No deployment transaction is fired — CREATE2 computes the same address
+ * for the same owner + chain, so the account object is reconstructed locally.
+ *
+ * Note: ZeroDev echoes the supplied address back without cross-validating the
+ * owner's CREATE2 derivation. Owner/address consistency is enforced at UserOp
+ * submission time (EntryPoint AA24 signature error) rather than here.
+ */
+export async function connectToConciergeAccount(
+  config: ConnectConciergeAccountConfig,
+): Promise<ConciergeAccount> {
+  const { chainConfig, apiKey } = validateConnectConfig(config);
   const publicClient = createPublicClient({
     chain: chainConfig.chain,
     transport: http(chainConfig.chain.rpcUrls.default.http[0]),
@@ -72,16 +83,29 @@ export async function connectToConciergeAccount(
   }).catch(rpcWrap);
   const smartAccountAddress = kernelAccount.address;
   const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}`;
-  const clientPromise = new Promise<object>((resolve) =>
-    resolve(
-      createKernelAccountClient({
-        account: kernelAccount,
-        chain: chainConfig.chain,
-        bundlerTransport: http(bundlerUrl),
-        // biome-ignore lint/suspicious/noExplicitAny: publicClient type variance between viem peer dep versions
-        client: publicClient as any,
+  const paymasterStrategy =
+    config.paymaster ?? (config.chain === 'mantle-sepolia' ? 'pimlico' : 'none');
+  const paymasterClient =
+    paymasterStrategy === 'pimlico'
+      ? viemCreatePaymasterClient({ transport: http(bundlerUrl) })
+      : null;
+  let kernelClient: object;
+  try {
+    kernelClient = createKernelAccountClient({
+      account: kernelAccount,
+      chain: chainConfig.chain,
+      bundlerTransport: http(bundlerUrl),
+      // biome-ignore lint/suspicious/noExplicitAny: publicClient type variance between viem peer dep versions
+      client: publicClient as any,
+      ...(paymasterClient && {
+        paymaster: {
+          getPaymasterData: paymasterClient.getPaymasterData,
+          getPaymasterStubData: paymasterClient.getPaymasterStubData,
+        },
       }),
-    ),
-  ).catch(rpcWrap);
-  return { smartAccountAddress, kernelAccount, clientPromise };
+    });
+  } catch (err) {
+    throw ConciergeError.fromUnknown(err, 'RpcError');
+  }
+  return { smartAccountAddress, kernelAccount, kernelClient };
 }

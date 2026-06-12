@@ -59,6 +59,13 @@ function parseTier(
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] getUserOpGasPrice: BigInt conversion failed — maxFeePerGas="${rawMax}" maxPriorityFeePerGas="${rawPriority}"`,
+      _err,
+    );
+  }
+  if (maxFeePerGas <= 0n || maxPriorityFeePerGas <= 0n) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] getUserOpGasPrice: zero or negative gas price — maxFeePerGas=${maxFeePerGas} maxPriorityFeePerGas=${maxPriorityFeePerGas}`,
     );
   }
   if (maxPriorityFeePerGas > maxFeePerGas) {
@@ -103,15 +110,19 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
         params: [],
       }),
     });
-  } catch (err) {
-    throw ConciergeError.fromUnknown(err, 'RpcError');
+  } catch (_err) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] getUserOpGasPrice: network error reaching Pimlico (chain: '${config.chain}')`,
+      _err,
+    );
   }
   if (!res.ok) {
     let body = '';
     try {
       body = await res.text();
-    } catch {
-      /* body unreadable */
+    } catch (bodyErr) {
+      body = `[body unreadable: ${bodyErr instanceof Error ? bodyErr.message : String(bodyErr)}]`;
     }
     throw new ConciergeError(
       'RpcError',
@@ -125,6 +136,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${config.chain}') — body may not be JSON`,
+      _err,
     );
   }
   const { maxFeePerGas, maxPriorityFeePerGas } = parseTier(data, config.chain);

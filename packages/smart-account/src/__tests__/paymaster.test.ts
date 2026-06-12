@@ -129,4 +129,14 @@ describe('createPaymasterClient — input guards', () => {
       );
     }
   });
+
+  it("maps viemCreatePaymasterClient sync throw to RpcError when policy is 'always'", async () => {
+    const { createPaymasterClient: viemMock } = await import('viem/account-abstraction');
+    vi.mocked(viemMock).mockImplementationOnce(() => {
+      throw new TypeError('paymaster transport init failed');
+    });
+    expect(() =>
+      createPaymasterClient({ chain: 'mantle-sepolia', sponsorshipPolicy: 'always' }),
+    ).toThrowError(expect.objectContaining({ type: 'RpcError' }) as unknown as Error);
+  });
 });

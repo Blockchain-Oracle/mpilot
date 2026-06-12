@@ -19,6 +19,13 @@ export type CreatePaymasterClientConfig =
       readonly apiKey?: string;
     };
 
+export function createPaymasterClient(
+  config: Extract<CreatePaymasterClientConfig, { sponsorshipPolicy: 'never' }>,
+): null;
+export function createPaymasterClient(
+  config: Extract<CreatePaymasterClientConfig, { sponsorshipPolicy: 'always' }>,
+): PaymasterClient;
+export function createPaymasterClient(config: CreatePaymasterClientConfig): PaymasterClient | null;
 /**
  * Returns a Pimlico verifying paymaster client, or null when sponsorship is 'never'.
  * Wire the returned client into createKernelAccountClient via the `paymaster` field.

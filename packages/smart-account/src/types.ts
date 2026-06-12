@@ -5,7 +5,7 @@ export type SupportedChain = keyof typeof CHAIN_CONFIGS;
 
 /**
  * Intentionally minimal stub — callers needing the full KernelAccountClient
- * should cast: `(await account.clientPromise) as KernelAccountClient`.
+ * should cast: `account.kernelClient as KernelAccountClient`.
  * The opaque `object` in ConciergeAccount avoids viem peer-dep version skew
  * in the DTS build (ZeroDev SDK compiled against viem 2.38; project uses 2.52).
  */
@@ -25,13 +25,13 @@ export interface KernelAccountStub {
  * Core account bundle returned by createConciergeAccount / connectToConciergeAccount.
  *
  * kernelAccount  — cast to CreateKernelAccountReturnType from @zerodev/sdk as needed
- * clientPromise  — cast to KernelAccountClient from @zerodev/sdk as needed;
- *                  rejects with ConciergeError('RpcError') if client init fails
+ * kernelClient   — cast to KernelAccountClient from @zerodev/sdk as needed;
+ *                  throws ConciergeError('RpcError') if client init failed
  *
  * The opaque `object` types avoid viem peer-dep version skew in the DTS build.
  */
 export interface ConciergeAccount {
   readonly smartAccountAddress: Address;
   readonly kernelAccount: KernelAccountStub & object;
-  readonly clientPromise: Promise<object>;
+  readonly kernelClient: object;
 }
