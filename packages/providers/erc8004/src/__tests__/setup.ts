@@ -13,8 +13,10 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 
 export const MANTLE_SEPOLIA_RPC =
-  process.env.MANTLE_SEPOLIA_RPC_URL ?? 'https://rpc.sepolia.mantle.xyz';
-const ANVIL_BIN = process.env.ANVIL_BIN ?? 'anvil';
+  // biome-ignore lint/complexity/useLiteralKeys: noPropertyAccessFromIndexSignature requires bracket notation
+  process.env['MANTLE_SEPOLIA_RPC_URL'] ?? 'https://rpc.sepolia.mantle.xyz';
+// biome-ignore lint/complexity/useLiteralKeys: noPropertyAccessFromIndexSignature requires bracket notation
+const ANVIL_BIN = process.env['ANVIL_BIN'] ?? 'anvil';
 
 // ERC-8004 canonical addresses on Mantle Sepolia (verified 2026-06-04)
 export const IDENTITY_REGISTRY_SEPOLIA =
@@ -91,6 +93,8 @@ export async function startAnvilFork(): Promise<AnvilFork> {
       if (!started && buf.join('').includes('Listening on')) {
         started = true;
         clearTimeout(timer);
+        proc.stdout.off('data', onData);
+        proc.stderr.off('data', onData);
         // Use chain ID 5003 (Mantle Sepolia) so EIP-712 hashes match what the live contracts expect.
         const chain = defineChain({
           id: 5003,
@@ -112,12 +116,20 @@ export async function startAnvilFork(): Promise<AnvilFork> {
           account: privateKeyToAccount(CLIENT_PRIVATE_KEY),
         });
 
-        const stop = () =>
-          new Promise<void>((res) => {
-            stopping = true;
-            proc.once('exit', () => res());
+        let stopCalled = false;
+        const stop = () => {
+          if (stopCalled) return Promise.resolve();
+          stopCalled = true;
+          stopping = true;
+          return new Promise<void>((res) => {
+            const killTimer = setTimeout(() => proc.kill('SIGKILL'), 5_000);
+            proc.once('exit', () => {
+              clearTimeout(killTimer);
+              res();
+            });
             proc.kill('SIGTERM');
           });
+        };
 
         // Capture the current block to use as fromBlock baseline in event queries.
         // Querying from block 0 would ask the remote RPC for the full chain history,
@@ -153,7 +165,11 @@ export async function startAnvilFork(): Promise<AnvilFork> {
     proc.on('exit', (code, signal) => {
       if (!started) {
         clearTimeout(timer);
-        reject(new Error(`Anvil exited with code ${String(code)} before listening`));
+        reject(
+          new Error(
+            `Anvil exited with code ${String(code)} before listening.\nAnvil output:\n${buf.join('')}`,
+          ),
+        );
       } else if (!stopping) {
         process.stderr.write(
           `[setup] Anvil fork (port ${port}) exited unexpectedly: code=${String(code)} signal=${String(signal)}.\n`,

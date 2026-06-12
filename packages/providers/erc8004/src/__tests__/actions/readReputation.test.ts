@@ -228,10 +228,13 @@ describe('readReputation — fork: live Sepolia', () => {
 
   it('schemaCounts reflects attests across multiple schemas', async () => {
     const { agentId } = await executeRegisterAgent(makeAgentCtx(), {});
+    // 5 attests: borrow×2, supply×2, agni-swap×1 — matches BDD test_readReputation_AfterAttests
     const schemas = [
       'concierge.aave.v3.borrow.v1',
       'concierge.aave.v3.supply.v1',
       'concierge.aave.v3.borrow.v1',
+      'concierge.aave.v3.supply.v1',
+      'concierge.mantle-dex.agni.swap.v1',
     ] as const;
     for (const s of schemas) {
       await executeAttestAction(makeClientCtx(), {
@@ -241,8 +244,11 @@ describe('readReputation — fork: live Sepolia', () => {
       });
     }
     const result = await executeReadReputation(makeAgentCtx(), { agentId });
-    expect(result.totalAttestations).toBe(3);
+    expect(result.totalAttestations).toBe(5);
     expect(result.schemaCounts['concierge.aave.v3.borrow.v1']).toBe(2);
-    expect(result.schemaCounts['concierge.aave.v3.supply.v1']).toBe(1);
+    expect(result.schemaCounts['concierge.aave.v3.supply.v1']).toBe(2);
+    expect(result.schemaCounts['concierge.mantle-dex.agni.swap.v1']).toBe(1);
+    expect(result.latestAttestation).not.toBeNull();
+    expect(result.latestAttestation?.feedbackIndex).toBeGreaterThanOrEqual(0n);
   });
 });
