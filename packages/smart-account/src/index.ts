@@ -19,4 +19,17 @@ export type { GetUserOpGasPriceConfig, UserOpGasPrice } from './gasPrice.ts';
 export { getUserOpGasPrice } from './gasPrice.ts';
 export type { CreatePaymasterClientConfig, SponsorshipPolicy } from './paymaster.ts';
 export { createPaymasterClient } from './paymaster.ts';
+export {
+  type CallPermission,
+  type CallPermissionRule,
+  type CreateCallPolicyConfig,
+  type CreateConciergePolicyConfig,
+  type CreateTimeFramePolicyConfig,
+  createCallPolicy,
+  createConciergePolicy,
+  createErc20TransferLimit,
+  createTimeFramePolicy,
+  type Erc20TransferLimitConfig,
+  type ProviderSessionKeyShape,
+} from './policies/index.ts';
 export type { ConciergeAccount, SupportedChain } from './types.ts';
