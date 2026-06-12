@@ -88,6 +88,37 @@ async function readErrorBody(res: Response): Promise<{ text: string; cause: unkn
   }
 }
 
+async function readAndParseBody(res: Response, chain: SupportedChain): Promise<PimlicoRpcResponse> {
+  let rawBody: string;
+  try {
+    rawBody = await res.text();
+  } catch (_err) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] getUserOpGasPrice: failed to read response body from Pimlico (chain: '${chain}')`,
+      _err,
+    );
+  }
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(rawBody) as Record<string, unknown>;
+  } catch (_err) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${chain}') — body: ${rawBody.slice(0, 200)}`,
+      _err,
+    );
+  }
+  const isEnvelope = 'result' in parsed || 'error' in parsed;
+  if (typeof parsed !== 'object' || parsed === null || !isEnvelope) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${rawBody.slice(0, 200)}`,
+    );
+  }
+  return parsed as unknown as PimlicoRpcResponse;
+}
+
 /**
  * Queries Pimlico's gas price oracle for current UserOp gas prices.
  * Must be called fresh per UserOp — gas prices change block-to-block.
@@ -136,16 +167,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
       bodyReadErr,
     );
   }
-  let data: PimlicoRpcResponse;
-  try {
-    data = (await res.json()) as PimlicoRpcResponse;
-  } catch (_err) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${config.chain}') — body may not be JSON`,
-      _err,
-    );
-  }
+  const data = await readAndParseBody(res, config.chain);
   const { maxFeePerGas, maxPriorityFeePerGas } = parseTier(data, config.chain);
   return { maxFeePerGas, maxPriorityFeePerGas, fetchedAt: Date.now() };
 }

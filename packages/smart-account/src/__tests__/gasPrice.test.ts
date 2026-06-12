@@ -18,7 +18,7 @@ function mockFetchOk(body: unknown): void {
     'fetch',
     vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(body),
+      text: () => Promise.resolve(JSON.stringify(body)),
     }),
   );
 }
@@ -187,14 +187,16 @@ describe('getUserOpGasPrice — HTTP errors', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        json: () => Promise.reject(new SyntaxError('Unexpected token < in JSON')),
+        text: () => Promise.resolve('<html>Service Unavailable</html>'),
       }),
     );
     await expect(getUserOpGasPrice({ chain: 'mantle-sepolia' })).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
         e.type === 'RpcError' &&
-        String(e.message).includes('failed to parse JSON'),
+        String(e.message).includes('failed to parse JSON') &&
+        String(e.message).includes('<html>') &&
+        e.cause instanceof SyntaxError,
     );
   });
 });
@@ -331,6 +333,34 @@ describe('getUserOpGasPrice — gas price guards', () => {
   });
 });
 
+describe('getUserOpGasPrice — ok-200 body read failure', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('throws RpcError with cause when res.text() rejects on a 200 response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.reject(new Error('stream aborted')),
+      }),
+    );
+    await expect(getUserOpGasPrice({ chain: 'mantle-sepolia' })).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof ConciergeError &&
+        e.type === 'RpcError' &&
+        String(e.message).includes('failed to read response body') &&
+        e.cause instanceof Error,
+    );
+  });
+});
+
 describe('getUserOpGasPrice — body read failure', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -355,7 +385,8 @@ describe('getUserOpGasPrice — body read failure', () => {
         e instanceof ConciergeError &&
         e.type === 'RpcError' &&
         String(e.message).includes('body unreadable') &&
-        String(e.message).includes('connection reset'),
+        String(e.message).includes('connection reset') &&
+        e.cause instanceof Error,
     );
   });
 });

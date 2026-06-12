@@ -22,11 +22,21 @@ export interface ConnectConciergeAccountConfig {
   apiKey?: string;
 }
 
-const rpcWrap = (err: unknown) => {
-  throw ConciergeError.fromUnknown(err, 'RpcError');
-};
+function rpcCatch(op: string, chain: string) {
+  return (err: unknown): never => {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] ${op} (chain: '${chain}')`,
+      err,
+    );
+  };
+}
 
-function validateConnectConfig(config: ConnectConciergeAccountConfig) {
+function validateConnectConfig(config: ConnectConciergeAccountConfig): {
+  chainConfig: (typeof CHAIN_CONFIGS)[keyof typeof CHAIN_CONFIGS];
+  bundlerUrl: string;
+  apiKey: string;
+} {
   if (!isAddress(config.address)) {
     throw new ConciergeError(
       'ConfigError',
@@ -49,7 +59,7 @@ function validateConnectConfig(config: ConnectConciergeAccountConfig) {
     );
   }
   const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}`;
-  return { chainConfig, bundlerUrl };
+  return { chainConfig, bundlerUrl, apiKey };
 }
 
 /**
@@ -64,9 +74,7 @@ function validateConnectConfig(config: ConnectConciergeAccountConfig) {
 export async function connectToConciergeAccount(
   config: ConnectConciergeAccountConfig,
 ): Promise<ConciergeAccount> {
-  const { chainConfig, bundlerUrl } = validateConnectConfig(config);
-  // biome-ignore lint/complexity/useLiteralKeys: noPropertyAccessFromIndexSignature requires bracket notation
-  const apiKey = (config.apiKey ?? process.env['PIMLICO_API_KEY']) as string;
+  const { chainConfig, bundlerUrl, apiKey } = validateConnectConfig(config);
   const publicClient = createPublicClient({
     chain: chainConfig.chain,
     transport: http(chainConfig.chain.rpcUrls.default.http[0]),
@@ -77,13 +85,13 @@ export async function connectToConciergeAccount(
     signer: config.owner as any,
     entryPoint,
     kernelVersion: KERNEL_V3_1,
-  }).catch(rpcWrap);
+  }).catch(rpcCatch('connectToConciergeAccount: ECDSA validator init failed', config.chain));
   const kernelAccount = await createKernelAccount(publicClient, {
     plugins: { sudo: ecdsaValidator },
     entryPoint,
     kernelVersion: KERNEL_V3_1,
     address: config.address,
-  }).catch(rpcWrap);
+  }).catch(rpcCatch('connectToConciergeAccount: kernel account init failed', config.chain));
   const smartAccountAddress = kernelAccount.address;
   const paymasterStrategy =
     config.paymaster ?? (config.chain === 'mantle-sepolia' ? 'pimlico' : 'none');
@@ -106,10 +114,13 @@ export async function connectToConciergeAccount(
           getPaymasterStubData: paymasterClient.getPaymasterStubData,
         },
       }),
-      // biome-ignore lint/suspicious/noExplicitAny: KernelAccountClient satisfies KernelClientStub at runtime; cast avoids viem peer-dep version skew
-    }) as any;
+    }) as unknown as KernelClientStub & object;
   } catch (err) {
-    throw ConciergeError.fromUnknown(err, 'RpcError');
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] connectToConciergeAccount: kernel client init failed (chain: '${config.chain}')`,
+      err,
+    );
   }
   return { smartAccountAddress, kernelAccount, kernelClient };
 }

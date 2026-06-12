@@ -22,13 +22,21 @@ export interface CreateConciergeAccountConfig {
   apiKey?: string;
 }
 
-const rpcWrap = (err: unknown) => {
-  throw ConciergeError.fromUnknown(err, 'RpcError');
-};
+function rpcCatch(op: string, chain: string) {
+  return (err: unknown): never => {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] ${op} (chain: '${chain}')`,
+      err,
+    );
+  };
+}
 
-export async function createConciergeAccount(
-  config: CreateConciergeAccountConfig,
-): Promise<ConciergeAccount> {
+function resolveCreateConfig(config: CreateConciergeAccountConfig): {
+  chainConfig: (typeof CHAIN_CONFIGS)[keyof typeof CHAIN_CONFIGS];
+  apiKey: string;
+  bundlerUrl: string;
+} {
   const chainConfig = CHAIN_CONFIGS[config.chain];
   if (!chainConfig) {
     throw new ConciergeError(
@@ -44,6 +52,13 @@ export async function createConciergeAccount(
       "[@concierge/smart-account] createConciergeAccount: MissingEnvVar('PIMLICO_API_KEY') — set this env var or pass apiKey in config before creating a smart account.",
     );
   }
+  return { chainConfig, apiKey, bundlerUrl: `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}` };
+}
+
+export async function createConciergeAccount(
+  config: CreateConciergeAccountConfig,
+): Promise<ConciergeAccount> {
+  const { chainConfig, apiKey, bundlerUrl } = resolveCreateConfig(config);
   const publicClient = createPublicClient({
     chain: chainConfig.chain,
     transport: http(chainConfig.chain.rpcUrls.default.http[0]),
@@ -54,14 +69,13 @@ export async function createConciergeAccount(
     signer: config.owner as any,
     entryPoint,
     kernelVersion: KERNEL_V3_1,
-  }).catch(rpcWrap);
+  }).catch(rpcCatch('createConciergeAccount: ECDSA validator init failed', config.chain));
   const kernelAccount = await createKernelAccount(publicClient, {
     plugins: { sudo: ecdsaValidator },
     entryPoint,
     kernelVersion: KERNEL_V3_1,
-  }).catch(rpcWrap);
+  }).catch(rpcCatch('createConciergeAccount: kernel account init failed', config.chain));
   const smartAccountAddress = kernelAccount.address;
-  const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}`;
   const paymasterStrategy =
     config.paymaster ?? (config.chain === 'mantle-sepolia' ? 'pimlico' : 'none');
   const paymasterClient = createPaymasterClient(
@@ -83,10 +97,13 @@ export async function createConciergeAccount(
           getPaymasterStubData: paymasterClient.getPaymasterStubData,
         },
       }),
-      // biome-ignore lint/suspicious/noExplicitAny: KernelAccountClient satisfies KernelClientStub at runtime; cast avoids viem peer-dep version skew
-    }) as any;
+    }) as unknown as KernelClientStub & object;
   } catch (err) {
-    throw ConciergeError.fromUnknown(err, 'RpcError');
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] createConciergeAccount: kernel client init failed (chain: '${config.chain}')`,
+      err,
+    );
   }
   return { smartAccountAddress, kernelAccount, kernelClient };
 }
