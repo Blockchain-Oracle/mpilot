@@ -6,13 +6,29 @@ import {
   numeric,
   pgEnum,
   pgTable,
-  text,
   timestamp,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { agents } from './agents.ts';
 import { ticks } from './ticks.ts';
+
+/** Action class — enforced via pgEnum (discriminates planJsonb shape). */
+export const proposalKindEnum = pgEnum('proposal_kind', ['supply', 'borrow', 'swap', 'bridge']);
+export type ProposalKind = (typeof proposalKindEnum.enumValues)[number];
+
+/** Source protocol — enforced via pgEnum (CLAUDE.md 7-provider list). */
+export const proposalProtocolEnum = pgEnum('proposal_protocol', [
+  'aave',
+  'merchant-moe',
+  'agni',
+  'fusionx',
+  'ethena',
+  'ondo',
+  'meth-staking',
+  'lifi',
+]);
+export type ProposalProtocol = (typeof proposalProtocolEnum.enumValues)[number];
 
 /** Lifecycle status of a proposal — enforced via pgEnum. */
 export const proposalStatusEnum = pgEnum('proposal_status', [
@@ -24,8 +40,7 @@ export const proposalStatusEnum = pgEnum('proposal_status', [
 export type ProposalStatus = (typeof proposalStatusEnum.enumValues)[number];
 
 /**
- * The propose-phase output. `kind` ('supply', 'borrow', 'swap', 'bridge') +
- * `protocol` ('aave', 'merchant-moe', …) discriminate the planJsonb shape.
+ * The propose-phase output. `kind` + `protocol` discriminate the planJsonb shape.
  *
  * Unique partial index `(agent_id) WHERE status='pending'` enforces the
  * idempotence guard: a re-tick before the user resolves the prior proposal
@@ -41,10 +56,10 @@ export const proposals = pgTable(
     tickId: uuid('tick_id')
       .notNull()
       .references(() => ticks.id, { onDelete: 'cascade' }),
-    kind: text('kind').notNull(),
+    kind: proposalKindEnum('kind').notNull(),
     /** USD-denominated trade size, stored as numeric for precision (no float drift). */
     amountUsd: numeric('amount_usd', { precision: 30, scale: 8 }).notNull(),
-    protocol: text('protocol').notNull(),
+    protocol: proposalProtocolEnum('protocol').notNull(),
     planJson: jsonb('plan_json').notNull(),
     simJson: jsonb('sim_json').notNull(),
     status: proposalStatusEnum('status').notNull(),
@@ -64,19 +79,25 @@ export const proposals = pgTable(
       .on(table.agentId)
       .where(sql`${table.status} = 'pending'`),
     /**
-     * Reject NaN and negative values. Postgres `numeric` ACCEPTS the literal 'NaN'
-     * by default — every SUM/aggregation downstream then returns NaN, silently
-     * disabling spending-limit comparisons (`NaN > 500` is false). The `x = x`
-     * idiom is the canonical NaN-rejecting check in SQL.
+     * Reject NaN and negative values. Postgres `numeric` accepts the literal 'NaN'
+     * by default; downstream aggregations would silently propagate it. NOTE: the
+     * IEEE-754 `x = x` idiom does NOT work for Postgres numeric — NaN equals
+     * itself AND is greater than every other value. Use explicit comparison
+     * against `'NaN'::numeric`.
      */
     amountUsdNotNan: check(
       'proposals_amount_usd_finite_nonneg',
-      sql`${table.amountUsd} = ${table.amountUsd} AND ${table.amountUsd} >= 0`,
+      sql`${table.amountUsd} <> 'NaN'::numeric AND ${table.amountUsd} >= 0`,
     ),
     /** Sanity guard: a proposal must expire after it's created. */
     expiresAfterCreated: check(
       'proposals_expires_after_created',
       sql`${table.expiresAt} > ${table.createdAt}`,
+    ),
+    /** Terminal status (non-pending) requires resolvedAt; pending requires it to be NULL. */
+    resolvedAtCoPresent: check(
+      'proposals_resolved_at_co_present',
+      sql`(${table.status} = 'pending') = (${table.resolvedAt} IS NULL)`,
     ),
   }),
 );

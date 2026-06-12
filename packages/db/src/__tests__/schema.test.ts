@@ -112,6 +112,22 @@ describe('proposals schema — unique-pending invariant', () => {
     const checkNames = cfg.checks.map((c) => c.name);
     expect(checkNames).toContain('proposals_amount_usd_finite_nonneg');
     expect(checkNames).toContain('proposals_expires_after_created');
+    expect(checkNames).toContain('proposals_resolved_at_co_present');
+  });
+
+  it('NaN CHECK uses explicit numeric comparison, NOT the broken x=x idiom', () => {
+    const nanCheck = cfg.checks.find((c) => c.name === 'proposals_amount_usd_finite_nonneg');
+    expect(nanCheck).toBeDefined();
+    // biome-ignore lint/suspicious/noExplicitAny: probing Drizzle SQL chunks
+    const chunks = ((nanCheck?.value as any)?.queryChunks ?? []) as unknown[];
+    const literals = chunks
+      .filter((c) => typeof c === 'object' && c !== null && 'value' in c)
+      // biome-ignore lint/suspicious/noExplicitAny: extracting literal values
+      .flatMap((c) => (c as any).value)
+      .join(' ');
+    // Postgres numeric: NaN = NaN is TRUE — so `x = x` is a no-op. The check
+    // must use explicit `<> 'NaN'::numeric` instead.
+    expect(literals).toContain("'NaN'");
   });
 });
 

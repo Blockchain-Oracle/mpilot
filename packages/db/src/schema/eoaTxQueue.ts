@@ -51,8 +51,23 @@ export const eoaTxQueue = pgTable(
     ),
     /** Sanity: tx target must look like an address (20-byte hex). */
     toIsAddress: check('eoa_tx_queue_to_is_address', sql`${table.to} ~ '^0x[0-9a-fA-F]{40}$'`),
-    /** Sanity: calldata must be 0x-prefixed hex (length parity not enforced — viem checks). */
-    dataIsHex: check('eoa_tx_queue_data_is_hex', sql`${table.data} ~ '^0x[0-9a-fA-F]*$'`),
+    /** Sanity: calldata must be 0x-prefixed hex with byte parity (even hex digit count). */
+    dataIsHex: check('eoa_tx_queue_data_is_hex', sql`${table.data} ~ '^0x([0-9a-fA-F]{2})*$'`),
+    /** status='signed' requires signed_tx to be present (tx broadcasted). */
+    signedHasSignedTx: check(
+      'eoa_tx_queue_signed_has_signed_tx',
+      sql`${table.status} <> 'signed' OR ${table.signedTx} IS NOT NULL`,
+    ),
+    /** status='confirmed' requires tx_hash + block_number. */
+    confirmedHasReceipt: check(
+      'eoa_tx_queue_confirmed_has_receipt',
+      sql`${table.status} <> 'confirmed' OR (${table.txHash} IS NOT NULL AND ${table.blockNumber} IS NOT NULL)`,
+    ),
+    /** status='failed' requires an error message — a failure with no diagnostic is silent. */
+    failedHasError: check(
+      'eoa_tx_queue_failed_has_error',
+      sql`${table.status} <> 'failed' OR ${table.error} IS NOT NULL`,
+    ),
   }),
 );
 
