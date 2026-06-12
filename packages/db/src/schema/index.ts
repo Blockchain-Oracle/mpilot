@@ -27,7 +27,11 @@ export {
 export {
   type NewProposal,
   type Proposal,
+  type ProposalKind,
+  type ProposalProtocol,
   type ProposalStatus,
+  proposalKindEnum,
+  proposalProtocolEnum,
   proposalStatusEnum,
   proposals,
 } from './proposals.ts';
@@ -39,7 +43,9 @@ export {
 export {
   type NewTick,
   type Tick,
+  type TickPhase,
   type TickStatus,
+  tickPhaseEnum,
   tickStatusEnum,
   ticks,
 } from './ticks.ts';

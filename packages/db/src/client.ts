@@ -36,10 +36,16 @@ export async function createDbClient(
   const pool = new Pool({ connectionString: databaseUrl });
   // pg.Pool's 'error' event fires for idle-client failures (network blip, PG
   // restart, PgBouncer kill). Without a listener Node crashes the process.
+  // Default: log to stderr — CLAUDE.md no-silent-failures requires the failure
+  // to be observable. MCP stdio bin uses stdout for the protocol; stderr is safe.
+  // Consumers wanting strict silence can pass `onPoolError: () => {}`.
   pool.on('error', (err) => {
-    if (options.onPoolError) options.onPoolError(err);
-    // No default behavior — silently swallowing is intentional: the next
-    // checkout will get a fresh client. Consumer can opt into logging.
+    if (options.onPoolError) {
+      options.onPoolError(err);
+    } else {
+      // biome-ignore lint/suspicious/noConsole: pool failure must be observable; stderr is MCP-safe
+      console.error('[@concierge/db] pool error:', err);
+    }
   });
   if (options.ping) {
     // Eagerly validate connection so misconfig surfaces at boot, not mid-tick.
