@@ -2,20 +2,30 @@ import { ConciergeError } from '@concierge/sdk';
 import { toTimestampPolicy } from '@zerodev/permissions/policies';
 
 const SEVEN_DAYS_SECONDS = 7 * 24 * 60 * 60;
+/** uint48 max — ZeroDev timestamp policy encodes both bounds as uint48 seconds. */
+const UINT48_MAX = 281_474_976_710_655;
 
 /**
- * IMPORTANT — spec drift documented in PR description:
- *   Story-52 called this "TimeFramePolicy". ZeroDev's actual export is
- *   `toTimestampPolicy`. Behaviour is identical (validAfter + validUntil
- *   uint48 seconds) — we just wrap with friendlier defaults + non-zero
- *   validation. The "TimeFrame" naming is retained on our public surface
- *   to match the story spec.
+ * **Spec drift (audit §19):** Story-52 called this "TimeFramePolicy". ZeroDev's
+ * actual export is `toTimestampPolicy`. Behaviour is identical (validAfter +
+ * validUntil uint48 seconds) — we just wrap with friendlier defaults +
+ * non-zero + uint48-bounds validation. "TimeFrame" naming retained on our public
+ * surface to match the story spec.
  */
 export interface CreateTimeFramePolicyConfig {
-  /** Unix seconds — session key invalid AFTER this. Default = now + 7 days. */
+  /** Unix SECONDS — session key invalid AFTER this. Default = now + 7 days. */
   readonly validUntil?: number;
-  /** Unix seconds — session key invalid BEFORE this. Default = now. */
+  /** Unix SECONDS — session key invalid BEFORE this. Default = now. */
   readonly validAfter?: number;
+}
+
+function assertUnixSeconds(name: string, value: number): void {
+  if (!Number.isInteger(value) || value < 0 || value > UINT48_MAX) {
+    throw new ConciergeError(
+      'ConfigError',
+      `[@concierge/smart-account] createTimeFramePolicy: InvalidPolicy: ${name} (${value}) must be an integer in [0, 2^48-1] Unix SECONDS. (Did you pass milliseconds?)`,
+    );
+  }
 }
 
 export function createTimeFramePolicy(
@@ -24,6 +34,8 @@ export function createTimeFramePolicy(
   const now = Math.floor(Date.now() / 1000);
   const validAfter = config.validAfter ?? now;
   const validUntil = config.validUntil ?? now + SEVEN_DAYS_SECONDS;
+  assertUnixSeconds('validAfter', validAfter);
+  assertUnixSeconds('validUntil', validUntil);
   if (validUntil === 0) {
     throw new ConciergeError(
       'ConfigError',

@@ -1,5 +1,6 @@
 export {
   type CallPermission,
+  type CallPermissionRule,
   type CreateCallPolicyConfig,
   createCallPolicy,
 } from './callPolicy.ts';
@@ -9,7 +10,7 @@ export {
   type ProviderSessionKeyShape,
 } from './concierge.ts';
 export {
-  type CreateSpendingLimitPolicyConfig,
-  createSpendingLimitPolicy,
-} from './spendingLimitPolicy.ts';
+  createErc20TransferLimit,
+  type Erc20TransferLimitConfig,
+} from './erc20TransferLimit.ts';
 export { type CreateTimeFramePolicyConfig, createTimeFramePolicy } from './timeFramePolicy.ts';

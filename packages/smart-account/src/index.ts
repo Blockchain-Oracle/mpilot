@@ -21,14 +21,15 @@ export type { CreatePaymasterClientConfig, SponsorshipPolicy } from './paymaster
 export { createPaymasterClient } from './paymaster.ts';
 export {
   type CallPermission,
+  type CallPermissionRule,
   type CreateCallPolicyConfig,
   type CreateConciergePolicyConfig,
-  type CreateSpendingLimitPolicyConfig,
   type CreateTimeFramePolicyConfig,
   createCallPolicy,
   createConciergePolicy,
-  createSpendingLimitPolicy,
+  createErc20TransferLimit,
   createTimeFramePolicy,
+  type Erc20TransferLimitConfig,
   type ProviderSessionKeyShape,
 } from './policies/index.ts';
 export type { ConciergeAccount, SupportedChain } from './types.ts';
