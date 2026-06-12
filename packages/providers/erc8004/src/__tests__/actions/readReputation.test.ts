@@ -57,6 +57,18 @@ describe('readReputation — fresh agent (no feedback)', () => {
     expect(result.latestAttestation).toBeNull();
     expect(result.schemaCounts).toStrictEqual({});
   });
+
+  it('returns zero totals when clients exist but readAllFeedback returns empty arrays', async () => {
+    const ctx = makeCtx((params: unknown) => {
+      const p = params as { functionName: string };
+      if (p.functionName === 'getClients') return [CLIENT];
+      return [[], [], [], [], [], [], []];
+    });
+    const result = await executeReadReputation(ctx, { agentId: AGENT_ID });
+    expect(result.totalAttestations).toBe(0);
+    expect(result.latestAttestation).toBeNull();
+    expect(result.schemaCounts).toStrictEqual({});
+  });
 });
 
 describe('readReputation — totalAttestations and schemaCounts', () => {
@@ -83,5 +95,43 @@ describe('readReputation — latestAttestation', () => {
     expect(result.latestAttestation).not.toBeNull();
     expect(result.latestAttestation?.schema).toBe('concierge.lifi.bridge.sent.v1');
     expect(result.latestAttestation?.feedbackIndex).toBe(1n);
+  });
+});
+
+describe('readReputation — revoked entries', () => {
+  it('excludes revoked entries from totalAttestations and schemaCounts', async () => {
+    const feedbackWithRevoked = [
+      [CLIENT, CLIENT, CLIENT],
+      [0n, 1n, 2n],
+      [1n, 1n, 1n],
+      [0, 0, 0],
+      ['concierge.action', 'concierge.action', 'concierge.action'],
+      ['concierge.aave.v3.borrow.v1', 'concierge.aave.v3.supply.v1', 'concierge.aave.v3.borrow.v1'],
+      [true, false, false],
+    ];
+    const ctx = makeReputationCtx(feedbackWithRevoked);
+    const result = await executeReadReputation(ctx, { agentId: AGENT_ID });
+    expect(result.totalAttestations).toBe(2);
+    expect(result.schemaCounts).toStrictEqual({
+      'concierge.aave.v3.supply.v1': 1,
+      'concierge.aave.v3.borrow.v1': 1,
+    });
+  });
+
+  it('returns null latestAttestation when all entries are revoked', async () => {
+    const allRevoked = [
+      [CLIENT],
+      [0n],
+      [1n],
+      [0],
+      ['concierge.action'],
+      ['concierge.aave.v3.borrow.v1'],
+      [true],
+    ];
+    const ctx = makeReputationCtx(allRevoked);
+    const result = await executeReadReputation(ctx, { agentId: AGENT_ID });
+    expect(result.totalAttestations).toBe(0);
+    expect(result.latestAttestation).toBeNull();
+    expect(result.schemaCounts).toStrictEqual({});
   });
 });

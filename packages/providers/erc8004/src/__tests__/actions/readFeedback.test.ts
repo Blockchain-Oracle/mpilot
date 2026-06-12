@@ -128,4 +128,13 @@ describe('readFeedback — edge cases', () => {
     const call = (ctx.publicClient as any).getContractEvents.mock.calls[0][0];
     expect(call.fromBlock).toBe(5000n);
   });
+
+  it('filters events by agentId and targets the reputation registry address', async () => {
+    const ctx = makeCtx([]);
+    await executeReadFeedback(ctx, { agentId: AGENT_ID });
+    // biome-ignore lint/suspicious/noExplicitAny: accessing mock fn
+    const call = (ctx.publicClient as any).getContractEvents.mock.calls[0][0];
+    expect(call.args.agentId).toBe(AGENT_ID);
+    expect(call.address).toBe(REPUTATION_REGISTRY);
+  });
 });

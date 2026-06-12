@@ -28,15 +28,32 @@ export async function executeRegisterAgent(
     );
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: writeContract overloads vary by account/chain binding
-  const txHash: `0x${string}` = await (ctx.walletClient as any).writeContract({
-    address: ctx.identityRegistry,
-    abi: identityRegistryAbi,
-    functionName: 'register',
-    args: input.agentURI !== undefined ? [input.agentURI] : [],
-  });
+  let txHash: `0x${string}`;
+  try {
+    // biome-ignore lint/suspicious/noExplicitAny: writeContract overloads vary by account/chain binding
+    txHash = await (ctx.walletClient as any).writeContract({
+      address: ctx.identityRegistry,
+      abi: identityRegistryAbi,
+      functionName: 'register',
+      args: input.agentURI !== undefined ? [input.agentURI] : [],
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/erc8004] registerAgent: register() failed — ${msg}`,
+      err,
+    );
+  }
 
   const receipt = await ctx.publicClient.waitForTransactionReceipt({ hash: txHash });
+
+  if (receipt.status === 'reverted') {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/erc8004] registerAgent: transaction reverted — ${txHash}`,
+    );
+  }
 
   for (const log of receipt.logs) {
     try {

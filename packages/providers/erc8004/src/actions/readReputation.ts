@@ -1,3 +1,4 @@
+import { ConciergeError } from '@concierge/sdk';
 import { reputationRegistryAbi } from '@concierge/shared/abi';
 import { tool } from '@concierge/tools';
 import { z } from 'zod';
@@ -18,67 +19,105 @@ export const ReadReputationOutput = z.object({
     .number()
     .int()
     .nonnegative()
-    .describe('Total feedback entries across all clients'),
+    .describe('Count of non-revoked feedback entries across all clients'),
   latestAttestation: LatestAttestationSchema.nullable().describe(
-    'Most recent attestation, or null if no attestations exist',
+    'Most recent non-revoked attestation, or null if none exist',
   ),
   schemaCounts: z
     .record(z.string(), z.number().int().positive())
-    .describe('Counts per schema name (tag2)'),
+    .describe('Counts per schema name (tag2), revoked entries excluded'),
 });
+
+type FeedbackSummary = {
+  schemaCounts: Record<string, number>;
+  latestAttestation: z.infer<typeof LatestAttestationSchema> | null;
+  totalAttestations: number;
+};
+
+function summarizeFeedback(
+  feedbackIndexes: readonly bigint[],
+  values: readonly bigint[],
+  tag2s: readonly string[],
+  revokedStatuses: readonly boolean[],
+): FeedbackSummary {
+  const schemaCounts: Record<string, number> = {};
+  let latestAttestation: z.infer<typeof LatestAttestationSchema> | null = null;
+  for (let i = 0; i < feedbackIndexes.length; i++) {
+    if (revokedStatuses[i] ?? false) continue;
+    const feedbackIndex = feedbackIndexes[i];
+    const value = values[i];
+    const schema = tag2s[i];
+    if (feedbackIndex === undefined || value === undefined || schema === undefined) {
+      throw new ConciergeError(
+        'RpcError',
+        `[@concierge/erc8004] readReputation: malformed readAllFeedback response at index ${i}`,
+      );
+    }
+    schemaCounts[schema] = (schemaCounts[schema] ?? 0) + 1;
+    latestAttestation = { schema, feedbackIndex, value };
+  }
+  const totalAttestations = Object.values(schemaCounts).reduce((sum, n) => sum + n, 0);
+  return { schemaCounts, latestAttestation, totalAttestations };
+}
 
 export async function executeReadReputation(
   ctx: ActionContext,
   input: z.infer<typeof ReadReputationInput>,
 ): Promise<z.infer<typeof ReadReputationOutput>> {
-  const clients = await ctx.publicClient.readContract({
-    address: ctx.reputationRegistry,
-    abi: reputationRegistryAbi,
-    functionName: 'getClients',
-    args: [input.agentId],
-  });
+  const clients = await (async () => {
+    try {
+      return await ctx.publicClient.readContract({
+        address: ctx.reputationRegistry,
+        abi: reputationRegistryAbi,
+        functionName: 'getClients',
+        args: [input.agentId],
+      });
+    } catch (err) {
+      throw new ConciergeError(
+        'RpcError',
+        `[@concierge/erc8004] readReputation: getClients failed for agent ${input.agentId}`,
+        err,
+      );
+    }
+  })();
 
   if (clients.length === 0) {
     return { totalAttestations: 0, latestAttestation: null, schemaCounts: {} };
   }
 
-  // readAllFeedback returns (clients[], feedbackIndexes[], values[], valueDecimals[], tag1s[], tag2s[], revokedStatuses[])
-  const feedback = await ctx.publicClient.readContract({
-    address: ctx.reputationRegistry,
-    abi: reputationRegistryAbi,
-    functionName: 'readAllFeedback',
-    args: [input.agentId, clients, '', '', false],
-  });
+  // readAllFeedback returns: (clients[], feedbackIndexes[], values[], valueDecimals[], tag1s[], tag2s[], revokedStatuses[])
+  const feedback = await (async () => {
+    try {
+      return await ctx.publicClient.readContract({
+        address: ctx.reputationRegistry,
+        abi: reputationRegistryAbi,
+        functionName: 'readAllFeedback',
+        args: [input.agentId, clients, '', '', false],
+      });
+    } catch (err) {
+      throw new ConciergeError(
+        'RpcError',
+        `[@concierge/erc8004] readReputation: readAllFeedback failed for agent ${input.agentId}`,
+        err,
+      );
+    }
+  })();
 
   const feedbackIndexes = feedback[1];
   const values = feedback[2];
   const tag2s = feedback[5];
+  const revokedStatuses = feedback[6];
 
-  const totalAttestations = feedbackIndexes.length;
-
-  if (totalAttestations === 0) {
+  if (feedbackIndexes.length === 0) {
     return { totalAttestations: 0, latestAttestation: null, schemaCounts: {} };
   }
 
-  const schemaCounts: Record<string, number> = {};
-  for (const tag2 of tag2s) {
-    schemaCounts[tag2] = (schemaCounts[tag2] ?? 0) + 1;
-  }
-
-  const lastIdx = totalAttestations - 1;
-  const latestFeedbackIndex = feedbackIndexes[lastIdx];
-  const latestValue = values[lastIdx];
-  const latestSchema = tag2s[lastIdx];
-
-  const latestAttestation =
-    latestFeedbackIndex !== undefined && latestValue !== undefined && latestSchema !== undefined
-      ? {
-          schema: latestSchema,
-          feedbackIndex: latestFeedbackIndex,
-          value: latestValue,
-        }
-      : null;
-
+  const { schemaCounts, latestAttestation, totalAttestations } = summarizeFeedback(
+    feedbackIndexes,
+    values,
+    tag2s,
+    revokedStatuses,
+  );
   return { totalAttestations, latestAttestation, schemaCounts };
 }
 

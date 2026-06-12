@@ -62,3 +62,38 @@ describe('hashActionPayload — determinism', () => {
     expect(h1).not.toBe(h2);
   });
 });
+
+describe('hashActionPayload — domain regression guard', () => {
+  // Pinned against the EIP-712 domain (name='Concierge', version='1') and ActionAttestation
+  // type struct. If this test fails, the domain or type definition changed and all on-chain
+  // feedbackHash values computed before the change are now unverifiable.
+  it('produces a stable known hash for a fixed payload (domain pin)', () => {
+    const PINNED = '0x4eee52942f4eb04c18df81dfa6fca65e04ac32d4f6150dbfe40f5aab39823a57';
+    expect(
+      hashActionPayload({ schema: 'concierge.aave.v3.borrow.v1', amount: '1000000' }, 42n, 5000),
+    ).toBe(PINNED);
+  });
+});
+
+describe('hashActionPayload — payload serialization', () => {
+  it('array-valued fields are hashed deterministically (recursion guard)', () => {
+    const p1 = { schema: 'concierge.aave.v3.borrow.v1', tokens: ['USDC', 'ETH'] };
+    const h1 = hashActionPayload(p1, AGENT_ID, CHAIN_ID);
+    const h2 = hashActionPayload(p1, AGENT_ID, CHAIN_ID);
+    expect(h1).toBe(h2);
+    // Array order IS significant — different order must produce a different hash
+    const p2 = { schema: 'concierge.aave.v3.borrow.v1', tokens: ['ETH', 'USDC'] };
+    expect(hashActionPayload(p2, AGENT_ID, CHAIN_ID)).not.toBe(h1);
+  });
+
+  it('BigInt-valued fields are serialized without throwing', () => {
+    const p = { schema: 'concierge.aave.v3.borrow.v1', amount: 1_000_000n };
+    expect(() =>
+      hashActionPayload(
+        p as unknown as Record<string, unknown> & { schema: string },
+        AGENT_ID,
+        CHAIN_ID,
+      ),
+    ).not.toThrow();
+  });
+});

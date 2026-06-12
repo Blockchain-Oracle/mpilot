@@ -107,4 +107,41 @@ describe('registerAgent — error paths', () => {
       (e: unknown) => e instanceof ConciergeError && e.type === 'RpcError',
     );
   });
+
+  it('throws RpcError when transaction is reverted', async () => {
+    const ctx = makeCtx(undefined, {
+      waitForTransactionReceipt: vi.fn().mockResolvedValue({ status: 'reverted', logs: [] }),
+    });
+    await expect(executeRegisterAgent(ctx, {})).rejects.toSatisfy(
+      (e: unknown) => e instanceof ConciergeError && e.type === 'RpcError',
+    );
+  });
+
+  it('throws RpcError when writeContract rejects', async () => {
+    const ctx = makeCtx({
+      writeContract: vi.fn().mockRejectedValue(new Error('execution reverted')),
+    });
+    await expect(executeRegisterAgent(ctx, {})).rejects.toSatisfy(
+      (e: unknown) => e instanceof ConciergeError && e.type === 'RpcError',
+    );
+  });
+
+  it('skips non-mint Transfer events and extracts agentId only from the mint', async () => {
+    const OTHER = '0x3333333333333333333333333333333333333333' as const;
+    const nonMintTopics = encodeEventTopics({
+      abi: identityRegistryAbi,
+      eventName: 'Transfer',
+      args: { from: OWNER, to: OTHER, tokenId: 999n },
+    });
+    const nonMintLog = { ...makeTransferLog(), topics: nonMintTopics, logIndex: 0 };
+    const mintLog = { ...makeTransferLog(), logIndex: 1 };
+    const ctx = makeCtx(undefined, {
+      waitForTransactionReceipt: vi.fn().mockResolvedValue({
+        status: 'success',
+        logs: [nonMintLog, mintLog],
+      }),
+    });
+    const result = await executeRegisterAgent(ctx, {});
+    expect(result.agentId).toBe(AGENT_ID);
+  });
 });

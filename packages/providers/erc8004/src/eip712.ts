@@ -17,14 +17,14 @@ const ACTION_ATTESTATION_TYPES = {
   ],
 } as const;
 
-/**
- * Recursively sort object keys alphabetically for deterministic JSON serialization.
- * Plain JSON.stringify does not sort keys, making the hash order-dependent.
- */
+// Recursively serialize with sorted object keys for deterministic hashing.
+// BigInt → quoted decimal string (JSON.stringify throws on BigInt).
+// Arrays recurse element-by-element so nested key order is also normalized.
 function sortedJsonStringify(value: unknown): string {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    return JSON.stringify(value);
-  }
+  if (value === null) return 'null';
+  if (typeof value === 'bigint') return `"${value.toString()}"`;
+  if (typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(sortedJsonStringify).join(',')}]`;
   const sorted = Object.keys(value as Record<string, unknown>)
     .sort()
     .map((k) => {

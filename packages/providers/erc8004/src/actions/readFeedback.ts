@@ -1,3 +1,4 @@
+import { ConciergeError } from '@concierge/sdk';
 import { reputationRegistryAbi } from '@concierge/shared/abi';
 import { tool } from '@concierge/tools';
 import { z } from 'zod';
@@ -31,13 +32,21 @@ export async function executeReadFeedback(
   ctx: ActionContext,
   input: z.infer<typeof ReadFeedbackInput>,
 ): Promise<z.infer<typeof ReadFeedbackOutput>> {
-  const logs = await ctx.publicClient.getContractEvents({
-    address: ctx.reputationRegistry,
-    abi: reputationRegistryAbi,
-    eventName: 'NewFeedback',
-    args: { agentId: input.agentId },
-    fromBlock: input.fromBlock ?? 0n,
-  });
+  const logs = await ctx.publicClient
+    .getContractEvents({
+      address: ctx.reputationRegistry,
+      abi: reputationRegistryAbi,
+      eventName: 'NewFeedback',
+      args: { agentId: input.agentId },
+      fromBlock: input.fromBlock ?? 0n,
+    })
+    .catch((err: unknown) => {
+      throw new ConciergeError(
+        'RpcError',
+        `[@concierge/erc8004] readFeedback: getContractEvents failed for agent ${input.agentId}`,
+        err,
+      );
+    });
 
   const entries = logs.flatMap((log) => {
     const { args, blockNumber, transactionHash } = log;

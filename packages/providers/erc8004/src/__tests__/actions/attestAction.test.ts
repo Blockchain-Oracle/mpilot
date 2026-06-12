@@ -93,6 +93,21 @@ describe('attestAction — happy path', () => {
     expect(result.feedbackHash).toMatch(/^0x[0-9a-fA-F]{64}$/);
   });
 
+  it('returns correct feedbackIndex for non-zero index values', async () => {
+    const ctx = makeCtx(undefined, {
+      waitForTransactionReceipt: vi.fn().mockResolvedValue({
+        status: 'success',
+        logs: [makeNewFeedbackLog(99n)],
+      }),
+    });
+    const result = await executeAttestAction(ctx, {
+      agentId: AGENT_ID,
+      providerSchema: SCHEMA,
+      actionPayload: ACTION_PAYLOAD,
+    });
+    expect(result.feedbackIndex).toBe(99n);
+  });
+
   it('feedbackHash matches hashActionPayload(payload, agentId, chainId)', async () => {
     const ctx = makeCtx();
     const result = await executeAttestAction(ctx, {
@@ -120,7 +135,7 @@ describe('attestAction — happy path', () => {
   });
 });
 
-describe('attestAction — error paths', () => {
+describe('attestAction — input validation errors', () => {
   it('throws ConfigError when walletClient is absent', async () => {
     const ctx: ActionContext = {
       walletClient: undefined,
@@ -139,6 +154,19 @@ describe('attestAction — error paths', () => {
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
   });
 
+  it('throws ConfigError when actionPayload.schema does not match providerSchema', async () => {
+    const ctx = makeCtx();
+    await expect(
+      executeAttestAction(ctx, {
+        agentId: AGENT_ID,
+        providerSchema: SCHEMA,
+        actionPayload: { ...ACTION_PAYLOAD, schema: 'concierge.aave.v3.supply.v1' },
+      }),
+    ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
+  });
+});
+
+describe('attestAction — transaction errors', () => {
   it('throws AttestationFailed when writeContract rejects', async () => {
     const ctx = makeCtx({
       writeContract: vi.fn().mockRejectedValue(new Error('AgentNotFound(99999)')),
@@ -165,5 +193,20 @@ describe('attestAction — error paths', () => {
         actionPayload: ACTION_PAYLOAD,
       }),
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'RpcError');
+  });
+
+  it('throws AttestationFailed when transaction is reverted', async () => {
+    const ctx = makeCtx(undefined, {
+      waitForTransactionReceipt: vi.fn().mockResolvedValue({ status: 'reverted', logs: [] }),
+    });
+    await expect(
+      executeAttestAction(ctx, {
+        agentId: AGENT_ID,
+        providerSchema: SCHEMA,
+        actionPayload: ACTION_PAYLOAD,
+      }),
+    ).rejects.toSatisfy(
+      (e: unknown) => e instanceof ConciergeError && e.type === 'AttestationFailed',
+    );
   });
 });
