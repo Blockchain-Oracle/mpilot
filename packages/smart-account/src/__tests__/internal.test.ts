@@ -1,8 +1,8 @@
 import { ConciergeError } from '@concierge/sdk';
 import { describe, expect, it } from 'vitest';
-import { resolveChainConfig, rpcCatch, sanitizeCause } from '../internal.ts';
+import { resolveChainConfig, rpcCatch, rpcCatchNoRedact, sanitizeCause } from '../internal.ts';
 
-describe('rpcCatch', () => {
+describe('rpcCatchNoRedact', () => {
   function invoke(cb: (err: unknown) => never, err: unknown): unknown {
     try {
       cb(err);
@@ -13,14 +13,14 @@ describe('rpcCatch', () => {
 
   it('wraps an Error as ConciergeError(RpcError) with identity-equal cause', () => {
     const original = new Error('network timeout');
-    const thrown = invoke(rpcCatch('test-op', 'mantle-sepolia'), original);
+    const thrown = invoke(rpcCatchNoRedact('test-op', 'mantle-sepolia'), original);
     expect(thrown).toSatisfy(
       (e: unknown) => e instanceof ConciergeError && e.type === 'RpcError' && e.cause === original,
     );
   });
 
   it('includes op and chain in the error message', () => {
-    const thrown = invoke(rpcCatch('myOp', 'mantle-mainnet'), new Error('x'));
+    const thrown = invoke(rpcCatchNoRedact('myOp', 'mantle-mainnet'), new Error('x'));
     expect(thrown).toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -30,7 +30,7 @@ describe('rpcCatch', () => {
   });
 
   it('wraps a plain string value as cause', () => {
-    const thrown = invoke(rpcCatch('test-op', 'mantle-sepolia'), 'plain string error');
+    const thrown = invoke(rpcCatchNoRedact('test-op', 'mantle-sepolia'), 'plain string error');
     expect(thrown).toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError && e.type === 'RpcError' && e.cause === 'plain string error',
@@ -38,12 +38,14 @@ describe('rpcCatch', () => {
   });
 
   it('wraps null as cause without crashing', () => {
-    const thrown = invoke(rpcCatch('test-op', 'mantle-sepolia'), null);
+    const thrown = invoke(rpcCatchNoRedact('test-op', 'mantle-sepolia'), null);
     expect(thrown).toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'RpcError');
   });
 
   it('always throws — never returns', () => {
-    expect(() => rpcCatch('test-op', 'mantle-sepolia')(new Error('x'))).toThrow(ConciergeError);
+    expect(() => rpcCatchNoRedact('test-op', 'mantle-sepolia')(new Error('x'))).toThrow(
+      ConciergeError,
+    );
   });
 });
 
@@ -164,5 +166,112 @@ describe('sanitizeCause — clone fidelity', () => {
     const result = sanitizeCause(err, SANITIZE_KEY) as Error;
     const descriptor = Object.getOwnPropertyDescriptor(result, 'stack');
     expect(descriptor?.enumerable).toBe(false);
+  });
+});
+
+describe('sanitizeCause — cause-chain recursion', () => {
+  it('redacts apiKey from nested err.cause.message', () => {
+    const inner = new TypeError(`inner with apikey=${SANITIZE_KEY}`);
+    const outer = new Error('outer clean message', { cause: inner });
+    const result = sanitizeCause(outer, SANITIZE_KEY) as Error & { cause: Error };
+    expect(result.cause).toBeInstanceOf(TypeError);
+    expect(result.cause.message).toBe('inner with apikey=[REDACTED]');
+    expect(result.cause).not.toBe(inner);
+  });
+
+  it('redacts apiKey two levels deep (cause.cause.message)', () => {
+    const root = new Error(`root with ${SANITIZE_KEY}`);
+    const mid = new Error('mid clean', { cause: root });
+    const top = new Error('top clean', { cause: mid });
+    const result = sanitizeCause(top, SANITIZE_KEY) as Error & { cause: Error & { cause: Error } };
+    expect(result.cause.cause.message).toBe('root with [REDACTED]');
+  });
+
+  it('survives cyclic cause chain without stack overflow', () => {
+    const a = new Error(`a with ${SANITIZE_KEY}`);
+    const b = new Error('b clean');
+    // biome-ignore lint/suspicious/noExplicitAny: building a cycle for cycle-safety test
+    (a as any).cause = b;
+    // biome-ignore lint/suspicious/noExplicitAny: building a cycle for cycle-safety test
+    (b as any).cause = a;
+    const result = sanitizeCause(a, SANITIZE_KEY) as Error;
+    expect(result.message).toBe('a with [REDACTED]');
+  });
+
+  it('redacts apiKey from AggregateError.errors[N].message', () => {
+    const child = new Error(`child with ${SANITIZE_KEY}`);
+    const agg = new AggregateError([child], 'agg clean');
+    const result = sanitizeCause(agg, SANITIZE_KEY) as AggregateError;
+    expect(result.errors[0]).not.toBe(child);
+    expect((result.errors[0] as Error).message).toBe('child with [REDACTED]');
+  });
+});
+
+describe('sanitizeCause — viem-shape error fields', () => {
+  it('redacts apiKey from custom string property (e.g. viem shortMessage)', () => {
+    const err = new Error('clean message');
+    // biome-ignore lint/suspicious/noExplicitAny: simulating viem BaseError shape
+    (err as any).shortMessage = `https://api.host/rpc?apikey=${SANITIZE_KEY}`;
+    const result = sanitizeCause(err, SANITIZE_KEY) as Error & { shortMessage: string };
+    expect(result.shortMessage).toBe('https://api.host/rpc?apikey=[REDACTED]');
+  });
+
+  it('redacts apiKey from string[] property (e.g. viem metaMessages)', () => {
+    const err = new Error('clean message');
+    // biome-ignore lint/suspicious/noExplicitAny: simulating viem BaseError shape
+    (err as any).metaMessages = [
+      'URL:',
+      `https://api.host/rpc?apikey=${SANITIZE_KEY}`,
+      'method: eth_call',
+    ];
+    const result = sanitizeCause(err, SANITIZE_KEY) as Error & { metaMessages: string[] };
+    expect(result.metaMessages).toEqual([
+      'URL:',
+      'https://api.host/rpc?apikey=[REDACTED]',
+      'method: eth_call',
+    ]);
+  });
+});
+
+describe('sanitizeCause — URL-encoded form', () => {
+  it('redacts the encodeURIComponent form when key has special chars', () => {
+    const KEY = 'key+with/special=chars';
+    const encoded = encodeURIComponent(KEY);
+    const err = new Error(`fetch failed: https://host/rpc?apikey=${encoded}`);
+    const result = sanitizeCause(err, KEY) as Error;
+    expect(result.message).not.toContain(encoded);
+    expect(result.message).toContain('[REDACTED]');
+  });
+});
+
+describe('rpcCatch — apiKey redaction', () => {
+  function invoke(cb: (err: unknown) => never, err: unknown): unknown {
+    try {
+      cb(err);
+    } catch (e) {
+      return e;
+    }
+  }
+
+  it('redacts apiKey from cause.message when apiKey is provided', () => {
+    const original = new TypeError(`fetch failed apikey=${SANITIZE_KEY}`);
+    const thrown = invoke(rpcCatch('myOp', 'mantle-sepolia', SANITIZE_KEY), original);
+    expect(thrown).toSatisfy(
+      (e: unknown) =>
+        e instanceof ConciergeError &&
+        // biome-ignore lint/suspicious/noExplicitAny: checking cause for redaction
+        !String((e as any).cause?.message ?? '').includes(SANITIZE_KEY) &&
+        // biome-ignore lint/suspicious/noExplicitAny: cause should be cloned, not the original
+        (e as any).cause !== original,
+    );
+  });
+
+  it('passes cause through identity-equal when apiKey is empty string', () => {
+    const original = new Error(`msg with ${SANITIZE_KEY}`);
+    const thrown = invoke(rpcCatch('op', 'mantle-sepolia', ''), original);
+    expect(thrown).toSatisfy(
+      // biome-ignore lint/suspicious/noExplicitAny: asserting identity-equal passthrough
+      (e: unknown) => e instanceof ConciergeError && (e as any).cause === original,
+    );
   });
 });

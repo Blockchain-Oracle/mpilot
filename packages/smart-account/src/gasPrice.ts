@@ -31,6 +31,7 @@ type PimlicoRpcResponse =
 function parseTier(
   data: PimlicoRpcResponse,
   chain: SupportedChain,
+  apiKey: string,
 ): { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint } {
   if (data.error) {
     throw new ConciergeError(
@@ -66,7 +67,7 @@ function parseTier(
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] getUserOpGasPrice: BigInt conversion failed — maxFeePerGas="${rawMax.slice(0, 80)}" maxPriorityFeePerGas="${rawPriority.slice(0, 80)}" (chain: '${chain}')`,
-      _err,
+      sanitizeCause(_err, apiKey),
     );
   }
   if (maxFeePerGas <= 0n || maxPriorityFeePerGas <= 0n) {
@@ -95,7 +96,11 @@ async function readErrorBody(res: Response): Promise<{ text: string; cause: unkn
   }
 }
 
-async function readAndParseBody(res: Response, chain: SupportedChain): Promise<PimlicoRpcResponse> {
+async function readAndParseBody(
+  res: Response,
+  chain: SupportedChain,
+  apiKey: string,
+): Promise<PimlicoRpcResponse> {
   let rawBody: string;
   try {
     rawBody = await res.text();
@@ -103,29 +108,30 @@ async function readAndParseBody(res: Response, chain: SupportedChain): Promise<P
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] getUserOpGasPrice: failed to read response body from Pimlico (chain: '${chain}')`,
-      _err,
+      sanitizeCause(_err, apiKey),
     );
   }
+  const safeRawBody = rawBody.replaceAll(apiKey, '[REDACTED]');
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawBody);
   } catch (_err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${chain}') — body: ${rawBody.slice(0, 200)}`,
-      _err,
+      `[@concierge/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
+      sanitizeCause(_err, apiKey),
     );
   }
   if (typeof parsed !== 'object' || parsed === null) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${rawBody.slice(0, 200)}`,
+      `[@concierge/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
     );
   }
   if (!('result' in parsed) && !('error' in parsed)) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${rawBody.slice(0, 200)}`,
+      `[@concierge/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
     );
   }
   return parsed as unknown as PimlicoRpcResponse;
@@ -180,7 +186,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
       sanitizeCause(cause, apiKey),
     );
   }
-  const data = await readAndParseBody(res, config.chain);
-  const { maxFeePerGas, maxPriorityFeePerGas } = parseTier(data, config.chain);
+  const data = await readAndParseBody(res, config.chain, apiKey);
+  const { maxFeePerGas, maxPriorityFeePerGas } = parseTier(data, config.chain, apiKey);
   return { maxFeePerGas, maxPriorityFeePerGas, fetchedAt: Date.now() };
 }
