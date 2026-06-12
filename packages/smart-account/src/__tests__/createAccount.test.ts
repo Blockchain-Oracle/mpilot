@@ -78,11 +78,11 @@ describe('createConciergeAccount — return shape', () => {
     vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
   });
 
-  it('returns smartAccountAddress, kernelAccount, and clientPromise', async () => {
+  it('returns smartAccountAddress, kernelAccount, and kernelClient', async () => {
     const result = await createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' });
     expect(result).toHaveProperty('smartAccountAddress');
     expect(result).toHaveProperty('kernelAccount');
-    expect(result).toHaveProperty('clientPromise');
+    expect(result).toHaveProperty('kernelClient');
   });
 
   it('smartAccountAddress is a valid 0x hex address', async () => {
@@ -90,15 +90,15 @@ describe('createConciergeAccount — return shape', () => {
     expect(result.smartAccountAddress).toMatch(/^0x[0-9a-fA-F]{40}$/);
   });
 
-  it('clientPromise is a Promise', async () => {
+  it('kernelClient is an object (synchronous result from createKernelAccountClient)', async () => {
     const result = await createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' });
-    expect(result.clientPromise).toBeInstanceOf(Promise);
+    expect(typeof result.kernelClient).toBe('object');
+    expect(result.kernelClient).not.toBeNull();
   });
 
-  it('clientPromise resolves to the kernel client', async () => {
+  it('kernelClient equals the mock kernel client', async () => {
     const result = await createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' });
-    const client = await result.clientPromise;
-    expect(client).toMatchObject({ type: 'kernelClient' });
+    expect(result.kernelClient).toMatchObject({ type: 'kernelClient' });
   });
 });
 
@@ -256,15 +256,14 @@ describe('createConciergeAccount — rpcWrap error classification', () => {
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'RpcError');
   });
 
-  it('maps synchronous createKernelAccountClient throw to RpcError via clientPromise', async () => {
+  it('maps synchronous createKernelAccountClient throw to RpcError', async () => {
     const { createKernelAccountClient } = await import('@zerodev/sdk');
     vi.mocked(createKernelAccountClient).mockImplementationOnce(() => {
       throw new TypeError('sync client init failure');
     });
-    const result = await createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' });
-    await expect(result.clientPromise).rejects.toSatisfy(
-      (e: unknown) => e instanceof ConciergeError && e.type === 'RpcError',
-    );
+    await expect(
+      createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' }),
+    ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'RpcError');
   });
 });
 
@@ -282,7 +281,10 @@ describe('createConciergeAccount — paymaster wiring', () => {
     await createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' });
     expect(createKernelAccountClient).toHaveBeenCalledWith(
       expect.objectContaining({
-        paymaster: expect.objectContaining({ getPaymasterData: expect.any(Function) }),
+        paymaster: expect.objectContaining({
+          getPaymasterData: expect.any(Function),
+          getPaymasterStubData: expect.any(Function),
+        }),
       }),
     );
   });
@@ -314,7 +316,10 @@ describe('createConciergeAccount — paymaster wiring', () => {
     });
     expect(createKernelAccountClient).toHaveBeenCalledWith(
       expect.objectContaining({
-        paymaster: expect.objectContaining({ getPaymasterData: expect.any(Function) }),
+        paymaster: expect.objectContaining({
+          getPaymasterData: expect.any(Function),
+          getPaymasterStubData: expect.any(Function),
+        }),
       }),
     );
   });

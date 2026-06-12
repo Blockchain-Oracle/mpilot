@@ -4,9 +4,9 @@ import { createKernelAccount, createKernelAccountClient } from '@zerodev/sdk';
 import { getEntryPoint, KERNEL_V3_1 } from '@zerodev/sdk/constants';
 import type { LocalAccount } from 'viem';
 import { createPublicClient, http } from 'viem';
-import { createPaymasterClient as viemCreatePaymasterClient } from 'viem/account-abstraction';
 import { CHAIN_CONFIGS } from './constants.ts';
-import type { ConciergeAccount, SupportedChain } from './types.ts';
+import { createPaymasterClient } from './paymaster.ts';
+import type { ConciergeAccount, KernelClientStub, SupportedChain } from './types.ts';
 
 export interface CreateConciergeAccountConfig {
   owner: LocalAccount;
@@ -14,8 +14,12 @@ export interface CreateConciergeAccountConfig {
   /**
    * Paymaster strategy. Defaults to 'pimlico' (sponsored) on mantle-sepolia
    * and 'none' (user pays MNT) on mantle-mainnet.
+   * Note: PIMLICO_API_KEY (or apiKey) is required regardless — the Pimlico
+   * bundler authenticates all requests, not just sponsored ones.
    */
   paymaster?: 'pimlico' | 'none';
+  /** Pimlico API key. Defaults to `process.env.PIMLICO_API_KEY`. */
+  apiKey?: string;
 }
 
 const rpcWrap = (err: unknown) => {
@@ -29,15 +33,15 @@ export async function createConciergeAccount(
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createConciergeAccount: UnsupportedChain('${config.chain}')`,
+      `[@concierge/smart-account] createConciergeAccount: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   // biome-ignore lint/complexity/useLiteralKeys: noPropertyAccessFromIndexSignature requires bracket notation
-  const apiKey = process.env['PIMLICO_API_KEY'];
+  const apiKey = config.apiKey ?? process.env['PIMLICO_API_KEY'];
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      "[@concierge/smart-account] createConciergeAccount: MissingEnvVar('PIMLICO_API_KEY') — set this env var before creating a smart account. Without it, UserOp submissions fail with a cryptic 401.",
+      "[@concierge/smart-account] createConciergeAccount: MissingEnvVar('PIMLICO_API_KEY') — set this env var or pass apiKey in config before creating a smart account.",
     );
   }
   const publicClient = createPublicClient({
@@ -60,26 +64,29 @@ export async function createConciergeAccount(
   const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}`;
   const paymasterStrategy =
     config.paymaster ?? (config.chain === 'mantle-sepolia' ? 'pimlico' : 'none');
-  const paymasterClient =
+  const paymasterClient = createPaymasterClient(
     paymasterStrategy === 'pimlico'
-      ? viemCreatePaymasterClient({ transport: http(bundlerUrl) })
-      : null;
-  const clientPromise = new Promise<object>((resolve) =>
-    resolve(
-      createKernelAccountClient({
-        account: kernelAccount,
-        chain: chainConfig.chain,
-        bundlerTransport: http(bundlerUrl),
-        // biome-ignore lint/suspicious/noExplicitAny: publicClient type variance between viem peer dep versions
-        client: publicClient as any,
-        ...(paymasterClient && {
-          paymaster: {
-            getPaymasterData: paymasterClient.getPaymasterData,
-            getPaymasterStubData: paymasterClient.getPaymasterStubData,
-          },
-        }),
+      ? { chain: config.chain, sponsorshipPolicy: 'always', apiKey }
+      : { chain: config.chain, sponsorshipPolicy: 'never' },
+  );
+  let kernelClient: KernelClientStub & object;
+  try {
+    kernelClient = createKernelAccountClient({
+      account: kernelAccount,
+      chain: chainConfig.chain,
+      bundlerTransport: http(bundlerUrl),
+      // biome-ignore lint/suspicious/noExplicitAny: publicClient type variance between viem peer dep versions
+      client: publicClient as any,
+      ...(paymasterClient && {
+        paymaster: {
+          getPaymasterData: paymasterClient.getPaymasterData,
+          getPaymasterStubData: paymasterClient.getPaymasterStubData,
+        },
       }),
-    ),
-  ).catch(rpcWrap);
-  return { smartAccountAddress, kernelAccount, clientPromise };
+      // biome-ignore lint/suspicious/noExplicitAny: KernelAccountClient satisfies KernelClientStub at runtime; cast avoids viem peer-dep version skew
+    }) as any;
+  } catch (err) {
+    throw ConciergeError.fromUnknown(err, 'RpcError');
+  }
+  return { smartAccountAddress, kernelAccount, kernelClient };
 }

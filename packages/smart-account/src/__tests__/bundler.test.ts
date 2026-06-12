@@ -126,3 +126,33 @@ describe('createBundlerClient — input guards', () => {
     }
   });
 });
+
+describe('createBundlerClient — error classification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('PIMLICO_API_KEY', TEST_PIMLICO_KEY);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('maps viemCreateBundlerClient sync throw to RpcError', async () => {
+    const { createBundlerClient: viemMock } = await import('viem/account-abstraction');
+    vi.mocked(viemMock).mockImplementationOnce(() => {
+      throw new TypeError('transport init failed');
+    });
+    expect(() => createBundlerClient({ chain: 'mantle-mainnet' })).toThrowError(
+      expect.objectContaining({ type: 'RpcError' }) as unknown as Error,
+    );
+  });
+
+  it('maps viemCreatePaymasterClient sync throw to RpcError on mantle-sepolia', async () => {
+    const { createPaymasterClient: viemMock } = await import('viem/account-abstraction');
+    vi.mocked(viemMock).mockImplementationOnce(() => {
+      throw new TypeError('paymaster transport init failed');
+    });
+    expect(() => createBundlerClient({ chain: 'mantle-sepolia' })).toThrowError(
+      expect.objectContaining({ type: 'RpcError' }) as unknown as Error,
+    );
+  });
+});

@@ -59,6 +59,13 @@ function parseTier(
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] getUserOpGasPrice: BigInt conversion failed — maxFeePerGas="${rawMax}" maxPriorityFeePerGas="${rawPriority}"`,
+      _err,
+    );
+  }
+  if (maxFeePerGas <= 0n || maxPriorityFeePerGas <= 0n) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] getUserOpGasPrice: zero or negative gas price — maxFeePerGas=${maxFeePerGas} maxPriorityFeePerGas=${maxPriorityFeePerGas}`,
     );
   }
   if (maxPriorityFeePerGas > maxFeePerGas) {
@@ -68,6 +75,17 @@ function parseTier(
     );
   }
   return { maxFeePerGas, maxPriorityFeePerGas };
+}
+
+async function readErrorBody(res: Response): Promise<{ text: string; cause: unknown }> {
+  try {
+    return { text: await res.text(), cause: undefined };
+  } catch (err) {
+    return {
+      text: `[body unreadable: ${err instanceof Error ? err.message : String(err)}]`,
+      cause: err,
+    };
+  }
 }
 
 /**
@@ -87,7 +105,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] getUserOpGasPrice: UnsupportedChain('${config.chain}')`,
+      `[@concierge/smart-account] getUserOpGasPrice: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   const url = `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}`;
@@ -103,19 +121,19 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
         params: [],
       }),
     });
-  } catch (err) {
-    throw ConciergeError.fromUnknown(err, 'RpcError');
+  } catch (_err) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge/smart-account] getUserOpGasPrice: network error reaching Pimlico (chain: '${config.chain}')`,
+      _err,
+    );
   }
   if (!res.ok) {
-    let body = '';
-    try {
-      body = await res.text();
-    } catch {
-      /* body unreadable */
-    }
+    const { text: body, cause: bodyReadErr } = await readErrorBody(res);
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] getUserOpGasPrice: BundlerError({ status: ${res.status}, chain: '${config.chain}' })${body ? ` — ${body.slice(0, 200)}` : ''}`,
+      bodyReadErr,
     );
   }
   let data: PimlicoRpcResponse;
@@ -125,6 +143,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
     throw new ConciergeError(
       'RpcError',
       `[@concierge/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${config.chain}') — body may not be JSON`,
+      _err,
     );
   }
   const { maxFeePerGas, maxPriorityFeePerGas } = parseTier(data, config.chain);

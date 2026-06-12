@@ -19,6 +19,13 @@ export type CreatePaymasterClientConfig =
       readonly apiKey?: string;
     };
 
+export function createPaymasterClient(
+  config: Extract<CreatePaymasterClientConfig, { sponsorshipPolicy: 'never' }>,
+): null;
+export function createPaymasterClient(
+  config: Extract<CreatePaymasterClientConfig, { sponsorshipPolicy: 'always' }>,
+): PaymasterClient;
+export function createPaymasterClient(config: CreatePaymasterClientConfig): PaymasterClient | null;
 /**
  * Returns a Pimlico verifying paymaster client, or null when sponsorship is 'never'.
  * Wire the returned client into createKernelAccountClient via the `paymaster` field.
@@ -37,7 +44,7 @@ export function createPaymasterClient(config: CreatePaymasterClientConfig): Paym
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createPaymasterClient: UnsupportedChain('${config.chain}')`,
+      `[@concierge/smart-account] createPaymasterClient: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   const paymasterUrl = `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}`;

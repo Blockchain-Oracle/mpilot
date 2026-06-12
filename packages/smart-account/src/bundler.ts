@@ -48,7 +48,7 @@ export function createBundlerClient(config: CreateBundlerClientConfig): BundlerB
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createBundlerClient: UnsupportedChain('${config.chain}')`,
+      `[@concierge/smart-account] createBundlerClient: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${apiKey}`;
@@ -64,11 +64,19 @@ export function createBundlerClient(config: CreateBundlerClientConfig): BundlerB
   if (config.chain === 'mantle-mainnet') {
     return { chain: 'mantle-mainnet', bundlerClient, paymasterClient: null };
   }
-  let paymasterClient: PaymasterClient;
-  try {
-    paymasterClient = viemCreatePaymasterClient({ transport: http(bundlerUrl) });
-  } catch (err) {
-    throw ConciergeError.fromUnknown(err, 'RpcError');
+  if (config.chain === 'mantle-sepolia') {
+    let paymasterClient: PaymasterClient;
+    try {
+      paymasterClient = viemCreatePaymasterClient({ transport: http(bundlerUrl) });
+    } catch (err) {
+      throw ConciergeError.fromUnknown(err, 'RpcError');
+    }
+    return { chain: 'mantle-sepolia', bundlerClient, paymasterClient };
   }
-  return { chain: 'mantle-sepolia', bundlerClient, paymasterClient };
+  const _exhaust: never = config.chain;
+  void _exhaust;
+  throw new ConciergeError(
+    'ConfigError',
+    `[@concierge/smart-account] createBundlerClient: unhandled chain '${String(config.chain)}'`,
+  );
 }
