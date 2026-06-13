@@ -1,14 +1,26 @@
 import { ConciergeError } from '@concierge/sdk';
-import { sanitizeError } from '../sanitize.ts';
+import { sanitizeError, sanitizeMessage } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome } from '../types.ts';
+import { isHash32 } from './hash.ts';
 import {
   type AttestationPayload,
   attestationPayloadSchema,
   type RecordOutcome,
 } from './recordSchema.ts';
 
-const HASH_32_RE = /^0x[a-fA-F0-9]{64}$/;
-const MAX_PROVIDER_SCHEMA_LEN = 128;
+/**
+ * Marker class for post-attestation infra failures so the outer catch can
+ * distinguish "attachAttestation failed" (uid already on-chain — propagate
+ * for reconcile) from "attester.attestAction threw" (queue retry).
+ */
+class PostAttestInfraError extends Error {
+  readonly inner: ConciergeError;
+  constructor(inner: ConciergeError) {
+    super(inner.message);
+    this.name = 'PostAttestInfraError';
+    this.inner = inner;
+  }
+}
 
 /** Trusted output from the originating provider — already validated below. */
 export interface ConfirmedExecution {
@@ -95,27 +107,17 @@ export interface RunRecordDeps {
 
 const NEVER_ABORT = new AbortController().signal;
 
-function isHash32(s: string): boolean {
-  return HASH_32_RE.test(s);
-}
-
 /**
- * Validate provider-built payload at the runtime boundary. The provider is
- * internal-trust, but a malformed payload propagating into the ERC-8004 call
- * is harder to debug at the on-chain layer than at this seam.
+ * Validate provider-built payload at the runtime boundary. Schema length cap
+ * lives in the Zod schema itself (.max(128)); we just run safeParse and
+ * sanitize the error.message before interpolation (CWE-117).
  */
 function validatePayload(p: AttestationPayload): AttestationPayload {
   const parsed = attestationPayloadSchema.safeParse(p);
   if (!parsed.success) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runRecord: provider attestation payload malformed: ${parsed.error.message}`,
-    );
-  }
-  if (parsed.data.providerSchema.length > MAX_PROVIDER_SCHEMA_LEN) {
-    throw new ConciergeError(
-      'InvariantViolation',
-      `[@concierge/runtime] runRecord: providerSchema length > ${MAX_PROVIDER_SCHEMA_LEN}.`,
+      `[@concierge/runtime] runRecord: provider attestation payload malformed: ${sanitizeMessage(parsed.error.message)}`,
     );
   }
   return parsed.data;
@@ -190,9 +192,21 @@ export async function runRecord(
       signal,
     });
     if (!isHash32(attestationUid) || !isHash32(attestationTxHash)) {
+      // Surface the raw response BEFORE throwing so ops can manually
+      // reconcile the on-chain attestation that almost certainly already
+      // landed (the bundler returned something — just wrong-shaped).
+      (deps.logRecord ?? (() => {}))({
+        tickId: inputs.tickId,
+        agentId: inputs.state.agentId,
+        phase: 'record',
+        durationMs: deps.now().getTime() - started.getTime(),
+        attestationUid: sanitizeMessage(String(attestationUid)).slice(0, 256),
+        txHash: inputs.exec.txHash,
+        outcome: 'attested',
+      });
       throw new ConciergeError(
         'InvariantViolation',
-        `[@concierge/runtime] runRecord: ERC-8004 returned malformed uid/txHash.`,
+        `[@concierge/runtime] runRecord: ERC-8004 returned malformed uid/txHash; raw uid=${sanitizeMessage(String(attestationUid)).slice(0, 256)} raw txHash=${sanitizeMessage(String(attestationTxHash)).slice(0, 256)}.`,
       );
     }
     try {
@@ -204,16 +218,18 @@ export async function runRecord(
       });
     } catch (err) {
       const safe = sanitizeError(err);
-      throw new ConciergeError(
-        'RpcError',
-        `[@concierge/runtime] runRecord: attachAttestation failed (uid=${attestationUid.toLowerCase()}): ${safe.message}`,
-        safe,
-        {
-          executionId: inputs.exec.executionId,
-          agentId: inputs.state.agentId,
-          attestationUid: attestationUid.toLowerCase(),
-          attestationTxHash: attestationTxHash.toLowerCase(),
-        },
+      throw new PostAttestInfraError(
+        new ConciergeError(
+          'RpcError',
+          `[@concierge/runtime] runRecord: attachAttestation failed (uid=${attestationUid.toLowerCase()}): ${safe.message}`,
+          safe,
+          {
+            executionId: inputs.exec.executionId,
+            agentId: inputs.state.agentId,
+            attestationUid: attestationUid.toLowerCase(),
+            attestationTxHash: attestationTxHash.toLowerCase(),
+          },
+        ),
       );
     }
     const outcome: RecordOutcome = {
@@ -225,10 +241,15 @@ export async function runRecord(
     emit(deps, inputs, outcome, started, inputs.exec.txHash);
     return { kind: 'continue', data: outcome };
   } catch (err) {
-    // Distinguish "the attestAction itself failed" (queue retry) from
-    // post-attestAction infra failure (attachAttestation already throws
-    // RpcError — propagate up so ops sees the uid for reconcile).
-    if (err instanceof ConciergeError) throw err;
+    // Precise filter: only post-attestAction infra failure (attachAttestation)
+    // and our own InvariantViolation throws skip the retry queue. Crucially,
+    // a ConciergeError raised by the attester (provider-package implementation
+    // detail) is treated as a normal attest failure and queued. Without this,
+    // a provider switching to ConciergeError would silently break ADR-004
+    // non-blocking semantics.
+    if (err instanceof PostAttestInfraError) throw err.inner;
+    if (err instanceof ConciergeError && err.type === 'InvariantViolation') throw err;
+    const attestErr = sanitizeError(err);
     // Non-blocking per ADR-004: attestation queues for retry; tick proceeds.
     let job: { readonly jobId: string };
     try {
@@ -243,9 +264,14 @@ export async function runRecord(
       const safe = sanitizeError(queueErr);
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/runtime] runRecord: retry queue enqueue failed after attestAction error; manual reconcile required (executionId=${inputs.exec.executionId}): ${safe.message}`,
+        `[@concierge/runtime] runRecord: retry queue enqueue failed after attestAction error; manual reconcile required (executionId=${inputs.exec.executionId} proposalId=${inputs.exec.proposalId}): ${safe.message}; original attest cause: ${attestErr.message}`,
         safe,
-        { executionId: inputs.exec.executionId, agentId: inputs.state.agentId },
+        {
+          executionId: inputs.exec.executionId,
+          agentId: inputs.state.agentId,
+          proposalId: inputs.exec.proposalId,
+          originalAttestCause: attestErr.message,
+        },
       );
     }
     const outcome: RecordOutcome = {

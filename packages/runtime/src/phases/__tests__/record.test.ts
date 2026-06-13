@@ -37,9 +37,9 @@ describe('runRecord — happy path', () => {
       },
     );
     expect(out.kind).toBe('continue');
-    if (out.kind !== 'continue') return;
+    if (out.kind !== 'continue') throw new Error('expected continue');
     expect(out.data.kind).toBe('attested');
-    if (out.data.kind !== 'attested') return;
+    if (out.data.kind !== 'attested') throw new Error('expected attested');
     expect(out.data.attestationUid).toBe(ATTEST_UID);
     expect(out.data.attestationTxHash).toBe(ATTEST_TX);
     expect(repo.attached).toHaveLength(1);
@@ -107,12 +107,11 @@ describe('runRecord — idempotence', () => {
         now: () => NOW,
       },
     );
-    if (out.kind === 'continue') {
-      expect(out.data.kind).toBe('already_attested');
-      if (out.data.kind === 'already_attested') {
-        expect(out.data.attestationUid).toBe(ATTEST_UID);
-      }
-    }
+    expect(out.kind).toBe('continue');
+    if (out.kind !== 'continue') throw new Error('expected continue');
+    expect(out.data.kind).toBe('already_attested');
+    if (out.data.kind !== 'already_attested') throw new Error('expected already_attested');
+    expect(out.data.attestationUid).toBe(ATTEST_UID);
     expect(attester.attestAction).not.toHaveBeenCalled();
     expect(repo.attached).toHaveLength(0);
   });

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const HASH_32 = z.string().regex(/^0x[a-fA-F0-9]{64}$/);
+import { hash32Schema as HASH_32 } from './hash.ts';
 
 /**
  * Attestation payload built by the originating provider. The runtime is
@@ -8,8 +8,19 @@ const HASH_32 = z.string().regex(/^0x[a-fA-F0-9]{64}$/);
  * ERC-8004 client. Per-provider schemas (e.g. `concierge.aave.v3.borrow.v1`)
  * live in the provider package; record() trusts the result.
  */
+/**
+ * Per-provider schema id, e.g. `concierge.aave.v3.borrow.v1`. Enforced via
+ * regex so the namespace convention can't drift (lowercase + dot-separated +
+ * `.v<digits>` suffix). Length capped at 128 inline (drops MAX constant).
+ */
+const providerSchemaIdSchema = z
+  .string()
+  .min(1)
+  .max(128)
+  .regex(/^[a-z0-9]+(\.[a-z0-9]+)*\.v\d+$/);
+
 export const attestationPayloadSchema = z.object({
-  providerSchema: z.string().min(1).max(128),
+  providerSchema: providerSchemaIdSchema,
   payload: z.unknown(),
 });
 export type AttestationPayload = z.infer<typeof attestationPayloadSchema>;
