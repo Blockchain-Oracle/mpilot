@@ -1,88 +1,99 @@
-import { MODEL_SONNET, routeModelForPhase } from '@concierge/llm';
 import { ConciergeError } from '@concierge/sdk';
 import { generateText, type LanguageModel, stepCountIs, type ToolSet } from 'ai';
-import type { z } from 'zod';
+import { sanitizeError, sanitizeMessage } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome, Plan } from '../types.ts';
 import { buildPlanUserMessage, PLAN_SYSTEM_PROMPT_PREFIX } from './planPrompt.ts';
 import { type LlmPlan, planSchema } from './planSchema.ts';
-import { assertNotBanned, filterToPlanTools } from './planTools.ts';
+import { filterToPlanTools } from './planTools.ts';
 
 const PLAN_STEP_CAP = 3;
+const RAW_OUTPUT_MAX = 1000;
 
-export interface RunPlanConfig {
-  /**
-   * LanguageModel from @ai-sdk — typically `defaultModel()` per ADR-016.
-   * If omitted, caller MUST inject one; we don't auto-construct (the model
-   * decision is per-tick + per-phase via routeModelForPhase).
-   */
+export interface RunPlanInputs {
+  /** LanguageModel from @ai-sdk — typically `defaultModel()` per ADR-016. */
   readonly model: LanguageModel;
-  /**
-   * Read-only tool registry. `filterToPlanTools` strips execute tools
-   * defensively; the caller's `ToolSet` may include the full ladder.
-   */
+  /** Tool registry; `filterToPlanTools` strips execute tools. */
   readonly tools: ToolSet;
-  /** Optional override of the system-prompt prefix (testing / variants). */
+}
+
+export interface RunPlanOptions {
   readonly systemPromptPrefix?: string;
-  /** Optional max output tokens. Default 2048 — Plan JSON is small. */
   readonly maxOutputTokens?: number;
 }
 
-/** Strip Markdown fences if the model wrapped JSON in ```json ... ```. */
+/**
+ * Extract JSON from LLM output that may be wrapped in Markdown fences,
+ * optionally with preamble/trailing text. Captures the FIRST balanced
+ * fenced block; falls back to the raw trimmed text. Models occasionally
+ * emit `"Here is the plan:\n\`\`\`json\n{...}\n\`\`\`"` despite prompt
+ * instructions — handle gracefully without silently mangling embedded
+ * backticks inside JSON string fields.
+ */
 function unwrapJson(raw: string): string {
-  const trimmed = raw.trim();
-  if (trimmed.startsWith('```')) {
-    const inner = trimmed.replace(/^```(?:json)?\s*/i, '').replace(/```$/, '');
-    return inner.trim();
-  }
-  return trimmed;
+  const fence = raw.match(/```(?:json)?\s*\n([\s\S]*?)\n```/i);
+  if (fence?.[1]) return fence[1].trim();
+  return raw.trim();
 }
 
 /**
- * Plan-phase runner. Calls Claude Sonnet 4.6 with read-only tools, captures
- * the final text response, validates it against `planSchema`, and returns
- * a `Plan` shaped to the orchestrator's contract (story-62 types.ts).
+ * Plan-phase runner. Distinguishes three error classes:
+ *   - `LlmCallFailed`        — network/auth/rate-limit (retryable)
+ *   - `PlanIncomplete`       — empty text / step-cap / length truncation
+ *                              (resource exhaustion — NOT hallucination)
+ *   - `PlanSchemaViolation`  — malformed JSON / failed Zod validation
+ *                              (deterministic hallucination — no retry)
  *
- * On Zod failure: throws `ConciergeError('PlanSchemaViolation')` carrying
- * the raw output + Zod issues in metadata. The orchestrator's `runPhase`
- * wraps this as a `{kind:'error', cause:'thrown'}` outcome — operators see
- * it as a hallucination signal, not a domain failure.
- *
- * Tool-call interception: any `tool-call` event for a BANNED tool name
- * triggers `assertNotBanned` (defense-in-depth; the registry shouldn't
- * surface execute tools at all but a custom factory could regress this).
+ * Operators dashboard these separately. Without the split, every metric
+ * for "agent reasoning quality" is poisoned by retryable infra errors.
  */
 export async function runPlan(
   state: AgentState,
-  config: RunPlanConfig,
+  inputs: RunPlanInputs,
+  options: RunPlanOptions = {},
 ): Promise<PhaseOutcome<Plan>> {
-  // Phase-locked model — the LLM package's router is the single source of
-  // truth. Bypass via per-call override is intentionally NOT supported here.
-  const _phaseModel = routeModelForPhase('plan');
-  if (_phaseModel !== MODEL_SONNET) {
-    // Sanity guard: if the route table is mis-edited, fail loud.
+  const readOnlyTools = filterToPlanTools(inputs.tools);
+
+  let result: Awaited<ReturnType<typeof generateText>>;
+  try {
+    result = await generateText({
+      model: inputs.model,
+      tools: readOnlyTools,
+      system: options.systemPromptPrefix ?? PLAN_SYSTEM_PROMPT_PREFIX,
+      messages: [{ role: 'user', content: buildPlanUserMessage(state) }],
+      stopWhen: stepCountIs(PLAN_STEP_CAP),
+      maxOutputTokens: options.maxOutputTokens ?? 2048,
+    });
+  } catch (err) {
+    // SDK/provider error (HTTP 4xx/5xx, ECONNRESET, AbortError, etc).
+    // Sanitize so Pimlico apikey / Bearer tokens don't reach Sentry.
     throw new ConciergeError(
-      'ConfigError',
-      `[@concierge/runtime] runPlan: routeModelForPhase('plan') returned '${_phaseModel}' — expected '${MODEL_SONNET}'. Check @concierge/llm route table.`,
+      'LlmCallFailed',
+      `[@concierge/runtime] runPlan: LLM call failed: ${sanitizeError(err).message}`,
+      sanitizeError(err),
     );
   }
 
-  const readOnlyTools = filterToPlanTools(config.tools);
+  // Distinguish "no usable output" from "hallucinated output". finishReason
+  // values per Vercel AI SDK v6: 'stop' | 'length' | 'tool-calls' | 'error'
+  // | 'other' | 'content-filter'. Only 'stop' with non-empty text is a
+  // candidate for schema validation.
+  const text = (result.text ?? '').trim();
+  if (text === '' || result.finishReason === 'length' || result.finishReason === 'tool-calls') {
+    throw new ConciergeError(
+      'PlanIncomplete',
+      `[@concierge/runtime] runPlan: model returned no usable final text (finishReason='${result.finishReason}', textLen=${text.length}).`,
+      undefined,
+      { finishReason: result.finishReason, textLength: text.length },
+    );
+  }
 
-  const result = await generateText({
-    model: config.model,
-    tools: readOnlyTools,
-    system: config.systemPromptPrefix ?? PLAN_SYSTEM_PROMPT_PREFIX,
-    messages: [{ role: 'user', content: buildPlanUserMessage(state) }],
-    stopWhen: stepCountIs(PLAN_STEP_CAP),
-    maxOutputTokens: config.maxOutputTokens ?? 2048,
-    // biome-ignore lint/suspicious/noExplicitAny: Vercel AI v6 toolCall typing varies; defense-in-depth runtime check
-    onStepFinish: ({ toolCalls }: { toolCalls?: Array<{ toolName: string }> }) => {
-      if (toolCalls) for (const tc of toolCalls) assertNotBanned(tc.toolName);
-    },
-  });
+  const raw = unwrapJson(text);
+  // Sanitize before sliced into metadata — a read tool that returned
+  // sensitive data (apikey / Bearer token / RPC URL) may have been
+  // echoed in the model's final text. Bound length to keep error payload
+  // small for Sentry.
+  const safeRawSlice = sanitizeMessage(raw.slice(0, RAW_OUTPUT_MAX));
 
-  // Parse final text → JSON → planSchema.
-  const raw = unwrapJson(result.text);
   let parsedJson: unknown;
   try {
     parsedJson = JSON.parse(raw);
@@ -90,8 +101,8 @@ export async function runPlan(
     throw new ConciergeError(
       'PlanSchemaViolation',
       `[@concierge/runtime] runPlan: model output was not valid JSON.`,
-      jsonErr,
-      { rawOutput: raw.slice(0, 1000) },
+      sanitizeError(jsonErr),
+      { rawOutput: safeRawSlice },
     );
   }
   const parsed = planSchema.safeParse(parsedJson);
@@ -100,24 +111,15 @@ export async function runPlan(
       'PlanSchemaViolation',
       `[@concierge/runtime] runPlan: model output failed Zod validation.`,
       undefined,
-      {
-        rawOutput: raw.slice(0, 1000),
-        zodIssues: parsed.error.issues as unknown as readonly z.ZodIssue[],
-      },
+      { rawOutput: safeRawSlice, zodIssues: parsed.error.issues },
     );
   }
 
-  // Map LlmPlan → orchestrator's Plan shape. The orchestrator's Plan carries
-  // `intent: string` and `providerCalls`; we project ActionDescriptor[]
-  // straight through.
+  // LlmPlan field names match Plan.providerCalls shape — straight passthrough.
   const llmPlan: LlmPlan = parsed.data;
   const plan: Plan = {
     intent: llmPlan.intent,
-    providerCalls: llmPlan.suggestedActions.map((a) => ({
-      provider: a.providerName,
-      action: a.actionName,
-      args: a.args,
-    })),
+    providerCalls: [...llmPlan.suggestedActions],
   };
   return { kind: 'continue', data: plan };
 }

@@ -1,11 +1,6 @@
 import { z } from 'zod';
 
-/**
- * Plan-phase intent. `noop` is the most common outcome — the agent
- * deliberately chooses to do nothing this tick. The four action intents are
- * the only legal transitions out of plan; each downstream phase
- * (simulate/propose/execute) refines them further but cannot widen the set.
- */
+/** Plan-phase intent literal set. */
 export const planIntentSchema = z.enum([
   'noop',
   'rebalance',
@@ -15,60 +10,56 @@ export const planIntentSchema = z.enum([
 ]);
 export type PlanIntent = z.infer<typeof planIntentSchema>;
 
+const IDENT_RE = /^[a-zA-Z0-9_-]+$/;
+
 /**
- * Descriptive (NOT executable) action shape returned by the plan phase.
- * The simulate phase converts these to concrete calldata; execute phase
- * actually broadcasts. Plan's job is to say "we should think about
- * doing X via provider Y with these rough args" — narrow string types
- * keep the LLM's output space small.
+ * Descriptive (NOT executable) action shape. Field names match the
+ * orchestrator's `Plan.providerCalls[]` shape so `runPlan` passes the
+ * array through unchanged (no rename mapping layer).
  */
 export const actionDescriptorSchema = z.object({
-  providerName: z
-    .string()
-    .min(1)
-    .max(64)
-    .regex(/^[a-zA-Z0-9_-]+$/, 'providerName must be alphanumeric/_/-'),
-  actionName: z
-    .string()
-    .min(1)
-    .max(64)
-    .regex(/^[a-zA-Z0-9_-]+$/, 'actionName must be alphanumeric/_/-'),
-  /**
-   * Free-form args bag. Bounded by total JSON size at the LLM-output
-   * boundary — we don't try to enumerate every provider's schema here
-   * (that's simulate's job).
-   */
+  provider: z.string().min(1).max(64).regex(IDENT_RE, 'provider must be alphanumeric/_/-'),
+  action: z.string().min(1).max(64).regex(IDENT_RE, 'action must be alphanumeric/_/-'),
+  /** Free-form args bag. Per-provider schema dispatch lives in story-64 (simulate). */
   args: z.record(z.string(), z.unknown()),
 });
 export type ActionDescriptor = z.infer<typeof actionDescriptorSchema>;
 
 /**
- * Full Plan output. `noop` MUST have an empty `suggestedActions` array (the
- * "I chose to do nothing" path); any action intent MUST have ≥1 suggested
- * action. The cross-field invariant is enforced via `.superRefine` so a
- * malformed LLM output (e.g. `intent: 'unwind', suggestedActions: []`) is
- * rejected loudly with a structured error instead of silently coerced.
+ * Anti-placeholder denylist. The hypothesis field lands in the ERC-8004
+ * attestation as the agent's stated reasoning (ADR-004 verifiability
+ * claim) — a placeholder like "TODO" / "[REDACTED]" / "..." passes
+ * `min(1)` but corrupts the attestation. Reject loudly.
  */
-export const planSchema = z
-  .object({
-    intent: planIntentSchema,
-    hypothesis: z.string().min(1).max(2_000),
-    suggestedActions: z.array(actionDescriptorSchema).max(16),
-  })
-  .superRefine((val, ctx) => {
-    if (val.intent === 'noop' && val.suggestedActions.length > 0) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['suggestedActions'],
-        message: `intent='noop' MUST carry an empty suggestedActions array.`,
-      });
-    }
-    if (val.intent !== 'noop' && val.suggestedActions.length === 0) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['suggestedActions'],
-        message: `intent='${val.intent}' requires at least one suggestedAction.`,
-      });
-    }
-  });
+const HYPOTHESIS_PLACEHOLDER_RE =
+  /^(?:\[REDACTED\]|TODO|N\/A|\.{2,}|<[^>]*>|\{\{[^}]*\}\}|placeholder|tbd)$/i;
+
+const hypothesisSchema = z
+  .string()
+  .min(1)
+  .max(2_000)
+  .refine(
+    (v) => !HYPOTHESIS_PLACEHOLDER_RE.test(v.trim()),
+    'hypothesis must not be a placeholder (TODO/[REDACTED]/.../<...>)',
+  );
+
+/**
+ * Plan output as a DISCRIMINATED UNION over `intent`. Compile-time
+ * narrowing: `if (plan.intent === 'noop') plan.suggestedActions: []`.
+ * The cross-field invariant (noop ↔ empty actions) is no longer hidden
+ * in a `superRefine` — it's a type-level fact.
+ */
+const noopVariant = z.object({
+  intent: z.literal('noop'),
+  hypothesis: hypothesisSchema,
+  suggestedActions: z.tuple([]),
+});
+
+const actionVariant = z.object({
+  intent: z.enum(['rebalance', 'top_up_reserve', 'pay_lender', 'unwind']),
+  hypothesis: hypothesisSchema,
+  suggestedActions: z.array(actionDescriptorSchema).min(1).max(16),
+});
+
+export const planSchema = z.discriminatedUnion('intent', [noopVariant, actionVariant]);
 export type LlmPlan = z.infer<typeof planSchema>;

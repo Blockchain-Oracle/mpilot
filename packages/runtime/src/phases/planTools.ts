@@ -67,16 +67,10 @@ export function filterToPlanTools(tools: ToolSet): ToolSet {
 }
 
 /**
- * Runtime assertion the caller can use to fail-loud if a banned tool name
- * is observed in a stream event (defense-in-depth — Vercel AI SDK should
- * already reject unknown tool names, but stories 63-67 may add custom
- * tool-call interceptors that could route around the registry).
+ * Type guard backed by a Set (O(1) include + narrowing). Useful for
+ * downstream consumers building their own filters / proxies.
  */
-export function assertNotBanned(toolName: string): void {
-  if ((PLAN_BANNED_TOOL_NAMES as readonly string[]).includes(toolName)) {
-    throw new ConciergeError(
-      'ConfigError',
-      `[@concierge/runtime] plan-phase invariant violated — execute tool '${toolName}' attempted in plan phase.`,
-    );
-  }
+const BANNED_SET: ReadonlySet<PlanBannedToolName> = new Set(PLAN_BANNED_TOOL_NAMES);
+export function isBannedToolName(name: string): name is PlanBannedToolName {
+  return BANNED_SET.has(name as PlanBannedToolName);
 }

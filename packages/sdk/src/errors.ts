@@ -55,6 +55,15 @@ export const CONCIERGE_ERROR_TYPES = Object.freeze([
   // RpcError so the planner can route retries (Zod failures are
   // deterministic; RPC failures retryable with backoff).
   'PlanSchemaViolation',
+  // LLM call infrastructure failure (story-63). Network/auth/rate-limit
+  // errors from the AI SDK call site. Distinct from PlanSchemaViolation
+  // (deterministic, no-retry) — LlmCallFailed is retryable with backoff.
+  'LlmCallFailed',
+  // LLM produced no usable output (story-63): empty text, step-budget
+  // exhaustion (finishReason='tool-calls' but cap hit), or token-length
+  // truncation (finishReason='length'). NOT a hallucination — it's a
+  // resource/budget exhaustion signal.
+  'PlanIncomplete',
 ] as const);
 
 export type ConciergeErrorType = (typeof CONCIERGE_ERROR_TYPES)[number];
