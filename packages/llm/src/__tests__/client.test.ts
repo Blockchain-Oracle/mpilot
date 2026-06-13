@@ -1,12 +1,36 @@
 import { ConciergeError } from '@concierge/sdk';
 import { describe, expect, it } from 'vitest';
-import { createLlmClient, PROMPT_CACHING_BETA } from '../client.ts';
+import { createLlmClient, mergeBetaHeader, PROMPT_CACHING_BETA } from '../client.ts';
+
+describe('mergeBetaHeader (pure)', () => {
+  it('returns just PROMPT_CACHING_BETA when caller has no beta header', () => {
+    expect(mergeBetaHeader(undefined)).toBe(PROMPT_CACHING_BETA);
+    expect(mergeBetaHeader('')).toBe(PROMPT_CACHING_BETA);
+    expect(mergeBetaHeader('   ')).toBe(PROMPT_CACHING_BETA);
+  });
+
+  it('preserves caller order then appends PROMPT_CACHING_BETA (caller-precedence semantics)', () => {
+    expect(mergeBetaHeader('extended-thinking-2025')).toBe(
+      `extended-thinking-2025,${PROMPT_CACHING_BETA}`,
+    );
+  });
+
+  it('does not duplicate PROMPT_CACHING_BETA when caller already supplied it', () => {
+    expect(mergeBetaHeader(PROMPT_CACHING_BETA)).toBe(PROMPT_CACHING_BETA);
+    expect(mergeBetaHeader(`extended-thinking-2025,${PROMPT_CACHING_BETA}`)).toBe(
+      `extended-thinking-2025,${PROMPT_CACHING_BETA}`,
+    );
+  });
+
+  it('trims whitespace and drops empty parts (silent-corruption guard)', () => {
+    expect(mergeBetaHeader('extended-thinking-2025 , , ,')).toBe(
+      `extended-thinking-2025,${PROMPT_CACHING_BETA}`,
+    );
+  });
+});
 
 describe('createLlmClient', () => {
   it('throws ConfigError when apiKey is empty', () => {
-    expect(() => createLlmClient({ apiKey: '' })).toSatisfy(
-      () => true, // dummy — actually checked via try/catch below
-    );
     try {
       createLlmClient({ apiKey: '' });
       throw new Error('should have thrown');
@@ -16,51 +40,78 @@ describe('createLlmClient', () => {
     }
   });
 
+  it('throws ConfigError when apiKey is whitespace-only', () => {
+    expect(() => createLlmClient({ apiKey: '   ' })).toThrow(/apiKey is required/);
+  });
+
   it('throws ConfigError when apiKey is not a string', () => {
     expect(() => createLlmClient({ apiKey: undefined as unknown as string })).toThrow(
       /apiKey is required/,
     );
   });
 
-  it('returns an Anthropic client with prompt-caching beta header set', () => {
-    const client = createLlmClient({ apiKey: 'sk-test' });
+  it('returns an Anthropic client instance', () => {
+    const client = createLlmClient({ apiKey: 'sk-ant-fixture-not-real' });
     expect(client).toBeDefined();
-    // The SDK stores user-supplied defaults on its config; verify by issuing
-    // a request-builder operation that exposes headers. Easier: inspect the
-    // client's `_options` or the actual defaultHeaders we passed.
-    // The SDK doesn't expose getters publicly; rely on the merge invariant
-    // and trust the constructor — covered by integration via the merge test.
-    const merged = (
-      client as unknown as {
-        _options?: { defaultHeaders?: Record<string, string> };
-      }
-    )._options?.defaultHeaders;
-    if (merged) {
-      expect(merged['anthropic-beta']).toContain(PROMPT_CACHING_BETA);
-    }
   });
 
-  it('merges caller-supplied anthropic-beta with prompt-caching (does not overwrite)', () => {
+  it('SECURITY: rejects defaultHeaders containing reserved x-api-key', () => {
+    expect(() =>
+      createLlmClient({
+        apiKey: 'sk-ant-fixture-not-real',
+        defaultHeaders: { 'x-api-key': 'attacker-key' },
+      }),
+    ).toThrow(/reserved key 'x-api-key'/);
+  });
+
+  it('SECURITY: rejects authorization header (any case)', () => {
+    expect(() =>
+      createLlmClient({
+        apiKey: 'sk-ant-fixture-not-real',
+        defaultHeaders: { Authorization: 'Bearer x' },
+      }),
+    ).toThrow(/reserved key/);
+  });
+
+  it('SECURITY: rejects anthropic-version override', () => {
+    expect(() =>
+      createLlmClient({
+        apiKey: 'sk-ant-fixture-not-real',
+        defaultHeaders: { 'anthropic-version': '1900-01-01' },
+      }),
+    ).toThrow(/reserved key/);
+  });
+
+  it('SECURITY: rejects non-https baseURL (CWE-918 exfil defense)', () => {
+    expect(() =>
+      createLlmClient({
+        apiKey: 'sk-ant-fixture-not-real',
+        baseURL: 'http://evil.example/v1',
+      }),
+    ).toThrow(/must use https:/);
+  });
+
+  it('SECURITY: rejects malformed baseURL', () => {
+    expect(() =>
+      createLlmClient({
+        apiKey: 'sk-ant-fixture-not-real',
+        baseURL: 'not a url',
+      }),
+    ).toThrow(/not a valid URL/);
+  });
+
+  it('accepts an https proxy baseURL', () => {
     const client = createLlmClient({
-      apiKey: 'sk-test',
-      defaultHeaders: { 'anthropic-beta': 'extended-thinking-2025' },
+      apiKey: 'sk-ant-fixture-not-real',
+      baseURL: 'https://proxy.example.com/v1',
     });
-    const merged = (
-      client as unknown as {
-        _options?: { defaultHeaders?: Record<string, string> };
-      }
-    )._options?.defaultHeaders;
-    if (merged) {
-      const beta = merged['anthropic-beta'] ?? '';
-      expect(beta).toContain(PROMPT_CACHING_BETA);
-      expect(beta).toContain('extended-thinking-2025');
-    }
+    expect(client).toBeDefined();
   });
 
-  it('passes through baseURL when provided', () => {
+  it('accepts non-reserved custom headers (allowlist passthrough)', () => {
     const client = createLlmClient({
-      apiKey: 'sk-test',
-      baseURL: 'https://proxy.example/v1',
+      apiKey: 'sk-ant-fixture-not-real',
+      defaultHeaders: { 'x-telemetry-tag': 'concierge-tick-loop' },
     });
     expect(client).toBeDefined();
   });
