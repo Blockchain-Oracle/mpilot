@@ -6,18 +6,13 @@ import type { DeadLetterQueue } from './dlq.ts';
 const DEFAULT_MAX_ATTEMPTS = 3;
 
 /**
- * Tick result the orchestrator returns. The skip variants are SUCCESSES,
- * NOT failures (per CLAUDE.md no-silent-failures + story-68 spec).
- *
- * - `already_running`: another worker holds the lock — a real production
- *   skip, mark BullMQ job completed, don't retry.
- * - `not_wired`: runtime tick not yet bound (boot-time stub gate). Logged
- *   loudly via `logger.warn` and counted separately so deploy dashboards
- *   surface "story-69 not landed" rather than blending with normal skips.
+ * Tick result. `skipped` is a SUCCESS (lock contention — another worker
+ * holds the lock; mark job completed, don't retry). Per CLAUDE.md
+ * no-silent-failures + story-68 spec.
  */
 export type TickJobResult =
   | { readonly outcome: 'ok'; readonly tickId: string }
-  | { readonly outcome: 'skipped'; readonly reason: 'already_running' | 'not_wired' };
+  | { readonly outcome: 'skipped'; readonly reason: 'already_running' };
 
 export interface TickJobLogger {
   debug(meta: Record<string, unknown>, msg: string): void;
@@ -32,11 +27,43 @@ export interface MakeTickJobDeps {
   readonly dlq: DeadLetterQueue;
   readonly logger: TickJobLogger;
   readonly maxAttempts?: number;
+  /**
+   * Hard timeout ceiling — `AbortSignal.timeout` only FIRES the signal; if
+   * the inner runTick or a library awaits don't honor it, the worker slot
+   * pins forever. This wrapper races the runTick promise against a hard
+   * rejection so an ignored signal still produces a TickTimeoutError.
+   */
+  readonly hardTimeoutMs?: number;
 }
 
 /** Sanitize a thrown error's message via the shared runtime sanitizer (apikey URL strip, etc.). */
 function sanitizedReason(err: unknown): string {
   return sanitizeError(err).message;
+}
+
+class TickTimeoutError extends Error {
+  constructor(ms: number) {
+    super(`tick hard-timeout after ${ms}ms`);
+    this.name = 'TickTimeoutError';
+  }
+}
+
+/**
+ * Race runTick against a hard timeout. The signal is still fired (callee
+ * may cooperatively abort), but if the awaited promise never resolves we
+ * REJECT regardless. Without this a stuck Aave RPC pins a worker slot.
+ */
+async function withHardTimeout<T>(worker: Promise<T>, hardTimeoutMs: number): Promise<T> {
+  if (hardTimeoutMs <= 0) return worker;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new TickTimeoutError(hardTimeoutMs)), hardTimeoutMs);
+  });
+  try {
+    return await Promise.race([worker, timeoutPromise]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
 }
 
 /**
@@ -62,10 +89,11 @@ export function makeTickJob(deps: MakeTickJobDeps) {
     const { agentId } = job.data;
     assertAgentId(agentId, 'tickJob');
     try {
-      const result = await deps.runTick(agentId, signal);
+      const result = await (deps.hardTimeoutMs === undefined
+        ? deps.runTick(agentId, signal)
+        : withHardTimeout(deps.runTick(agentId, signal), deps.hardTimeoutMs));
       if (result.outcome === 'skipped') {
-        const fn = result.reason === 'not_wired' ? deps.logger.warn : deps.logger.debug;
-        fn.call(deps.logger, { agentId, jobId: job.id, reason: result.reason }, 'tick skipped');
+        deps.logger.debug({ agentId, jobId: job.id, reason: result.reason }, 'tick skipped');
       } else {
         deps.logger.info({ agentId, jobId: job.id, tickId: result.tickId }, 'tick ok');
       }
