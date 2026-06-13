@@ -420,7 +420,7 @@ stories:
     merged_at: "2026-06-12T21:18:00Z"
   - id: story-70-runtime-integration-tests
     epic: "Epic E5 — Agent Runtime"
-    status: PENDING
+    status: IN_PROGRESS
     depends_on: [story-67-tick-phase-record, story-68-bullmq-cron-worker]
     issue_url: ""
     pr_url: ""
