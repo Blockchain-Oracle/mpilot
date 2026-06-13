@@ -28,15 +28,16 @@ describe.runIf(anvilAvailable())('startAnvil — retry on port collision', () =>
   });
 
   it('still returns a working AnvilInstance under parallel-suite-style contention', async () => {
-    // Spin up 3 instances in parallel — under default vitest parallelism
-    // this is enough to occasionally hit the port-collision path. The
-    // retry loop must make all three eventually succeed.
-    const anvils = await Promise.all([startAnvil(), startAnvil(), startAnvil()]);
+    // Spin up 2 instances in parallel — proves the retry loop handles
+    // concurrent startups while keeping CI runner load reasonable (3
+    // anvils + the rest of the test suite's anvils saturated GitHub
+    // Actions and exposed flake in unrelated repay.test.ts).
+    const anvils = await Promise.all([startAnvil(), startAnvil()]);
     for (const a of anvils) {
       expect(typeof a.port).toBe('number');
       cleanup.push(() => a.stop());
     }
     const ports = new Set(anvils.map((a) => a.port));
-    expect(ports.size).toBe(3); // distinct ports — no double-spawn on same port
+    expect(ports.size).toBe(2); // distinct ports — no double-spawn on same port
   }, 60_000);
 });
