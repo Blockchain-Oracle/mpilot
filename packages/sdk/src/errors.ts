@@ -36,6 +36,9 @@ export const CONCIERGE_ERROR_TYPES = Object.freeze([
   'DecryptionFailed',
   'SessionKeyExpired',
   'SessionKeyRevoked',
+  // Revocation flow (story-54). Caller knows the DB step succeeded but the
+  // on-chain step did NOT — retry the on-chain step, don't re-issue.
+  'RevocationPartialFailure',
 ] as const);
 
 export type ConciergeErrorType = (typeof CONCIERGE_ERROR_TYPES)[number];
