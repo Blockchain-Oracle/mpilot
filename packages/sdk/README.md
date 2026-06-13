@@ -6,6 +6,24 @@ Meta package for the Concierge core: one install re-exporting
 SDK's own `defaultModel()` / `ConciergeRegistry` / `ConciergeError`.
 Pure ESM, Node ≥ 22 (ADR-018).
 
+## Env vars
+
+| Env | Required? | Purpose |
+|---|---|---|
+| One of `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` / `XAI_API_KEY` | YES | LLM provider auth (`defaultModel()` auto-detects which is set) |
+| `AI_MODEL` | NO | Override provider + model. Format: `"provider:model"`. Default: `"anthropic:claude-sonnet-4-6"` |
+| `CONCIERGE_RPC_URL` | NO | Override default Mantle RPC. Default: `https://rpc.mantle.xyz` (Mainnet) |
+
+The `@ai-sdk/*` provider packages are **optional peer dependencies** — install
+only the ones you use. The bundler tree-shakes the rest.
+
+```bash
+pnpm add @concierge/sdk @ai-sdk/anthropic  # Anthropic only
+pnpm add @concierge/sdk @ai-sdk/openai     # OpenAI only
+```
+
+## Install
+
 ```bash
 pnpm add @concierge/sdk                        # core
 pnpm add @concierge/langchain @concierge/sdk   # LangChain consumers
