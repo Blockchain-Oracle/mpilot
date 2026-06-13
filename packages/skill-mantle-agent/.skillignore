@@ -1,0 +1,30 @@
+# Files NOT to ship in the published skill bundle.
+# Mirrors the `files` field in package.json but enforced at the skill-tooling
+# layer (npx skills publish reads this).
+
+# Development artifacts
+*.test.ts
+*.test.tsx
+__tests__/
+src/
+
+# TypeScript build leftovers
+tsconfig.json
+tsconfig.tsbuildinfo
+dist/
+*.tsbuildinfo
+*.d.ts.map
+*.js.map
+
+# Local config + secrets
+.env
+.env.*
+*.local
+
+# Node tooling
+node_modules/
+.npmrc
+
+# Repository tooling
+.gitignore
+.gitkeep
