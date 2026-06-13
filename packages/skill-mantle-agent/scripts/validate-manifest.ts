@@ -9,7 +9,7 @@
 
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { z } from 'zod';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -22,15 +22,27 @@ const ToolEntry = z.object({
   permission: z.string(),
 });
 
+// Round-1 security LOW: tighten URL fields to https:// only — z.url() alone
+// accepts javascript:/data:/file: schemes which downstream surfaces could
+// auto-fetch or render unsafely.
+const HttpsUrl = z
+  .string()
+  .url()
+  .refine((u) => /^https:\/\//i.test(u), 'must use https:// scheme');
+
 const SkillManifest = z.object({
   name: z.string().regex(/^[a-z][a-z0-9-]*$/, 'skill name must be kebab-case'),
   description: z.string().min(20),
   version: z.string().regex(/^\d+\.\d+\.\d+$/, 'version must be semver MAJOR.MINOR.PATCH'),
-  homepage: z.string().url(),
-  repository: z.string().url(),
+  homepage: HttpsUrl,
+  repository: HttpsUrl,
   license: z.literal('MIT'),
-  mcp_server_url: z.string().url(),
-  oauth_client_id: z.string().min(1),
+  mcp_server_url: HttpsUrl,
+  // Round-1 security LOW: constrain oauth_client_id to a safe charset so a
+  // value can't smuggle '&redirect_uri=evil' into a future OAuth URL.
+  oauth_client_id: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{1,128}$/, 'oauth_client_id must be [A-Za-z0-9_-]{1,128}'),
   supported_chains: z.array(z.number().int().positive()).min(1),
   tools: z.array(ToolEntry).min(1),
   permissions: z.array(z.string()).min(1),
@@ -163,6 +175,10 @@ function main(): void {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Round-1 (code IMPORTANT): pathToFileURL handles spaces, Windows drive
+// letters, and symlinks properly — raw `file://${process.argv[1]}` would
+// silently no-op on Windows and on macOS paths-with-spaces.
+const argv1 = process.argv[1];
+if (argv1 !== undefined && import.meta.url === pathToFileURL(argv1).href) {
   main();
 }
