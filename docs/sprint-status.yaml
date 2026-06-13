@@ -452,11 +452,11 @@ stories:
     merged_at: "2026-06-13"
   - id: story-83-attestation-write-pipeline
     epic: "Epic E6 — ERC-8004 Attestation Flow"
-    status: PENDING
+    status: COMPLETE
     depends_on: [story-67-tick-phase-record, story-81-ipfs-pinning-pinata, story-82-feedback-hash-compute]
     issue_url: ""
-    pr_url: ""
-    merged_at: ""
+    pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/121"
+    merged_at: "2026-06-13"
   - id: story-84-reputation-read-sdk
     epic: "Epic E6 — ERC-8004 Attestation Flow"
     status: PENDING
