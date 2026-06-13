@@ -26,3 +26,10 @@ export {
   SCHEMA_IDS,
   type SchemaId,
 } from './schema.ts';
+export {
+  type Erc8004AttestWriter,
+  type WriteAttestationDeps,
+  type WriteAttestationInputs,
+  type WriteAttestationResult,
+  writeAttestation,
+} from './writeAttestation.ts';
