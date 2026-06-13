@@ -1,4 +1,6 @@
 export { createLock } from './lock.ts';
+export type { ActionSimResult, ComputeDeltaStateInput, DeltaState } from './phases/deltaState.ts';
+export { computeDeltaState } from './phases/deltaState.ts';
 export type { RunPlanInputs, RunPlanOptions } from './phases/plan.ts';
 export { runPlan } from './phases/plan.ts';
 export {
@@ -15,6 +17,16 @@ export {
   PLAN_BANNED_TOOL_NAMES,
   type PlanBannedToolName,
 } from './phases/planTools.ts';
+export type {
+  ActionSimulator,
+  DetailedSim,
+  ProviderActionKey,
+  RunSimulateInputs,
+  RunSimulateOptions,
+  SimError,
+  SimulatorRegistry,
+} from './phases/simulate.ts';
+export { providerActionKey, runSimulate } from './phases/simulate.ts';
 export { sanitizeError, sanitizeMessage } from './sanitize.ts';
 export { tick } from './tick.ts';
 export type {

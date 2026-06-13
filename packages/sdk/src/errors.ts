@@ -64,6 +64,11 @@ export const CONCIERGE_ERROR_TYPES = Object.freeze([
   // truncation (finishReason='length'). NOT a hallucination — it's a
   // resource/budget exhaustion signal.
   'PlanIncomplete',
+  // A code-side invariant the caller relies on was violated (story-64+).
+  // Distinct from ConfigError (user input bad) and RpcError (network) —
+  // signals "the simulator/registry/upstream contract is broken" so the
+  // operator pages on a deploy-time issue, not a user-recoverable one.
+  'InvariantViolation',
 ] as const);
 
 export type ConciergeErrorType = (typeof CONCIERGE_ERROR_TYPES)[number];
