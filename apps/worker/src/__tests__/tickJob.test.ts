@@ -81,19 +81,34 @@ describe('makeTickJob — happy paths', () => {
     expect(logger.warns).toHaveLength(0);
     expect(logger.errors).toHaveLength(0);
   });
+});
 
-  it('outcome=skipped reason=not_wired → WARN level (boot-stub tripwire)', async () => {
-    const logger = makeLogger();
+describe('makeTickJob — round-2: hard timeout', () => {
+  it('runTick exceeds hardTimeoutMs WITHOUT honoring signal → TickTimeoutError surfaces', async () => {
+    const dlq = makeDlq();
     const tj = makeTickJob({
-      runTick: vi
-        .fn()
-        .mockResolvedValue({ outcome: 'skipped', reason: 'not_wired' } satisfies TickJobResult),
-      dlq: makeDlq(),
-      logger,
+      runTick: () => new Promise<TickJobResult>(() => {}), // never resolves; ignores signal
+      dlq,
+      logger: makeLogger(),
+      hardTimeoutMs: 25,
+      maxAttempts: 1,
     });
-    await tj(fakeJob(), new AbortController().signal);
-    expect(logger.warns).toHaveLength(1);
-    expect(logger.debugs).toHaveLength(0);
+    await expect(tj(fakeJob({ attemptsMade: 0 }), new AbortController().signal)).rejects.toThrow(
+      /hard-timeout/i,
+    );
+    // Hit DLQ since this is the final attempt.
+    expect(dlq.calls).toHaveLength(1);
+  });
+
+  it('runTick resolves BEFORE hardTimeoutMs → result returned cleanly', async () => {
+    const tj = makeTickJob({
+      runTick: async () => ({ outcome: 'ok', tickId: 't1' }) satisfies TickJobResult,
+      dlq: makeDlq(),
+      logger: makeLogger(),
+      hardTimeoutMs: 5_000,
+    });
+    const out = await tj(fakeJob(), new AbortController().signal);
+    expect(out.outcome).toBe('ok');
   });
 });
 
