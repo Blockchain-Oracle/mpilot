@@ -4,25 +4,33 @@ import { type ActionSimResult, computeDeltaState } from '../deltaState.ts';
 const USDC = '0xUSDC';
 const USDT = '0xUSDT';
 
-function action(over: Partial<ActionSimResult> = {}): ActionSimResult {
+function okResult(over: Partial<Extract<ActionSimResult, { ok: true }>> = {}): ActionSimResult {
   return {
     ok: true,
     gasUsed: 100_000n,
     balanceDeltas: {},
     debtDeltas: {},
-    healthFactorAfter: 2_000_000_000_000_000_000n, // 2.0
+    healthFactorAfter: 2_000_000_000_000_000_000n,
     oracleStale: false,
     ...over,
   };
 }
 
-describe('computeDeltaState — aggregation', () => {
-  it('sums per-token balance deltas across actions', () => {
+function revertResult(reason = 'r'): ActionSimResult {
+  return { ok: false, gasUsed: 50_000n, reason: { kind: 'revert', revertReason: reason } };
+}
+
+function oracleStaleFailure(): ActionSimResult {
+  return { ok: false, gasUsed: 50_000n, reason: { kind: 'oracle-stale' } };
+}
+
+describe('computeDeltaState — aggregation (round-1: discriminated ActionSimResult)', () => {
+  it('sums per-token balance deltas across SUCCESSFUL actions', () => {
     const out = computeDeltaState({
       healthFactorBefore: 1_800_000_000_000_000_000n,
       perAction: [
-        action({ balanceDeltas: { [USDC]: -100n } }),
-        action({ balanceDeltas: { [USDC]: -50n, [USDT]: 200n } }),
+        okResult({ balanceDeltas: { [USDC]: -100n } }),
+        okResult({ balanceDeltas: { [USDC]: -50n, [USDT]: 200n } }),
       ],
     });
     expect(out.balanceDeltas[USDC]).toBe(-150n);
@@ -33,8 +41,8 @@ describe('computeDeltaState — aggregation', () => {
     const out = computeDeltaState({
       healthFactorBefore: 2n,
       perAction: [
-        action({ debtDeltas: { [USDC]: 100n } }),
-        action({ debtDeltas: { [USDC]: -40n } }),
+        okResult({ debtDeltas: { [USDC]: 100n } }),
+        okResult({ debtDeltas: { [USDC]: -40n } }),
       ],
     });
     expect(out.debtDeltas[USDC]).toBe(60n);
@@ -44,9 +52,9 @@ describe('computeDeltaState — aggregation', () => {
     const out = computeDeltaState({
       healthFactorBefore: 5n,
       perAction: [
-        action({ healthFactorAfter: 4n }),
-        action({ healthFactorAfter: 3n }),
-        action({ healthFactorAfter: 2n }),
+        okResult({ healthFactorAfter: 4n }),
+        okResult({ healthFactorAfter: 3n }),
+        okResult({ healthFactorAfter: 2n }),
       ],
     });
     expect(out.healthFactorAfter).toBe(2n);
@@ -56,19 +64,26 @@ describe('computeDeltaState — aggregation', () => {
     const out = computeDeltaState({
       healthFactorBefore: 5n,
       perAction: [
-        action({ healthFactorAfter: 4n }),
-        action({ ok: false, healthFactorAfter: 1n }), // would-be-but-failed
-        action({ healthFactorAfter: 99n }), // never reached
+        okResult({ healthFactorAfter: 4n }),
+        revertResult('boom'),
+        okResult({ healthFactorAfter: 99n }), // never reached
       ],
     });
-    // HF stays at the last *successful* action.
     expect(out.healthFactorAfter).toBe(4n);
   });
 
-  it('ORs oracleStale across all actions (any stale poisons the plan)', () => {
+  it('ORs oracleStale across all actions (ADR-008)', () => {
     const out = computeDeltaState({
       healthFactorBefore: 1n,
-      perAction: [action({ oracleStale: false }), action({ oracleStale: true })],
+      perAction: [okResult({ oracleStale: false }), okResult({ oracleStale: true })],
+    });
+    expect(out.oracleChecks.stale).toBe(true);
+  });
+
+  it('oracle-stale FAILURE marks deltaState.oracleChecks.stale = true', () => {
+    const out = computeDeltaState({
+      healthFactorBefore: 1n,
+      perAction: [oracleStaleFailure()],
     });
     expect(out.oracleChecks.stale).toBe(true);
   });
@@ -88,7 +103,7 @@ describe('computeDeltaState — aggregation', () => {
   it('returned maps are frozen (caller cannot mutate aggregation)', () => {
     const out = computeDeltaState({
       healthFactorBefore: 1n,
-      perAction: [action({ balanceDeltas: { [USDC]: 1n } })],
+      perAction: [okResult({ balanceDeltas: { [USDC]: 1n } })],
     });
     expect(() => {
       (out.balanceDeltas as Record<string, bigint>)[USDC] = 999n;

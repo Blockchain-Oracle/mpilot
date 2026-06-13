@@ -20,12 +20,13 @@ export {
 export type {
   ActionSimulator,
   DetailedSim,
+  ProviderActionKey,
   RunSimulateInputs,
   RunSimulateOptions,
   SimError,
   SimulatorRegistry,
 } from './phases/simulate.ts';
-export { runSimulate } from './phases/simulate.ts';
+export { providerActionKey, runSimulate } from './phases/simulate.ts';
 export { sanitizeError, sanitizeMessage } from './sanitize.ts';
 export { tick } from './tick.ts';
 export type {

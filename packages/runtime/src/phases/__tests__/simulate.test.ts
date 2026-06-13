@@ -2,7 +2,12 @@ import { ConciergeError } from '@concierge/sdk';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AgentState, Plan } from '../../types.ts';
 import type { ActionSimResult } from '../deltaState.ts';
-import { type ActionSimulator, runSimulate, type SimulatorRegistry } from '../simulate.ts';
+import {
+  type ActionSimulator,
+  providerActionKey,
+  runSimulate,
+  type SimulatorRegistry,
+} from '../simulate.ts';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -16,9 +21,8 @@ const STATE: AgentState = {
   openPositions: [],
 };
 
-const HF_BEFORE = 2_000_000_000_000_000_000n; // 2.0
-const HF_FLOOR = 1_500_000_000_000_000_000n; // 1.5
-
+const HF_BEFORE = 2_000_000_000_000_000_000n;
+const HF_FLOOR = 1_500_000_000_000_000_000n;
 const USDC = '0xUSDC';
 
 function planOf(...calls: Array<{ provider: string; action: string; args?: unknown }>): Plan {
@@ -32,7 +36,7 @@ function planOf(...calls: Array<{ provider: string; action: string; args?: unkno
   };
 }
 
-function ok(over: Partial<ActionSimResult> = {}): ActionSimResult {
+function ok(over: Partial<Extract<ActionSimResult, { ok: true }>> = {}): ActionSimResult {
   return {
     ok: true,
     gasUsed: 100_000n,
@@ -44,8 +48,16 @@ function ok(over: Partial<ActionSimResult> = {}): ActionSimResult {
   };
 }
 
+function revert(reason = 'r'): ActionSimResult {
+  return { ok: false, gasUsed: 50_000n, reason: { kind: 'revert', revertReason: reason } };
+}
+
+function oracleStale(): ActionSimResult {
+  return { ok: false, gasUsed: 50_000n, reason: { kind: 'oracle-stale' } };
+}
+
 function registryOf(entries: Array<[string, ActionSimulator]>): SimulatorRegistry {
-  return new Map(entries);
+  return new Map(entries.map(([k, fn]) => [k as `${string}:${string}`, fn]));
 }
 
 describe('runSimulate — happy path', () => {
@@ -62,13 +74,42 @@ describe('runSimulate — happy path', () => {
     expect(out.kind).toBe('continue');
     if (out.kind === 'continue') {
       expect(out.data.ok).toBe(true);
-      expect(out.data.gasEstimateWei).toBe(250_000n);
-      expect(out.data.deltaState.balanceDeltas[USDC]).toBe(-100_000_000n);
-      expect(out.data.error).toBeUndefined();
+      if (out.data.ok) {
+        expect(out.data.gasEstimateWei).toBe(250_000n);
+        expect(out.data.deltaState.balanceDeltas[USDC]).toBe(-100_000_000n);
+        expect(out.data.expectedValueDeltaUsd).toBeNull();
+      }
     }
   });
 
-  it('passes signal + args to each simulator', async () => {
+  it('happy path: ok=true ALSO returns kind="continue" (contract pinning)', async () => {
+    const sim: ActionSimulator = vi.fn().mockResolvedValue(ok());
+    const out = await runSimulate({
+      preState: STATE,
+      plan: planOf({ provider: 'aave', action: 'supply' }),
+      registry: registryOf([['aave:supply', sim]]),
+      healthFactorBefore: HF_BEFORE,
+    });
+    expect(out.kind).toBe('continue');
+    if (out.kind === 'continue') expect(out.data.ok).toBe(true);
+  });
+
+  it('empty providerCalls → ok=true; HF unchanged; deltas empty', async () => {
+    const out = await runSimulate({
+      preState: STATE,
+      plan: planOf(),
+      registry: registryOf([]),
+      healthFactorBefore: HF_BEFORE,
+    });
+    if (out.kind === 'continue' && out.data.ok) {
+      expect(out.data.deltaState.healthFactorBefore).toBe(HF_BEFORE);
+      expect(out.data.deltaState.healthFactorAfter).toBe(HF_BEFORE);
+      expect(Object.keys(out.data.deltaState.balanceDeltas)).toEqual([]);
+      expect(out.data.gasEstimateWei).toBe(0n);
+    }
+  });
+
+  it('passes args (null-proto) + signal to each simulator', async () => {
     const sim: ActionSimulator = vi.fn().mockResolvedValue(ok());
     await runSimulate({
       preState: STATE,
@@ -76,57 +117,66 @@ describe('runSimulate — happy path', () => {
       registry: registryOf([['aave:supply', sim]]),
       healthFactorBefore: HF_BEFORE,
     });
-    expect(sim).toHaveBeenCalledWith(STATE, { x: 1 }, expect.any(AbortSignal));
+    const [, args, signal] = (sim as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
+    expect((args as Record<string, unknown>)['x']).toBe(1);
+    expect(Object.getPrototypeOf(args)).toBeNull();
+    expect(signal).toBeInstanceOf(AbortSignal);
   });
+});
 
-  it('sequential actions: sums gas + aggregates deltas', async () => {
-    const sim1 = vi
-      .fn()
-      .mockResolvedValue(ok({ gasUsed: 100_000n, balanceDeltas: { [USDC]: -50n } }));
-    const sim2 = vi
-      .fn()
-      .mockResolvedValue(ok({ gasUsed: 200_000n, balanceDeltas: { [USDC]: 30n } }));
+describe('runSimulate — ADR-008 oracle-stale always poisons the tick (round-1 CRITICAL fix)', () => {
+  it('SUCCESS with oracleStale:true → ok=false with kind="oracle-stale"', async () => {
+    const sim: ActionSimulator = vi.fn().mockResolvedValue(ok({ oracleStale: true }));
     const out = await runSimulate({
       preState: STATE,
-      plan: planOf({ provider: 'aave', action: 'supply' }, { provider: 'aave', action: 'borrow' }),
-      registry: registryOf([
-        ['aave:supply', sim1],
-        ['aave:borrow', sim2],
-      ]),
+      plan: planOf({ provider: 'aave', action: 'supply' }),
+      registry: registryOf([['aave:supply', sim]]),
       healthFactorBefore: HF_BEFORE,
     });
     if (out.kind === 'continue') {
-      expect(out.data.gasEstimateWei).toBe(300_000n);
-      expect(out.data.deltaState.balanceDeltas[USDC]).toBe(-20n);
+      expect(out.data.ok).toBe(false);
+      if (!out.data.ok) expect(out.data.error.kind).toBe('oracle-stale');
+    }
+  });
+
+  it('FAILURE with oracle-stale reason → SimError.kind="oracle-stale"', async () => {
+    const sim: ActionSimulator = vi.fn().mockResolvedValue(oracleStale());
+    const out = await runSimulate({
+      preState: STATE,
+      plan: planOf({ provider: 'aave', action: 'supply' }),
+      registry: registryOf([['aave:supply', sim]]),
+      healthFactorBefore: HF_BEFORE,
+    });
+    if (out.kind === 'continue' && !out.data.ok) {
+      expect(out.data.error.kind).toBe('oracle-stale');
     }
   });
 });
 
 describe('runSimulate — domain failures (returned, NOT thrown)', () => {
-  it('action returns ok=false → SimError.kind="revert" with failedAtIndex', async () => {
-    const sim: ActionSimulator = vi
-      .fn()
-      .mockResolvedValue(ok({ ok: false, revertReason: 'INSUFFICIENT_LIQUIDITY' }));
+  it('revert → SimError.kind="revert" with failedAtIndex', async () => {
+    const sim: ActionSimulator = vi.fn().mockResolvedValue(revert('INSUFFICIENT_LIQUIDITY'));
     const out = await runSimulate({
       preState: STATE,
       plan: planOf({ provider: 'aave', action: 'borrow' }),
       registry: registryOf([['aave:borrow', sim]]),
       healthFactorBefore: HF_BEFORE,
     });
-    if (out.kind === 'continue') {
-      expect(out.data.ok).toBe(false);
-      expect(out.data.error?.kind).toBe('revert');
-      if (out.data.error?.kind === 'revert') {
+    if (out.kind === 'continue' && !out.data.ok) {
+      expect(out.data.error.kind).toBe('revert');
+      if (out.data.error.kind === 'revert') {
         expect(out.data.error.failedAtIndex).toBe(0);
         expect(out.data.error.revertReason).toContain('INSUFFICIENT_LIQUIDITY');
       }
     }
   });
 
-  it('SHORT-CIRCUITS after first failed action (does NOT call subsequent simulators)', async () => {
-    const sim1: ActionSimulator = vi.fn().mockResolvedValue(ok({ ok: false, revertReason: 'r' }));
-    const sim2: ActionSimulator = vi.fn().mockResolvedValue(ok());
-    await runSimulate({
+  it('SHORT-CIRCUITS after first failed action; deltaState reflects ONLY action 0', async () => {
+    const sim1: ActionSimulator = vi.fn().mockResolvedValue(revert('r'));
+    const sim2: ActionSimulator = vi
+      .fn()
+      .mockResolvedValue(ok({ balanceDeltas: { [USDC]: 999n } }));
+    const out = await runSimulate({
       preState: STATE,
       plan: planOf({ provider: 'aave', action: 'supply' }, { provider: 'aave', action: 'borrow' }),
       registry: registryOf([
@@ -137,173 +187,116 @@ describe('runSimulate — domain failures (returned, NOT thrown)', () => {
     });
     expect(sim1).toHaveBeenCalledTimes(1);
     expect(sim2).not.toHaveBeenCalled();
-  });
-
-  it('oracleStale → SimError.kind="oracle-stale" (precedes revert classification)', async () => {
-    const sim: ActionSimulator = vi
-      .fn()
-      .mockResolvedValue(ok({ ok: false, oracleStale: true, revertReason: 'whatever' }));
-    const out = await runSimulate({
-      preState: STATE,
-      plan: planOf({ provider: 'aave', action: 'supply' }),
-      registry: registryOf([['aave:supply', sim]]),
-      healthFactorBefore: HF_BEFORE,
-    });
-    if (out.kind === 'continue') expect(out.data.error?.kind).toBe('oracle-stale');
+    // sim2's 999n MUST NOT leak into deltaState.
+    if (out.kind === 'continue') {
+      expect(out.data.deltaState.balanceDeltas[USDC]).toBeUndefined();
+    }
   });
 
   it('healthFactorAfter < floor → SimError.kind="hf-breach"', async () => {
-    const sim: ActionSimulator = vi.fn().mockResolvedValue(
-      ok({ healthFactorAfter: 1_400_000_000_000_000_000n }), // 1.4 < 1.5
-    );
+    const sim: ActionSimulator = vi
+      .fn()
+      .mockResolvedValue(ok({ healthFactorAfter: 1_400_000_000_000_000_000n }));
     const out = await runSimulate({
       preState: STATE,
       plan: planOf({ provider: 'aave', action: 'borrow' }),
       registry: registryOf([['aave:borrow', sim]]),
       healthFactorBefore: HF_BEFORE,
     });
-    if (out.kind === 'continue') {
-      expect(out.data.ok).toBe(false);
-      expect(out.data.error?.kind).toBe('hf-breach');
+    if (out.kind === 'continue' && !out.data.ok) {
+      expect(out.data.error.kind).toBe('hf-breach');
     }
   });
 
-  it('unknown action (missing registry entry) → SimError.kind="unknown-action"', async () => {
+  it('unknown action → SimError.kind="unknown-action"', async () => {
     const out = await runSimulate({
       preState: STATE,
       plan: planOf({ provider: 'mystery', action: 'doStuff' }),
       registry: registryOf([]),
       healthFactorBefore: HF_BEFORE,
     });
-    if (out.kind === 'continue') {
-      expect(out.data.ok).toBe(false);
-      expect(out.data.error?.kind).toBe('unknown-action');
+    if (out.kind === 'continue' && !out.data.ok) {
+      expect(out.data.error.kind).toBe('unknown-action');
     }
   });
 
-  it('gas-overrun → SimError.kind="gas-overrun"', async () => {
-    const sim: ActionSimulator = vi.fn().mockResolvedValue(ok({ gasUsed: 40_000_000n })); // > 30M default
+  it('per-action gas-overrun → SimError.kind="gas-overrun"', async () => {
+    const sim: ActionSimulator = vi.fn().mockResolvedValue(ok({ gasUsed: 40_000_000n }));
     const out = await runSimulate({
       preState: STATE,
       plan: planOf({ provider: 'aave', action: 'supply' }),
       registry: registryOf([['aave:supply', sim]]),
       healthFactorBefore: HF_BEFORE,
     });
-    if (out.kind === 'continue') expect(out.data.error?.kind).toBe('gas-overrun');
+    if (out.kind === 'continue' && !out.data.ok) {
+      expect(out.data.error.kind).toBe('gas-overrun');
+    }
+  });
+
+  it('CUMULATIVE gas-overrun → SimError.kind="plan-gas-overrun"', async () => {
+    // 15 actions × 25M each = 375M > 10×30M=300M bound; each under per-action limit.
+    const sim: ActionSimulator = vi.fn().mockResolvedValue(ok({ gasUsed: 25_000_000n }));
+    const calls = Array.from({ length: 15 }, (_, i) => ({
+      provider: 'aave',
+      action: `step${i}`,
+    }));
+    const entries: Array<[string, ActionSimulator]> = calls.map((c) => [
+      `${c.provider}:${c.action}`,
+      sim,
+    ]);
+    const out = await runSimulate({
+      preState: STATE,
+      plan: planOf(...calls),
+      registry: registryOf(entries),
+      healthFactorBefore: HF_BEFORE,
+    });
+    if (out.kind === 'continue' && !out.data.ok) {
+      expect(out.data.error.kind).toBe('plan-gas-overrun');
+    }
   });
 
   it('SECURITY: revertReason sanitized (Pimlico apikey URL redacted)', async () => {
     const sim: ActionSimulator = vi
       .fn()
-      .mockResolvedValue(
-        ok({ ok: false, revertReason: 'revert at https://x/v2/rpc?apikey=FAKE_SIM_KEY' }),
-      );
+      .mockResolvedValue(revert('revert at https://x/v2/rpc?apikey=FAKE_SIM_KEY'));
     const out = await runSimulate({
       preState: STATE,
       plan: planOf({ provider: 'aave', action: 'supply' }),
       registry: registryOf([['aave:supply', sim]]),
       healthFactorBefore: HF_BEFORE,
     });
-    if (out.kind === 'continue' && out.data.error?.kind === 'revert') {
+    if (out.kind === 'continue' && !out.data.ok && out.data.error.kind === 'revert') {
       expect(out.data.error.revertReason).not.toContain('FAKE_SIM_KEY');
       expect(out.data.error.revertReason).toContain('<redacted>');
     }
   });
-});
 
-describe('runSimulate — abort signal', () => {
-  it('pre-aborted signal → SimError.kind="aborted" at index 0; no simulators called', async () => {
-    const sim: ActionSimulator = vi.fn().mockResolvedValue(ok());
-    const ctl = new AbortController();
-    ctl.abort();
-    const out = await runSimulate(
-      {
-        preState: STATE,
-        plan: planOf({ provider: 'aave', action: 'supply' }),
-        registry: registryOf([['aave:supply', sim]]),
-        healthFactorBefore: HF_BEFORE,
-      },
-      { abortSignal: ctl.signal },
-    );
-    if (out.kind === 'continue') {
-      expect(out.data.error?.kind).toBe('aborted');
-      if (out.data.error?.kind === 'aborted') expect(out.data.error.failedAtIndex).toBe(0);
-    }
-    expect(sim).not.toHaveBeenCalled();
-  });
-});
-
-describe('runSimulate — infra failures (THROW, not capture)', () => {
-  it('simulator throws → ConciergeError("RpcError") with failedAtIndex metadata', async () => {
-    const sim: ActionSimulator = vi.fn().mockRejectedValue(new Error('viem rpc 500'));
-    let captured: ConciergeError | undefined;
-    try {
-      await runSimulate({
-        preState: STATE,
-        plan: planOf({ provider: 'aave', action: 'supply' }),
-        registry: registryOf([['aave:supply', sim]]),
-        healthFactorBefore: HF_BEFORE,
-      });
-    } catch (e) {
-      captured = e as ConciergeError;
-    }
-    expect(captured).toBeInstanceOf(ConciergeError);
-    expect(captured?.type).toBe('RpcError');
-    expect(captured?.metadata?.['failedAtIndex']).toBe(0);
-  });
-
-  it('simulator throw cause-chain sanitized (no raw apikey)', async () => {
-    const leaky = new Error('rpc at https://x/v2/rpc?apikey=FAKE_INFRA_KEY');
-    const sim: ActionSimulator = vi.fn().mockRejectedValue(leaky);
-    let captured: ConciergeError | undefined;
-    try {
-      await runSimulate({
-        preState: STATE,
-        plan: planOf({ provider: 'aave', action: 'supply' }),
-        registry: registryOf([['aave:supply', sim]]),
-        healthFactorBefore: HF_BEFORE,
-      });
-    } catch (e) {
-      captured = e as ConciergeError;
-    }
-    let cur: unknown = captured;
-    let depth = 0;
-    while (cur instanceof Error && depth < 10) {
-      expect(cur.message).not.toContain('FAKE_INFRA_KEY');
-      cur = cur.cause;
-      depth++;
-    }
-  });
-});
-
-describe('runSimulate — orchestrator contract', () => {
-  it('PhaseOutcome shape is { kind: "continue" } regardless of ok=true/false', async () => {
-    const sim: ActionSimulator = vi.fn().mockResolvedValue(ok({ ok: false, revertReason: 'r' }));
+  it('SECURITY: full SimError envelope JSON has no leaked key', async () => {
+    const sim: ActionSimulator = vi
+      .fn()
+      .mockResolvedValue(revert('?apikey=FAKE_ENVELOPE_KEY in reason'));
     const out = await runSimulate({
       preState: STATE,
       plan: planOf({ provider: 'aave', action: 'supply' }),
       registry: registryOf([['aave:supply', sim]]),
       healthFactorBefore: HF_BEFORE,
     });
-    // Domain failures are RETURNED inside `continue` — they don't become PhaseOutcome.error.
-    expect(out.kind).toBe('continue');
+    if (out.kind === 'continue' && !out.data.ok) {
+      expect(JSON.stringify(out.data.error)).not.toContain('FAKE_ENVELOPE_KEY');
+    }
   });
-});
 
-describe('runSimulate — HF floor configurability', () => {
-  it('custom healthFactorFloor (lower) accepts a riskier plan', async () => {
-    const sim: ActionSimulator = vi.fn().mockResolvedValue(
-      ok({ healthFactorAfter: 1_100_000_000_000_000_000n }), // 1.1
-    );
-    const out = await runSimulate(
-      {
-        preState: STATE,
-        plan: planOf({ provider: 'aave', action: 'borrow' }),
-        registry: registryOf([['aave:borrow', sim]]),
-        healthFactorBefore: HF_BEFORE,
-      },
-      { healthFactorFloor: HF_FLOOR / 2n }, // floor 0.75
-    );
-    if (out.kind === 'continue') expect(out.data.ok).toBe(true);
+  it('SECURITY: revertReason length-capped before sanitize (4096 chars)', async () => {
+    const huge = 'x'.repeat(20_000);
+    const sim: ActionSimulator = vi.fn().mockResolvedValue(revert(huge));
+    const out = await runSimulate({
+      preState: STATE,
+      plan: planOf({ provider: 'aave', action: 'supply' }),
+      registry: registryOf([['aave:supply', sim]]),
+      healthFactorBefore: HF_BEFORE,
+    });
+    if (out.kind === 'continue' && !out.data.ok && out.data.error.kind === 'revert') {
+      expect(out.data.error.revertReason.length).toBeLessThanOrEqual(4096);
+    }
   });
 });

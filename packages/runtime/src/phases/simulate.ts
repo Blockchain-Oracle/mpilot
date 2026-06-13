@@ -1,89 +1,127 @@
 import { ConciergeError } from '@concierge/sdk';
-import { sanitizeError } from '../sanitize.ts';
+import { sanitizeError, sanitizeMessage } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome, Plan, Sim } from '../types.ts';
 import { type ActionSimResult, computeDeltaState, type DeltaState } from './deltaState.ts';
 
-/**
- * One provider's simulator for a SINGLE action descriptor. Returns the
- * predicted state delta + gas. Throws ONLY on infra failures (network /
- * malformed call) — on-chain reverts MUST be captured as `{ ok: false,
- * revertReason }`. This is the load-bearing invariant: simulate refuses
- * to throw on revert so the propose phase can render the revert reason
- * to the user instead of the tick aborting opaquely.
- */
+const IDENT_RE = /^[a-zA-Z0-9_-]+$/;
+const MAX_REVERT_REASON_LEN = 4096;
+const DEFAULT_HF_FLOOR = 1_500_000_000_000_000_000n; // 1.5e18
+const DEFAULT_BLOCK_GAS_LIMIT = 30_000_000n;
+const CUMULATIVE_GAS_BOUND_MULTIPLIER = 10n;
+const NEVER_ABORT = new AbortController().signal;
+
+/** Template-literal-typed registry key. Catches typos at the registry build site. */
+export type ProviderActionKey = `${string}:${string}`;
+export const providerActionKey = (provider: string, action: string): ProviderActionKey =>
+  `${provider}:${action}`;
+
 export type ActionSimulator = (
   preState: AgentState,
   args: Readonly<Record<string, unknown>>,
   signal: AbortSignal,
 ) => Promise<ActionSimResult>;
 
-/**
- * Registry keyed by `${provider}:${action}`. The DI shape — caller wires
- * up the concrete simulators per provider (stories 30/32/34 ship the
- * actual viem `simulateContract` calls). Tests inject stubs.
- */
-export type SimulatorRegistry = ReadonlyMap<string, ActionSimulator>;
+export type SimulatorRegistry = ReadonlyMap<ProviderActionKey, ActionSimulator>;
 
 /**
- * Discriminated SimError union. Operators dashboard each kind separately
- * because the response policy differs: `revert` retries with adjusted
- * args, `oracle-stale` waits for the next oracle update, `hf-breach`
- * tightens the plan, `unknown-action` is a registry wiring bug, `aborted`
- * means the orchestrator tick budget elapsed.
+ * Discriminated SimError union. Each kind drives a distinct operator response
+ * policy. `revert` retries with adjusted args; `oracle-stale` waits; `hf-breach`
+ * tightens; `unknown-action` is a wiring bug; `aborted` means the tick budget
+ * elapsed; `gas-overrun` and `plan-gas-overrun` are infra-side bounds.
  */
 export type SimError =
   | {
-      kind: 'revert';
-      failedAtIndex: number;
-      provider: string;
-      action: string;
-      revertReason: string;
+      readonly kind: 'revert';
+      readonly failedAtIndex: number;
+      readonly provider: string;
+      readonly action: string;
+      readonly revertReason: string;
     }
-  | { kind: 'oracle-stale'; failedAtIndex: number; provider: string; action: string }
-  | { kind: 'hf-breach'; healthFactorAfter: bigint; floor: bigint }
-  | { kind: 'unknown-action'; provider: string; action: string }
-  | { kind: 'gas-overrun'; failedAtIndex: number; gasUsed: bigint; blockGasLimit: bigint }
-  | { kind: 'aborted'; failedAtIndex: number };
+  | {
+      readonly kind: 'oracle-stale';
+      readonly failedAtIndex: number;
+      readonly provider: string;
+      readonly action: string;
+    }
+  | { readonly kind: 'hf-breach'; readonly healthFactorAfter: bigint; readonly floor: bigint }
+  | { readonly kind: 'unknown-action'; readonly provider: string; readonly action: string }
+  | {
+      readonly kind: 'gas-overrun';
+      readonly failedAtIndex: number;
+      readonly gasUsed: bigint;
+      readonly blockGasLimit: bigint;
+    }
+  | {
+      readonly kind: 'plan-gas-overrun';
+      readonly totalGas: bigint;
+      readonly bound: bigint;
+    }
+  | {
+      readonly kind: 'aborted';
+      readonly failedAtIndex: number;
+      readonly provider?: string;
+      readonly action?: string;
+    };
 
 export interface RunSimulateInputs {
   readonly preState: AgentState;
   readonly plan: Plan;
   readonly registry: SimulatorRegistry;
-  /** Initial HF before any plan action — read once at the tick boundary. */
   readonly healthFactorBefore: bigint;
 }
 
 export interface RunSimulateOptions {
-  /**
-   * Minimum HF the plan must preserve (Aave scale, 1e18). Default 1.5e18.
-   * Plans whose predicted HF drops below this floor return `ok: false`.
-   */
   readonly healthFactorFloor?: bigint;
-  /** Block gas limit sanity bound. Default 30M (Mantle nominal). */
   readonly blockGasLimit?: bigint;
   readonly abortSignal?: AbortSignal;
 }
 
-export interface DetailedSim extends Sim {
-  /** Predicted delta — used by the propose phase to render the before/after view. */
-  readonly deltaState: DeltaState;
-  /** Discriminated failure cause (populated iff `ok === false`). */
-  readonly error?: SimError;
-}
-
-const DEFAULT_HF_FLOOR = 1_500_000_000_000_000_000n; // 1.5e18
-const DEFAULT_BLOCK_GAS_LIMIT = 30_000_000n;
+/**
+ * DetailedSim couples `error` to `ok` so a `false` ok cannot exist without a
+ * cause and `true` ok cannot carry one. The doc-only invariant from round-1
+ * is now a type-level invariant.
+ *
+ * `expectedValueDeltaUsd: null` is the EXPLICIT "not yet priced" signal —
+ * story-65 (propose) replaces with a number. `0` is a valid trade outcome
+ * (break-even) so we cannot use it as a sentinel.
+ */
+export type DetailedSim = Sim & { readonly expectedValueDeltaUsd: number | null } & (
+    | { readonly ok: true; readonly deltaState: DeltaState; readonly error?: never }
+    | { readonly ok: false; readonly deltaState: DeltaState; readonly error: SimError }
+  );
 
 /**
- * Simulate the plan's actions in order. Stops early on the FIRST failed
- * action (revert / oracle / gas-overrun / abort) — wasted simulation
- * gas is real money on a hosted RPC, and downstream actions are likely
- * predicated on the success of the failed one.
- *
- * Returns `{ ok: false, error }` for DOMAIN failures (revert, oracle,
- * HF, gas, abort) — these are recoverable, the propose phase shows the
- * user. THROWS only for INFRA failures the orchestrator should treat as
- * phase-level errors (simulator infra crash, malformed action descriptor).
+ * Sanitize a free-form string before it lands in logs or the SimError envelope.
+ * Bounds length BEFORE running the regex chain to avoid CPU DoS on a misbehaving
+ * simulator that returns a multi-MB string.
+ */
+function sanitizeReason(input: string): string {
+  return sanitizeError(input.slice(0, MAX_REVERT_REASON_LEN)).message;
+}
+
+/** Run simulator races against signal abort so a stuck simulator can't outrun the tick budget. */
+async function raceAgainstAbort<T>(worker: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) throw new Error('aborted');
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(new Error('aborted'));
+    signal.addEventListener('abort', onAbort, { once: true });
+    worker.then(
+      (v) => {
+        signal.removeEventListener('abort', onAbort);
+        resolve(v);
+      },
+      (e) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(e);
+      },
+    );
+  });
+}
+
+/**
+ * Simulate the plan's actions in order. Domain failures RETURNED (caller sees
+ * ok:false + error); INFRA failures (simulator crash, invariant violation)
+ * THROWN as ConciergeError.
  */
 export async function runSimulate(
   inputs: RunSimulateInputs,
@@ -91,70 +129,107 @@ export async function runSimulate(
 ): Promise<PhaseOutcome<DetailedSim>> {
   const floor = options.healthFactorFloor ?? DEFAULT_HF_FLOOR;
   const blockGasLimit = options.blockGasLimit ?? DEFAULT_BLOCK_GAS_LIMIT;
-  const signal = options.abortSignal ?? new AbortController().signal;
+  const cumulativeBound = blockGasLimit * CUMULATIVE_GAS_BOUND_MULTIPLIER;
+  const signal = options.abortSignal ?? NEVER_ABORT;
 
   const perAction: ActionSimResult[] = [];
   let totalGas = 0n;
   let error: SimError | undefined;
 
-  for (let i = 0; i < inputs.plan.providerCalls.length; i++) {
-    if (signal.aborted) {
-      error = { kind: 'aborted', failedAtIndex: i };
-      break;
+  for (const [i, call] of inputs.plan.providerCalls.entries()) {
+    // Defense-in-depth: a future non-runPlan plan ingress (story-300+) could
+    // bypass the Zod IDENT_RE gate. Re-assert at the boundary so the registry
+    // key construction can't be coerced.
+    if (!IDENT_RE.test(call.provider) || !IDENT_RE.test(call.action)) {
+      throw new ConciergeError(
+        'InvariantViolation',
+        `[@concierge/runtime] runSimulate: provider/action must match ${IDENT_RE.source} at index ${i}.`,
+      );
     }
-    const call = inputs.plan.providerCalls[i];
-    if (!call) continue;
-    const key = `${call.provider}:${call.action}`;
-    const simulator = inputs.registry.get(key);
-    if (!simulator) {
-      error = { kind: 'unknown-action', provider: call.provider, action: call.action };
+    const safeProvider = sanitizeMessage(call.provider);
+    const safeAction = sanitizeMessage(call.action);
+
+    if (signal.aborted) {
+      error = { kind: 'aborted', failedAtIndex: i, provider: safeProvider, action: safeAction };
       break;
     }
 
+    const key = providerActionKey(call.provider, call.action);
+    const simulator = inputs.registry.get(key);
+    if (!simulator) {
+      error = { kind: 'unknown-action', provider: safeProvider, action: safeAction };
+      break;
+    }
+
+    // Defense-in-depth against future non-Zod ingresses (CWE-1321): null-proto
+    // a shallow copy so a downstream simulator that does `{ ...args }` can't
+    // resurrect prototype pollution from a malicious args bag.
+    const safeArgs: Readonly<Record<string, unknown>> = Object.assign(
+      Object.create(null),
+      call.args ?? {},
+    );
+
     let result: ActionSimResult;
     try {
-      result = await simulator(
-        inputs.preState,
-        (call.args ?? {}) as Readonly<Record<string, unknown>>,
-        signal,
-      );
+      result = await raceAgainstAbort(simulator(inputs.preState, safeArgs, signal), signal);
     } catch (err) {
-      // Infra failure: the simulator itself crashed (network, malformed
-      // ABI, etc). Throw a typed error so the orchestrator's runPhase
-      // wraps it as { cause: 'thrown' } — distinct from domain reverts.
+      // Distinguish "we aborted" from "simulator threw infra error".
+      if (signal.aborted) {
+        error = { kind: 'aborted', failedAtIndex: i, provider: safeProvider, action: safeAction };
+        break;
+      }
       throw new ConciergeError(
         'RpcError',
         `[@concierge/runtime] runSimulate: simulator '${key}' threw: ${sanitizeError(err).message}`,
         sanitizeError(err),
-        { failedAtIndex: i, provider: call.provider, action: call.action },
+        { failedAtIndex: i, provider: safeProvider, action: safeAction },
       );
     }
     perAction.push(result);
     totalGas += result.gasUsed;
 
+    // ADR-008: stale oracle poisons the tick regardless of ok. Check FIRST.
+    const isStale = result.ok ? result.oracleStale : result.reason.kind === 'oracle-stale';
+    if (isStale) {
+      error = {
+        kind: 'oracle-stale',
+        failedAtIndex: i,
+        provider: safeProvider,
+        action: safeAction,
+      };
+      break;
+    }
+
     if (!result.ok) {
-      if (result.oracleStale) {
-        error = {
-          kind: 'oracle-stale',
-          failedAtIndex: i,
-          provider: call.provider,
-          action: call.action,
-        };
-      } else {
-        error = {
-          kind: 'revert',
-          failedAtIndex: i,
-          provider: call.provider,
-          action: call.action,
-          revertReason: sanitizeError(result.revertReason ?? 'unknown revert').message,
-        };
-      }
+      // After the oracle-stale check above, the only remaining failure shape
+      // is `revert`. The discriminated union guarantees a reason exists; if
+      // a buggy simulator emitted `{ok:false, reason:{kind:'oracle-stale'}}`
+      // we'd have caught it above.
+      error = {
+        kind: 'revert',
+        failedAtIndex: i,
+        provider: safeProvider,
+        action: safeAction,
+        revertReason: sanitizeReason(result.reason.revertReason),
+      };
       break;
     }
+
     if (result.gasUsed > blockGasLimit) {
-      error = { kind: 'gas-overrun', failedAtIndex: i, gasUsed: result.gasUsed, blockGasLimit };
+      error = {
+        kind: 'gas-overrun',
+        failedAtIndex: i,
+        gasUsed: result.gasUsed,
+        blockGasLimit,
+      };
       break;
     }
+  }
+
+  // Cumulative gas bound — a malformed simulator returning many sub-block-limit
+  // gas estimates could still sum to an absurd total (CWE-1284).
+  if (error === undefined && totalGas > cumulativeBound) {
+    error = { kind: 'plan-gas-overrun', totalGas, bound: cumulativeBound };
   }
 
   const deltaState = computeDeltaState({
@@ -162,26 +237,32 @@ export async function runSimulate(
     perAction,
   });
 
-  // HF floor check runs LAST (only meaningful if no upstream failure).
+  // HF floor check runs LAST — precedence note: gas/revert/oracle errors
+  // surface first because they mean "tx won't even land", whereas hf-breach
+  // means "tx lands but unsafe to user".
   if (error === undefined && deltaState.healthFactorAfter < floor) {
-    error = {
-      kind: 'hf-breach',
-      healthFactorAfter: deltaState.healthFactorAfter,
-      floor,
-    };
+    error = { kind: 'hf-breach', healthFactorAfter: deltaState.healthFactorAfter, floor };
   }
 
   const ok = error === undefined;
   const warnings: string[] = [];
   if (deltaState.oracleChecks.stale) warnings.push('oracle-stale-detected');
 
-  const sim: DetailedSim = {
-    ok,
-    gasEstimateWei: totalGas,
-    expectedValueDeltaUsd: 0, // populated in story-65 (propose) via USD pricing
-    warnings,
-    deltaState,
-    ...(error !== undefined && { error }),
-  };
+  const sim = ok
+    ? ({
+        ok: true,
+        gasEstimateWei: totalGas,
+        expectedValueDeltaUsd: null,
+        warnings,
+        deltaState,
+      } as DetailedSim)
+    : ({
+        ok: false,
+        gasEstimateWei: totalGas,
+        expectedValueDeltaUsd: null,
+        warnings,
+        deltaState,
+        error: error as SimError,
+      } as DetailedSim);
   return { kind: 'continue', data: sim };
 }
