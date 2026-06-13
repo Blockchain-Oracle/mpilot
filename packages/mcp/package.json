@@ -57,7 +57,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepack": "pnpm run build",
-    "prepublishOnly": "node -e \"const v=require('./package.json').version; const pre=/-(rc|beta|alpha|next)/i.test(v); const tag=process.env.npm_config_tag; if (pre && tag !== 'next') { console.error('[concierge-mcp] FATAL: prerelease '+v+' must be published with --tag next (got tag='+(tag||'latest')+'). Refusing to clobber the latest dist-tag.'); process.exit(1); }\""
+    "prepublishOnly": "node -e \"const fs=require('node:fs');const v=JSON.parse(fs.readFileSync('./package.json','utf8')).version;const stable=/^\\\\d+\\\\.\\\\d+\\\\.\\\\d+$/.test(v);const tag=process.env.npm_config_tag;if(!stable&&tag!=='next'){console.error('[concierge-mcp] FATAL: non-stable version '+v+' must be published with --tag next (got tag='+(tag||'latest')+'). Refusing to clobber the latest dist-tag.');process.exit(1)}\""
   },
   "dependencies": {
     "@concierge/shared": "workspace:*",

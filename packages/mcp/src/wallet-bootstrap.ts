@@ -4,21 +4,32 @@
 // Elicitation `mode: 'url'`) lands later and overwrites the ephemeral key.
 
 import { randomBytes } from 'node:crypto';
-import { chmodSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  renameSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 
 const DEFAULT_RPC_URL = 'https://rpc.mantle.xyz';
 const DEFAULT_CHAIN_ID = 5000; // Mantle Mainnet
 
-/** Round-1 silent-failure HIGH fix: map AI_MODEL prefix → required env var. */
 const PROVIDER_KEY_MAP: Readonly<Record<string, string>> = {
   anthropic: 'ANTHROPIC_API_KEY',
   openai: 'OPENAI_API_KEY',
   google: 'GOOGLE_GENERATIVE_AI_API_KEY',
   xai: 'XAI_API_KEY',
 };
-const ALL_PROVIDER_KEYS: ReadonlyArray<string> = Object.values(PROVIDER_KEY_MAP);
+
+/** Round-2 CWE-345: only http(s) origins; no quotes/newlines that could
+ *  inject hostile JSON or be smuggled past downstream consumers. */
+const RPC_URL_RE = /^https?:\/\/[A-Za-z0-9.-]+(:[0-9]{1,5})?(\/[A-Za-z0-9._~/-]*)?$/;
 
 export interface WalletConfig {
   /** Hex 32-byte private key (ephemeral; not bound to an on-chain agent yet). */
@@ -31,13 +42,9 @@ export interface WalletConfig {
 }
 
 export interface BootstrapOpts {
-  /** Override the config path (defaults to ~/.concierge/config.json). */
   readonly configPath?: string;
-  /** Override the RPC URL (env: CONCIERGE_RPC_URL). */
   readonly rpcUrl?: string;
-  /** Override the chain id (default 5000 — Mantle Mainnet). */
   readonly chainId?: number;
-  /** Now-source for createdAt — tests inject a fixed source. */
   readonly now?: () => string;
 }
 
@@ -46,73 +53,125 @@ export function defaultConfigPath(): string {
 }
 
 /**
- * Load existing wallet config or generate + persist a fresh one. Idempotent
- * and ATOMIC: uses `open(O_WRONLY|O_CREAT|O_EXCL)` so two parallel bin
- * invocations (Claude Desktop + Cursor first-launch race) can't both
- * generate over each other. The loser of the race re-reads.
+ * Load existing wallet config or generate + persist a fresh one. Atomic via
+ * tmp+rename so a crash between `openSync` and `writeFileSync` can't leave
+ * an empty file that bricks subsequent runs (round-2 code IMPORTANT).
  *
- * A malformed config file THROWS rather than silently regenerating — the
- * file might hold the user's real session key from story-138's import flow.
+ * Idempotent on second call: returns the on-disk config. Throws on malformed
+ * shape — the file might hold the user's real session key from story-138.
  */
 export function bootstrapWallet(opts: BootstrapOpts = {}): WalletConfig {
   const configPath = opts.configPath ?? defaultConfigPath();
 
-  // Fast path: file already exists, parse + return.
   const existing = tryReadConfig(configPath);
   if (existing !== null) return existing;
 
-  // Round-1: only chmod the dedicated dir when it was newly created here.
-  // If `configPath` is overridden to a nested path (tests, custom hosts),
-  // we still need the parent to exist but won't tighten an unrelated dir.
   const dir = dirname(configPath);
-  const dirExistedBefore = existsSync(dir);
-  mkdirSync(dir, { recursive: true, mode: 0o700 });
-  if (!dirExistedBefore) {
-    chmodSync(dir, 0o700);
-  }
+  ensureDirPerms(dir);
 
   const now = opts.now ?? (() => new Date().toISOString());
+  const rpcUrl = opts.rpcUrl ?? process.env['CONCIERGE_RPC_URL'] ?? DEFAULT_RPC_URL;
+  if (!RPC_URL_RE.test(rpcUrl)) {
+    throw new Error(
+      `[@concierge/mcp] wallet-bootstrap: CONCIERGE_RPC_URL has hostile shape (got '${rpcUrl.slice(0, 64)}'). Expected http(s) origin.`,
+    );
+  }
+
   const fresh: WalletConfig = {
     sessionKey: generateSessionKey(),
-    rpcUrl: opts.rpcUrl ?? process.env['CONCIERGE_RPC_URL'] ?? DEFAULT_RPC_URL,
+    rpcUrl,
     chainId: opts.chainId ?? DEFAULT_CHAIN_ID,
     agentId: null,
     createdAt: now(),
   };
   const serialized = `${JSON.stringify(fresh, null, 2)}\n`;
 
-  // Round-1 CRITICAL (TOCTOU): atomic create. wx mode (O_WRONLY|O_CREAT|O_EXCL)
-  // FAILS with EEXIST if another process wrote between our existsSync and
-  // here — we then re-read THEIR config rather than overwriting (which would
-  // discard a possibly-imported real session key from story-138 later).
+  // Round-2 IMPORTANT (atomicity): tmp+rename. openSync(wx) on the tmp gives
+  // us O_EXCL semantics for the create race; rename publishes atomically.
+  // A crash before rename leaves a stray tmp file (cleaned on next attempt)
+  // rather than an empty config that bricks the bin.
+  const tmpPath = `${configPath}.tmp-${process.pid}-${randomBytes(4).toString('hex')}`;
   try {
-    const fd = openSync(configPath, 'wx', 0o600);
+    const fd = openSync(tmpPath, 'wx', 0o600);
     writeFileSync(fd, serialized);
+    chmodSync(tmpPath, 0o600);
+    try {
+      renameSync(tmpPath, configPath);
+    } catch (renameErr) {
+      const e = renameErr as NodeJS.ErrnoException;
+      // EEXIST on rename → another process won the race AFTER we wrote our
+      // tmp. Clean up + re-read the winner's config.
+      if (e.code === 'EEXIST' || e.code === 'ENOTEMPTY') {
+        safeUnlink(tmpPath);
+        const winner = tryReadConfig(configPath);
+        if (winner !== null) return winner;
+        throw wrapWalletErr(e, 'rename winner-config tmp → final', configPath);
+      }
+      safeUnlink(tmpPath);
+      throw wrapWalletErr(e, 'rename tmp → final', configPath);
+    }
     chmodSync(configPath, 0o600);
     return fresh;
   } catch (err) {
-    const e = err as NodeJS.ErrnoException;
-    if (e.code === 'EEXIST') {
-      const winnerConfig = tryReadConfig(configPath);
-      if (winnerConfig !== null) return winnerConfig;
-      throw new Error(
-        `[@concierge/mcp] wallet-bootstrap: race winner wrote a malformed config at ${configPath}. Refusing to overwrite.`,
+    // Round-2 silent-failure MEDIUM: thin context on EROFS/EACCES. Wrap with
+    // wallet-bootstrap prefix + path so the user knows the failure layer.
+    safeUnlink(tmpPath);
+    if (err instanceof Error && err.message.startsWith('[@concierge/mcp]')) throw err;
+    throw wrapWalletErr(err, 'create config', configPath);
+  }
+}
+
+function wrapWalletErr(err: unknown, op: string, path: string): Error {
+  const code = (err as NodeJS.ErrnoException).code ?? 'unknown';
+  const msg = err instanceof Error ? err.message : String(err);
+  return new Error(`[@concierge/mcp] wallet-bootstrap: ${op} at ${path} failed (${code}): ${msg}`);
+}
+
+function safeUnlink(path: string): void {
+  try {
+    unlinkSync(path);
+  } catch {
+    /* tmp may not exist if openSync itself failed */
+  }
+}
+
+/**
+ * Round-2 silent-failure HIGH: round-1 only tightened newly-created dirs.
+ * A stale 0755 ~/.concierge from a prior install would silently permit
+ * world-listing of future story-138 artifacts. Now: always stat + tighten +
+ * stderr-warn if the directory had loose group/other bits.
+ */
+function ensureDirPerms(dir: string): void {
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  let mode: number;
+  try {
+    mode = statSync(dir).mode & 0o777;
+  } catch {
+    chmodSync(dir, 0o700);
+    return;
+  }
+  if ((mode & 0o077) !== 0) {
+    try {
+      process.stderr.write(
+        `[concierge-mcp] WARNING: tightening ${dir} permissions from 0${mode.toString(8)} to 0700 (group/other bits were set).\n`,
       );
+    } catch {
+      /* stderr closed; skip log */
     }
-    throw err;
+    chmodSync(dir, 0o700);
+  } else if (mode !== 0o700) {
+    chmodSync(dir, 0o700);
   }
 }
 
 function tryReadConfig(configPath: string): WalletConfig | null {
-  // Round-1 (silent-failure #1 cosmetic): single try/catch on read avoids the
-  // existsSync→readFileSync TOCTOU. ENOENT → null; other errors propagate.
   let raw: string;
   try {
     raw = readFileSync(configPath, 'utf-8');
   } catch (err) {
     const e = err as NodeJS.ErrnoException;
     if (e.code === 'ENOENT') return null;
-    throw err;
+    throw wrapWalletErr(e, 'read config', configPath);
   }
   const parsed = parseConfig(raw);
   if (parsed === null) {
@@ -143,6 +202,9 @@ function parseConfig(raw: string): WalletConfig | null {
   const createdAt = obj['createdAt'];
   if (typeof sessionKey !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(sessionKey)) return null;
   if (typeof rpcUrl !== 'string') return null;
+  // Round-2 CWE-345: validate rpcUrl shape so a winner-config race injection
+  // can't redirect chain reads to attacker infra.
+  if (!RPC_URL_RE.test(rpcUrl)) return null;
   if (typeof chainId !== 'number' || !Number.isInteger(chainId)) return null;
   if (agentId !== null && typeof agentId !== 'string') return null;
   if (typeof createdAt !== 'string') return null;
@@ -156,10 +218,8 @@ function parseConfig(raw: string): WalletConfig | null {
 }
 
 /**
- * Round-1 silent-failure HIGH fix: if AI_MODEL is set, require the MATCHING
- * provider key, not just any key. Round-0 returned silently when AI_MODEL was
- * set, deferring "no OPENAI_API_KEY" crashes to first inference — false
- * assurance.
+ * If AI_MODEL is set, require the MATCHING provider key (round-1). Else any
+ * provider key suffices and the default model is anthropic.
  *
  * Exit code 2 + stderr message. Stdout stays clean (reserved for MCP).
  */
@@ -185,10 +245,11 @@ export function assertModelEnvOrExit(): void {
     return;
   }
 
-  // No AI_MODEL — any provider key suffices, default model is anthropic.
-  if (ALL_PROVIDER_KEYS.some((k) => (process.env[k] ?? '') !== '')) return;
+  // Round-2 simplification: inline Object.values; drop the ALL_PROVIDER_KEYS cache.
+  const keys = Object.values(PROVIDER_KEY_MAP);
+  if (keys.some((k) => (process.env[k] ?? '') !== '')) return;
   process.stderr.write(
-    `[concierge-mcp] FATAL: no AI model configured. Set one of ${ALL_PROVIDER_KEYS.join(' / ')} or AI_MODEL="provider:model".\n`,
+    `[concierge-mcp] FATAL: no AI model configured. Set one of ${keys.join(' / ')} or AI_MODEL="provider:model".\n`,
   );
   process.exit(2);
 }

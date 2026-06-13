@@ -1,7 +1,11 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 import {
   assertModelEnvOrExit,
   bootstrapWallet,
@@ -236,6 +240,23 @@ describe('assertModelEnvOrExit', () => {
     const calls = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
     expect(calls).toContain('unknown provider');
     expect(calls).toContain('mistral');
+  });
+
+  it('round-2: AI_MODEL no-colon edge (just "openai") still maps to OPENAI_API_KEY check', () => {
+    // The model-id portion is degenerate but the provider is unambiguous;
+    // we MUST require OPENAI_API_KEY rather than silently passing.
+    vi.stubEnv('AI_MODEL', 'openai');
+    expect(() => assertModelEnvOrExit()).toThrow('exit-2');
+    const calls = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
+    expect(calls).toContain('OPENAI_API_KEY');
+  });
+
+  it('round-2: AI_MODEL="openai:gpt-5.1" + BOTH anthropic+openai keys set → silent pass (openai check wins)', () => {
+    vi.stubEnv('AI_MODEL', 'openai:gpt-5.1');
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test');
+    vi.stubEnv('OPENAI_API_KEY', 'sk-openai-test');
+    expect(() => assertModelEnvOrExit()).not.toThrow();
+    expect(stderrSpy).not.toHaveBeenCalled();
   });
 
   it('returns silently for each of the 4 supported provider keys', () => {
