@@ -1,9 +1,17 @@
 import { ConciergeError } from '@concierge/sdk';
 import { computeFeedbackPair } from './hash.ts';
 import { type PinFeedbackDeps, type PinFeedbackResult, pinFeedback } from './pin.ts';
+import { isValidCid } from './pinService.ts';
 import { type FeedbackEnvelope, parseFeedbackEnvelope, type SchemaId } from './schema.ts';
 
 const DATAURI_PREFIX = 'ipfs://';
+const UINT256_DECIMAL_RE = /^[0-9]+$/;
+const DEFAULT_ATTEST_TIMEOUT_MS = 60_000;
+
+function stripCtrl(s: string): string {
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: CWE-117 mitigation
+  return s.replace(/[\u0000-\u001f\u007f]/g, '?');
+}
 
 /**
  * Pre-computed dataHash + dataURI write to the ReputationRegistry. Matches
@@ -54,6 +62,8 @@ export interface WriteAttestationResult {
   readonly attestationUid: string;
   readonly cid: string;
   readonly hash: `0x${string}`;
+  /** Canonical JSON bytes — same string that was pinned to IPFS; the keccak preimage. */
+  readonly canonical: string;
   readonly onChainTxHash: `0x${string}`;
   readonly dataURI: string;
   readonly pin: PinFeedbackResult;
@@ -80,9 +90,23 @@ export async function writeAttestation(
   inputs: WriteAttestationInputs,
   deps: WriteAttestationDeps,
 ): Promise<WriteAttestationResult> {
-  const started = (deps.now ?? (() => new Date()))();
+  const now = deps.now ?? (() => new Date());
+  const started = now();
 
-  // Step 1: validate envelope at the boundary — Zod throws BEFORE any IO.
+  // Round-1 CRITICAL fail-fast: agentId MUST be a uint256-shaped decimal
+  // string. BigInt('agent-1') throws raw SyntaxError mid-pipeline — AFTER
+  // a successful pin — which round-0 misclassified as AttestationFailed.
+  // Surface as ConfigError BEFORE any IO.
+  if (!UINT256_DECIMAL_RE.test(inputs.agentId)) {
+    throw new ConciergeError(
+      'ConfigError',
+      `[@concierge/attestation] writeAttestation: agentId must be a uint256 decimal string (got '${stripCtrl(inputs.agentId).slice(0, 64)}').`,
+    );
+  }
+
+  // Step 1: validate envelope at the boundary. Wrap ZodError in
+  // ConciergeError so the caller's record() phase can type-discriminate
+  // (round-1 silent-failure #4: raw Zod escaped the public surface).
   const envelope: FeedbackEnvelope = {
     v: 1,
     schema: inputs.providerSchema,
@@ -92,20 +116,40 @@ export async function writeAttestation(
     payload: inputs.payload,
     createdAt: inputs.createdAt,
   };
-  parseFeedbackEnvelope(envelope);
+  try {
+    parseFeedbackEnvelope(envelope);
+  } catch (err) {
+    // parseFeedbackEnvelope rethrows ZodError as plain Error with control
+    // chars already stripped (story-80 round-2). Wrap any error here in
+    // ConfigError so callers can type-discriminate on the public surface.
+    if (err instanceof ConciergeError) throw err;
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new ConciergeError(
+      'ConfigError',
+      `[@concierge/attestation] writeAttestation: envelope validation failed: ${stripCtrl(msg).slice(0, 2048)}`,
+    );
+  }
 
   // Step 2: canonical bytes + hash, ONE pass (avoids double canonicalize).
   const { hash, canonical } = computeFeedbackPair(envelope);
 
   // Step 3: pin BEFORE on-chain tx. If pin fails (IPFSPinFailed) we throw
   // here — the on-chain reference would point to non-existent content
-  // otherwise. The cidDivergence flag from story-81 round-1 surfaces in
-  // the PinFeedbackResult for the caller's audit row.
-  const pinDeps: PinFeedbackDeps =
-    deps.signal !== undefined ? { ...deps.pinDeps, signal: deps.signal } : deps.pinDeps;
+  // otherwise.
+  const signal = deps.signal ?? AbortSignal.timeout(DEFAULT_ATTEST_TIMEOUT_MS);
+  const pinDeps: PinFeedbackDeps = { ...deps.pinDeps, signal };
   const pin = await pinFeedback(envelope, pinDeps);
+
+  // Round-1 defense-in-depth (security CWE-20 info): assert the CID still
+  // passes the validator BEFORE we string-concat into dataURI. If the
+  // CIDv1 regex is ever loosened upstream, this catches the regression.
+  if (!isValidCid(pin.cid)) {
+    throw new ConciergeError(
+      'InvariantViolation',
+      `[@concierge/attestation] writeAttestation: pinService returned a CID that failed isValidCid post-pin: '${stripCtrl(pin.cid).slice(0, 128)}'.`,
+    );
+  }
   const dataURI = `${DATAURI_PREFIX}${pin.cid}`;
-  void canonical; // unused — kept in scope for future debugger inspection
 
   // Step 4: on-chain giveFeedback. Failure here does NOT rollback the pin —
   // the CID is permanent on IPFS regardless, and re-pinning is idempotent.
@@ -116,25 +160,35 @@ export async function writeAttestation(
       providerSchema: inputs.providerSchema,
       dataHash: hash,
       dataURI,
-      signal: deps.signal ?? new AbortController().signal,
+      signal,
     });
   } catch (err) {
-    // AttestationFailed: on-chain side failed; pin is still valid for retry.
+    // Round-1 fix: orphan-pin observability — surface the orphan CID in
+    // the log so reconcile workers can match Pinata billing to on-chain
+    // attestations.
     deps.logger?.error(
-      { agentId: inputs.agentId, hash, cid: pin.cid, dataURI },
-      'writeAttestation: on-chain giveFeedback failed (pin remains valid)',
+      {
+        agentId: inputs.agentId,
+        hash,
+        orphanCid: pin.cid,
+        dataURI,
+        errName: err instanceof Error ? err.name : 'unknown',
+        errMessage:
+          err instanceof Error ? stripCtrl(err.message).slice(0, 512) : String(err).slice(0, 512),
+      },
+      'writeAttestation: on-chain giveFeedback failed (pin orphaned but content-addressed; safe to retry)',
     );
     if (err instanceof ConciergeError) throw err;
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = err instanceof Error ? stripCtrl(err.message).slice(0, 512) : String(err);
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge/attestation] writeAttestation: giveFeedback failed AFTER successful pin (cid=${pin.cid}): ${msg.slice(0, 512)}`,
+      `[@concierge/attestation] writeAttestation: giveFeedback failed AFTER successful pin (cid=${pin.cid}): ${msg}`,
       err instanceof Error ? err : undefined,
       { agentId: inputs.agentId, hash, cid: pin.cid, dataURI },
     );
   }
 
-  const durationMs = (deps.now ?? (() => new Date()))().getTime() - started.getTime();
+  const durationMs = now().getTime() - started.getTime();
   deps.logger?.info(
     {
       attestationUid: onChainResult.attestationUid,
@@ -152,6 +206,7 @@ export async function writeAttestation(
     attestationUid: onChainResult.attestationUid,
     cid: pin.cid,
     hash,
+    canonical,
     onChainTxHash: onChainResult.txHash,
     dataURI,
     pin,

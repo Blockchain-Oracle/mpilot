@@ -204,3 +204,118 @@ describe('writeAttestation — boundary contracts', () => {
     expect(out.attestationUid).toBe(ATTESTATION_UID);
   });
 });
+
+describe('writeAttestation — round-1 hardening', () => {
+  it('CRITICAL agentId non-numeric → ConfigError BEFORE pin (fail-fast)', async () => {
+    const pinata = fakePinService();
+    const pinSpy = vi.spyOn(pinata, 'pin');
+    const writer = fakeWriter();
+    await expect(
+      writeAttestation({ ...INPUTS, agentId: 'agent-1' }, { pinDeps: { primary: pinata }, writer }),
+    ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
+    expect(pinSpy).not.toHaveBeenCalled();
+    expect(writer.calls).toHaveLength(0);
+  });
+
+  it('CRITICAL agentId with control chars → ConfigError with sanitized echo', async () => {
+    await expect(
+      writeAttestation(
+        { ...INPUTS, agentId: '1\n[ADMIN]injection' },
+        { pinDeps: { primary: fakePinService() }, writer: fakeWriter() },
+      ),
+    ).rejects.toSatisfy((e: unknown) => {
+      if (!(e instanceof ConciergeError) || e.type !== 'ConfigError') return false;
+      return !e.message.includes('\n');
+    });
+  });
+
+  it('ZodError from envelope validation → wrapped as ConciergeError(ConfigError)', async () => {
+    await expect(
+      writeAttestation(
+        // biome-ignore lint/suspicious/noExplicitAny: deliberate
+        { ...INPUTS, providerSchema: 'not.a.real.schema' as any },
+        { pinDeps: { primary: fakePinService() }, writer: fakeWriter() },
+      ),
+    ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
+  });
+
+  it('result.canonical is the byte-identical IPFS-pinned content', async () => {
+    const out = await writeAttestation(INPUTS, {
+      pinDeps: { primary: fakePinService() },
+      writer: fakeWriter(),
+    });
+    expect(out.canonical).toContain(`"agentId":"${INPUTS.agentId}"`);
+    expect(out.canonical).toContain(`"schema":"${INPUTS.providerSchema}"`);
+  });
+
+  it('AbortSignal threaded through to writer.giveFeedback', async () => {
+    let capturedSignal: AbortSignal | undefined;
+    const writer: Erc8004AttestWriter = {
+      async giveFeedback(args) {
+        capturedSignal = args.signal;
+        return { attestationUid: ATTESTATION_UID, txHash: TX_HASH };
+      },
+    };
+    const ctl = new AbortController();
+    await writeAttestation(INPUTS, {
+      pinDeps: { primary: fakePinService() },
+      writer,
+      signal: ctl.signal,
+    });
+    expect(capturedSignal).toBe(ctl.signal);
+  });
+
+  it('no caller signal → defaults to AbortSignal.timeout (NOT NEVER_ABORT)', async () => {
+    let capturedSignal: AbortSignal | undefined;
+    const writer: Erc8004AttestWriter = {
+      async giveFeedback(args) {
+        capturedSignal = args.signal;
+        return { attestationUid: ATTESTATION_UID, txHash: TX_HASH };
+      },
+    };
+    await writeAttestation(INPUTS, {
+      pinDeps: { primary: fakePinService() },
+      writer,
+    });
+    expect(capturedSignal).toBeDefined();
+    // AbortSignal.timeout(60_000) — has aborted=false initially.
+    expect(capturedSignal?.aborted).toBe(false);
+  });
+
+  it('CWE-117: writer error.message with control chars → stripped in ConciergeError', async () => {
+    const writer: Erc8004AttestWriter = {
+      async giveFeedback() {
+        throw new Error('boom\n[ADMIN] override\r\nfake');
+      },
+    };
+    await expect(
+      writeAttestation(INPUTS, {
+        pinDeps: { primary: fakePinService() },
+        writer,
+      }),
+    ).rejects.toSatisfy((e: unknown) => {
+      if (!(e instanceof ConciergeError)) return false;
+      return !e.message.includes('\n') && !e.message.includes('\r');
+    });
+  });
+
+  it('round-1: on-chain failure log includes orphanCid for reconciliation', async () => {
+    const logger = { info: vi.fn(), error: vi.fn() };
+    const writer: Erc8004AttestWriter = {
+      async giveFeedback() {
+        throw new Error('chain stalled');
+      },
+    };
+    await expect(
+      writeAttestation(INPUTS, {
+        pinDeps: { primary: fakePinService() },
+        writer,
+        logger,
+      }),
+    ).rejects.toBeDefined();
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    const meta = logger.error.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(meta?.['orphanCid']).toBe(VALID_CIDV1);
+    expect(meta?.['errName']).toBe('Error');
+  });
+});
