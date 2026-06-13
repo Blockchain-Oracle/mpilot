@@ -420,11 +420,11 @@ stories:
     merged_at: "2026-06-12T21:18:00Z"
   - id: story-70-runtime-integration-tests
     epic: "Epic E5 — Agent Runtime"
-    status: IN_PROGRESS
+    status: COMPLETE
     depends_on: [story-67-tick-phase-record, story-68-bullmq-cron-worker]
     issue_url: ""
-    pr_url: ""
-    merged_at: ""
+    pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/114"
+    merged_at: "2026-06-13"
 
   # ─────────────────────────────────────────────────────────────────
   # Epic E6 — ERC-8004 Attestation Flow
