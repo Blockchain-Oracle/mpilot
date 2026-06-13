@@ -198,7 +198,7 @@ describe('revokeSessionKey (story-54)', () => {
 
   it('scrubLeakage redacts apiKey/token query params from retry errors before AggregateError', async () => {
     const leakyMsg =
-      'Pimlico 401 from https://api.pimlico.io/v2/mantle/rpc?apikey=pim_secret_abc123&otherparam=ok';
+      'Pimlico 401 from https://api.pimlico.io/v2/mantle/rpc?apikey=FAKE_TEST_FIXTURE_NOT_A_KEY&otherparam=ok';
     onChainRevoker.mockRejectedValue(new Error(leakyMsg));
     const { db } = makeDb([
       { id: SK_1, agentId: AGENT_ID, publicAddress: SK_ADDR_A, revokedAt: null },
@@ -218,7 +218,7 @@ describe('revokeSessionKey (story-54)', () => {
     const agg = captured?.cause as AggregateError;
     expect(agg).toBeInstanceOf(AggregateError);
     for (const e of agg.errors as Error[]) {
-      expect(e.message).not.toContain('pim_secret_abc123');
+      expect(e.message).not.toContain('FAKE_TEST_FIXTURE_NOT_A_KEY');
       expect(e.message).toContain('<redacted>');
       expect(e.message).toContain('otherparam=ok');
     }
