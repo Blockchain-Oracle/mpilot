@@ -24,6 +24,8 @@ export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];
  * connected browser. Keep field set minimal — full proposal is fetched from
  * the API by id when the user opens the card.
  */
+// Zod v4 `.uuid()` is version-strict; Postgres `uuid` column is the actual
+// gate. Use `.min(1)` here so v7/v8 UUIDs round-trip without re-tightening.
 export const proposalCreatedEventSchema = z.object({
   type: z.literal('proposal.created'),
   proposalId: z.string().min(1),

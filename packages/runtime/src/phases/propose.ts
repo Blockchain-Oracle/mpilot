@@ -19,6 +19,10 @@ const BPS_DENOMINATOR = 10_000n;
 const DEFAULT_PROPOSAL_TTL_MS = 60 * 60 * 1000;
 const KIND_SET: ReadonlySet<string> = new Set<string>(PROPOSAL_KINDS);
 const PROTOCOL_SET: ReadonlySet<string> = new Set<string>(PROPOSAL_PROTOCOLS);
+/** Channel-name safety (CWE-20 defense-in-depth) before Redis interpolation. */
+const USER_ID_RE = /^[a-zA-Z0-9_-]{1,128}$/;
+/** Postgres unique_violation SQLSTATE — the idempotence race signal. */
+const PG_UNIQUE_VIOLATION = '23505';
 
 export interface NewProposalRow {
   readonly agentId: string;
@@ -81,6 +85,18 @@ export interface RunProposeDeps {
  *   - projected HF within `hfBufferBps` of floor (near-liquidation)
  *   - caller flagged risk
  */
+/** Detect node-postgres `unique_violation`. `code` is sometimes a string, sometimes off `.cause`. */
+function isPgUniqueViolation(err: unknown): boolean {
+  if (err === null || typeof err !== 'object') return false;
+  const code = (err as { code?: unknown }).code;
+  if (code === PG_UNIQUE_VIOLATION) return true;
+  const cause = (err as { cause?: unknown }).cause;
+  if (cause !== null && typeof cause === 'object') {
+    if ((cause as { code?: unknown }).code === PG_UNIQUE_VIOLATION) return true;
+  }
+  return false;
+}
+
 export function decideRequiresApproval(args: {
   amountUsd: number;
   healthFactorAfter: bigint;
@@ -127,12 +143,45 @@ export async function runPropose(
       `[@concierge/runtime] runPropose: amountUsd must be finite and non-negative.`,
     );
   }
+  if (!USER_ID_RE.test(inputs.state.userId)) {
+    throw new ConciergeError(
+      'InvariantViolation',
+      `[@concierge/runtime] runPropose: userId must match ${USER_ID_RE.source}.`,
+    );
+  }
 
   const policy = deps.policy ?? {};
   const thresholdUSD = policy.autoApprovalThresholdUSD ?? DEFAULT_AUTO_APPROVAL_USD;
   const hfFloor = policy.hfFloor ?? DEFAULT_HF_FLOOR;
   const hfBufferBps = policy.hfBufferBps ?? DEFAULT_HF_BUFFER_BPS;
   const ttlMs = policy.proposalTtlMs ?? DEFAULT_PROPOSAL_TTL_MS;
+  // Policy invariants: a negative hfBufferBps would invert the buffer into a
+  // discount, silently auto-approving near-liquidation positions; a zero
+  // hfFloor disables the HF gate entirely.
+  if (hfFloor <= 0n) {
+    throw new ConciergeError(
+      'InvariantViolation',
+      `[@concierge/runtime] runPropose: policy.hfFloor must be > 0.`,
+    );
+  }
+  if (hfBufferBps < 0n) {
+    throw new ConciergeError(
+      'InvariantViolation',
+      `[@concierge/runtime] runPropose: policy.hfBufferBps must be >= 0.`,
+    );
+  }
+  if (!Number.isFinite(thresholdUSD) || thresholdUSD < 0) {
+    throw new ConciergeError(
+      'InvariantViolation',
+      `[@concierge/runtime] runPropose: policy.autoApprovalThresholdUSD must be finite and >= 0.`,
+    );
+  }
+  if (!Number.isFinite(ttlMs) || ttlMs <= 0) {
+    throw new ConciergeError(
+      'InvariantViolation',
+      `[@concierge/runtime] runPropose: policy.proposalTtlMs must be finite and > 0.`,
+    );
+  }
 
   // Idempotence guard: if a row is already pending, return its id and DO NOT
   // re-emit. The Postgres unique partial index is the source of truth; this
@@ -141,10 +190,11 @@ export async function runPropose(
   try {
     existing = await deps.repository.findPendingByAgent(inputs.state.agentId);
   } catch (err) {
+    const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runPropose: findPendingByAgent failed: ${sanitizeError(err).message}`,
-      sanitizeError(err),
+      `[@concierge/runtime] runPropose: findPendingByAgent failed: ${safe.message}`,
+      safe,
     );
   }
   if (existing !== null) {
@@ -180,10 +230,27 @@ export async function runPropose(
       expiresAt,
     });
   } catch (err) {
+    // TOCTOU between findPendingByAgent and insert: a concurrent tick can win
+    // the unique partial index. Distinguish the race from generic RPC failure
+    // by recognising Postgres `unique_violation` (SQLSTATE 23505) and
+    // converging on `already_pending` — same outcome as the polite-path
+    // pre-check, just observed via the index instead.
+    if (isPgUniqueViolation(err)) {
+      const winner = await deps.repository
+        .findPendingByAgent(inputs.state.agentId)
+        .catch(() => null);
+      if (winner !== null) {
+        return {
+          kind: 'continue',
+          data: { kind: 'already_pending', proposalId: winner.id, requiresApproval: true },
+        };
+      }
+    }
+    const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runPropose: insert failed: ${sanitizeError(err).message}`,
-      sanitizeError(err),
+      `[@concierge/runtime] runPropose: insert failed: ${safe.message}`,
+      safe,
     );
   }
 
@@ -215,10 +282,15 @@ export async function runPropose(
   try {
     await deps.publisher.publish(channel, JSON.stringify(parsed.data));
   } catch (err) {
+    // NOTE: the proposals row is already committed here. The next tick will
+    // hit the `already_pending` branch above and NOT re-emit; if the publisher
+    // outage persists, operators must replay manually. Tracked as a known
+    // gap; outbox-pattern fix deferred until persistent publisher SLOs warrant.
+    const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runPropose: publish failed: ${sanitizeError(err).message}`,
-      sanitizeError(err),
+      `[@concierge/runtime] runPropose: publish failed (proposalId=${inserted.id}): ${safe.message}`,
+      safe,
     );
   }
 
