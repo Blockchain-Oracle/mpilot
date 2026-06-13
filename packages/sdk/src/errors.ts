@@ -39,6 +39,14 @@ export const CONCIERGE_ERROR_TYPES = Object.freeze([
   // Revocation flow (story-54). Caller knows the DB step succeeded but the
   // on-chain step did NOT — retry the on-chain step, don't re-issue.
   'RevocationPartialFailure',
+  // Session-key lookup miss (story-54). Distinct from ConfigError so retry
+  // policy isn't "the deploy is misconfigured" when it's actually "stale id".
+  'SessionKeyNotFound',
+  // Authorization failure (story-54). The caller passed an agentId that
+  // doesn't own the session key they asked to revoke. Mirrors story-53's
+  // loadSessionKey IDOR defense. Indistinguishable from NotFound by design
+  // (don't leak existence to unauthorized callers).
+  'NotAuthorized',
 ] as const);
 
 export type ConciergeErrorType = (typeof CONCIERGE_ERROR_TYPES)[number];

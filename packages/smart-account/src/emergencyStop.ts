@@ -1,74 +1,91 @@
 import { type DbClient, sessionKeys } from '@concierge/db';
 import { ConciergeError } from '@concierge/sdk';
 import { and, eq, isNull } from 'drizzle-orm';
-import type { LocalAccount } from 'viem';
+import { z } from 'zod';
 import type {
   OnChainRevoker,
   RevocationEventEmitter,
   RevokeSessionKeyResult,
 } from './revokeSessionKey.ts';
 import { revokeSessionKey } from './revokeSessionKey.ts';
-import type { ConciergeAccount } from './types.ts';
+
+const uuidSchema = z.string().uuid();
 
 export interface EmergencyStopConfig {
   readonly db: DbClient;
   readonly agentId: string;
-  readonly ownerAccount: LocalAccount;
-  readonly conciergeAccount: ConciergeAccount;
   readonly onChainRevoker: OnChainRevoker;
   readonly events?: RevocationEventEmitter;
 }
 
+export type PartialFailure = ConciergeError & { type: 'RevocationPartialFailure' };
+
 export interface EmergencyStopResult {
-  readonly ok: true;
-  readonly revokedCount: number;
-  /** Per-key results — empty when no active keys (idempotent no-op). */
+  /** Per-key successes. `length === revokedCount`. */
   readonly revoked: readonly RevokeSessionKeyResult[];
-  /** Sessions where DB succeeded but on-chain failed — caller must retry these. */
-  readonly partialFailures: readonly { sessionKeyId: string; cause: unknown }[];
+  /** DB succeeded, on-chain failed — caller must retry the on-chain step. */
+  readonly partialFailures: readonly { sessionKeyId: string; cause: PartialFailure }[];
+  /**
+   * Anything else (e.g. race delete, transient DB error). Surfaced rather than
+   * thrown so a single bad key never aborts an in-progress emergency stop.
+   */
+  readonly unexpectedFailures: readonly { sessionKeyId: string; cause: unknown }[];
 }
 
 /**
- * Revokes ALL active session keys for an agent. Idempotent: returns
- * `{ ok: true, revokedCount: 0 }` if the agent has no active keys (NOT a throw).
+ * Revokes ALL active session keys for an agent. Idempotent: returns empty
+ * arrays when no active keys exist (NOT a throw).
  *
- * Partial-failure isolation: each key's on-chain step is independent — one
- * failure does NOT block the others. The result carries per-key partial
- * failures so the caller can surface them in the UI.
- *
- * On total success, the agent's BullMQ queue is paused via the `agent.revoked`
- * event (one event per key — the worker dedupes by agentId).
+ * Failure isolation: per-key failures (partial-failure OR unexpected) go to
+ * separate result buckets. The function NEVER throws on a per-key error,
+ * because emergency-stop semantics require best-effort coverage of the fleet
+ * — exactly when something is going wrong is the worst time to abort.
  */
 export async function emergencyStop(config: EmergencyStopConfig): Promise<EmergencyStopResult> {
-  // Select active session keys (not yet revoked) for this agent.
+  if (!uuidSchema.safeParse(config.agentId).success) {
+    throw new ConciergeError(
+      'ConfigError',
+      `[@concierge/smart-account] emergencyStop: agentId is not a valid UUID.`,
+    );
+  }
+
   const active = await config.db
     .select({ id: sessionKeys.id })
     .from(sessionKeys)
     .where(and(eq(sessionKeys.agentId, config.agentId), isNull(sessionKeys.revokedAt)));
   if (active.length === 0) {
-    return { ok: true, revokedCount: 0, revoked: [], partialFailures: [] };
+    return { revoked: [], partialFailures: [], unexpectedFailures: [] };
   }
-  const revoked: RevokeSessionKeyResult[] = [];
-  const partialFailures: { sessionKeyId: string; cause: unknown }[] = [];
-  for (const { id } of active) {
-    try {
-      const result = await revokeSessionKey({
+
+  const settled = await Promise.allSettled(
+    active.map(({ id }) =>
+      revokeSessionKey({
         db: config.db,
         sessionKeyId: id,
-        ownerAccount: config.ownerAccount,
-        conciergeAccount: config.conciergeAccount,
+        expectedAgentId: config.agentId,
         onChainRevoker: config.onChainRevoker,
         ...(config.events !== undefined && { events: config.events }),
-      });
-      revoked.push(result);
-    } catch (err) {
-      if (err instanceof ConciergeError && err.type === 'RevocationPartialFailure') {
-        partialFailures.push({ sessionKeyId: id, cause: err });
-      } else {
-        // Anything else (not-found, ConfigError) is genuinely unexpected — rethrow.
-        throw err;
-      }
+      }),
+    ),
+  );
+
+  const revoked: RevokeSessionKeyResult[] = [];
+  const partialFailures: { sessionKeyId: string; cause: PartialFailure }[] = [];
+  const unexpectedFailures: { sessionKeyId: string; cause: unknown }[] = [];
+  for (let i = 0; i < settled.length; i++) {
+    const outcome = settled[i];
+    const id = active[i]?.id ?? '<unknown>';
+    if (!outcome) continue;
+    if (outcome.status === 'fulfilled') {
+      revoked.push(outcome.value);
+    } else if (
+      outcome.reason instanceof ConciergeError &&
+      outcome.reason.type === 'RevocationPartialFailure'
+    ) {
+      partialFailures.push({ sessionKeyId: id, cause: outcome.reason as PartialFailure });
+    } else {
+      unexpectedFailures.push({ sessionKeyId: id, cause: outcome.reason });
     }
   }
-  return { ok: true, revokedCount: revoked.length, revoked, partialFailures };
+  return { revoked, partialFailures, unexpectedFailures };
 }

@@ -16,7 +16,11 @@ export {
 export type { CreateConciergeAccountConfig } from './createAccount.ts';
 export { createConciergeAccount } from './createAccount.ts';
 export { SessionKeySecret } from './crypto/sessionKeySecret.ts';
-export type { EmergencyStopConfig, EmergencyStopResult } from './emergencyStop.ts';
+export type {
+  EmergencyStopConfig,
+  EmergencyStopResult,
+  PartialFailure,
+} from './emergencyStop.ts';
 export { emergencyStop } from './emergencyStop.ts';
 export type { GetUserOpGasPriceConfig, UserOpGasPrice } from './gasPrice.ts';
 export { getUserOpGasPrice } from './gasPrice.ts';
@@ -44,6 +48,7 @@ export {
 export type {
   OnChainRevoker,
   RevocationEventEmitter,
+  RevocationEvents,
   RevokeSessionKeyConfig,
   RevokeSessionKeyResult,
 } from './revokeSessionKey.ts';
