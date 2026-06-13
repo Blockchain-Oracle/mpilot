@@ -11,8 +11,20 @@ const DEFAULT_SPEC = 'anthropic:claude-sonnet-4-6';
 // CONCIERGE_ERROR_TYPES pattern.
 // Note: apps/worker uses Claude Agent SDK and is Anthropic-only internally;
 // this helper is for SDK consumers who may plug in any provider.
-const SUPPORTED_PROVIDERS = Object.freeze(['anthropic', 'openai', 'google', 'xai'] as const);
-type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
+/**
+ * The frozen list of provider keys `defaultModel()` accepts. Exported so SDK
+ * consumers can drive UIs (provider dropdowns) and validate `AI_MODEL`-style
+ * input against the SAME source of truth the runtime switch uses.
+ */
+export const SUPPORTED_PROVIDERS = Object.freeze(['anthropic', 'openai', 'google', 'xai'] as const);
+export type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
+
+/**
+ * Compile-time template-literal type for `"provider:model"` specs. Lets
+ * consumers building specs programmatically catch typos at the type level
+ * (e.g. `'anthropic:claude'` typechecks; `'anthropi:claude'` does not).
+ */
+export type ProviderModelSpec = `${SupportedProvider}:${string}`;
 
 /**
  * Env-auto-detect model helper per ADR-016: `AI_MODEL="provider:model"`

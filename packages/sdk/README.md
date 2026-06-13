@@ -10,17 +10,13 @@ Pure ESM, Node ≥ 22 (ADR-018).
 
 | Env | Required? | Purpose |
 |---|---|---|
-| One of `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` / `XAI_API_KEY` | YES | LLM provider auth (`defaultModel()` auto-detects which is set) |
+| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` / `XAI_API_KEY` | YES (the one matching `AI_MODEL`) | LLM provider auth. The provider in `AI_MODEL` (or the `anthropic` default) determines which key the underlying `@ai-sdk/*` factory reads at request time. Keys are NOT inspected at construction. |
 | `AI_MODEL` | NO | Override provider + model. Format: `"provider:model"`. Default: `"anthropic:claude-sonnet-4-6"` |
 | `CONCIERGE_RPC_URL` | NO | Override default Mantle RPC. Default: `https://rpc.mantle.xyz` (Mainnet) |
 
-The `@ai-sdk/*` provider packages are **optional peer dependencies** — install
-only the ones you use. The bundler tree-shakes the rest.
-
-```bash
-pnpm add @concierge/sdk @ai-sdk/anthropic  # Anthropic only
-pnpm add @concierge/sdk @ai-sdk/openai     # OpenAI only
-```
+All four `@ai-sdk/*` provider packages ship with `@concierge/sdk` — install
+once, switch providers via `AI_MODEL` with no code change. The bundler
+tree-shakes the providers your build doesn't reach.
 
 ## Install
 

@@ -28,39 +28,21 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.82",
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.69",
+    "@ai-sdk/xai": "^3.0.93",
     "@concierge/shared": "workspace:*",
     "@concierge/tools": "workspace:*",
     "@concierge/vercel-ai": "workspace:*"
   },
   "peerDependencies": {
-    "@ai-sdk/anthropic": "^3.0.0",
-    "@ai-sdk/google": "^3.0.0",
-    "@ai-sdk/openai": "^3.0.0",
     "@ai-sdk/provider": "^3.0.0",
-    "@ai-sdk/xai": "^3.0.0",
     "ai": "^6.0.0",
     "zod": "^4.1.0"
   },
-  "peerDependenciesMeta": {
-    "@ai-sdk/anthropic": {
-      "optional": true
-    },
-    "@ai-sdk/google": {
-      "optional": true
-    },
-    "@ai-sdk/openai": {
-      "optional": true
-    },
-    "@ai-sdk/xai": {
-      "optional": true
-    }
-  },
   "devDependencies": {
-    "@ai-sdk/anthropic": "3.0.82",
-    "@ai-sdk/google": "3.0.80",
-    "@ai-sdk/openai": "3.0.69",
     "@ai-sdk/provider": "3.0.10",
-    "@ai-sdk/xai": "3.0.93",
     "@types/node": "22.19.20",
     "ai": "6.0.199",
     "tsup": "8.5.0",

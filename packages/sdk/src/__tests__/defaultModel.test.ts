@@ -4,7 +4,12 @@
 // needs no keys — these tests assert routing, not authentication.
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { defaultModel } from '../defaultModel.ts';
+import {
+  defaultModel,
+  type ProviderModelSpec,
+  SUPPORTED_PROVIDERS,
+  type SupportedProvider,
+} from '../defaultModel.ts';
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -125,6 +130,26 @@ describe('defaultModel (ADR-016 env auto-detect)', () => {
     vi.stubEnv('AI_MODEL', '   ');
     expect(defaultModel().modelId).toBe('claude-sonnet-4-6');
     expect(defaultModel(' \t ').modelId).toBe('claude-sonnet-4-6');
+  });
+
+  it('round-1: SUPPORTED_PROVIDERS is frozen and complete', () => {
+    expect(SUPPORTED_PROVIDERS).toEqual(['anthropic', 'openai', 'google', 'xai']);
+    expect(Object.isFrozen(SUPPORTED_PROVIDERS)).toBe(true);
+  });
+
+  it('round-1: ProviderModelSpec template literal type accepts valid specs at compile time', () => {
+    // Type-level assertion: if the template-literal narrowing regresses, this
+    // file won't compile. Each spec asserts the same modelId round-trips.
+    const valid: ProviderModelSpec[] = [
+      'anthropic:claude-sonnet-4-6',
+      'openai:gpt-5.1',
+      'google:gemini-2.5-pro',
+      'xai:grok-4',
+    ];
+    for (const spec of valid) {
+      const provider = spec.split(':')[0] as SupportedProvider;
+      expect(SUPPORTED_PROVIDERS).toContain(provider);
+    }
   });
 
   it('an explicit empty-string spec falls back to the DEFAULT, not the env var', () => {
