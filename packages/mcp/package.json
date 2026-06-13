@@ -1,11 +1,31 @@
 {
   "name": "@concierge/mcp",
   "version": "0.0.0",
-  "private": true,
+  "description": "MCP server for Concierge — autonomous DeFi agent for Mantle. Stdio-first (`npx -y @concierge/mcp`) + optional hosted Worker.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Blockchain-Oracle/concierge.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://concierge.xyz",
+  "keywords": [
+    "mcp",
+    "mantle",
+    "defi",
+    "concierge",
+    "anthropic",
+    "stdio"
+  ],
   "type": "module",
   "sideEffects": false,
   "engines": {
     "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest",
+    "provenance": true
   },
   "exports": {
     ".": {

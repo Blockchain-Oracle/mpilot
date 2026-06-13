@@ -7,6 +7,7 @@ import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { type CreateConciergeMcpServerOpts, createConciergeMcpServer } from './server.ts';
+import { assertModelEnvOrExit, bootstrapWallet, type WalletConfig } from './wallet-bootstrap.ts';
 
 /**
  * Tools are provided lazily so consumers (or downstream tests) can pass their
@@ -23,8 +24,18 @@ export async function runStdio(
     readonly tools?: CreateConciergeMcpServerOpts['tools'];
     readonly info?: CreateConciergeMcpServerOpts['info'];
     readonly onToolError?: CreateConciergeMcpServerOpts['onToolError'];
+    /** Story-136: skip env-var + wallet bootstrap (tests pass a fake). */
+    readonly skipBootstrap?: boolean;
+    /** Story-136: inject a pre-bootstrapped wallet config (tests). */
+    readonly wallet?: WalletConfig;
   } = {},
 ): Promise<void> {
+  // Story-136: bootstrap order — env-var check FIRST (loud exit before any
+  // FS write if the user hasn't set ANTHROPIC_API_KEY etc.), then wallet.
+  if (opts.skipBootstrap !== true) {
+    assertModelEnvOrExit();
+    bootstrapWallet();
+  }
   // Empty-toolset warning lives in createConciergeMcpServer (round-2) so both
   // stdio AND streamable-http get the same diagnostic.
   const server = createConciergeMcpServer({
