@@ -23,6 +23,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  NODE_VERSION: "22"
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -39,7 +42,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install (skill package + its deps)
