@@ -8,10 +8,7 @@ export default defineConfig({
   clean: true,
   target: 'node22',
   tsconfig: 'tsconfig.build.json',
-  // stdio.ts needs a shebang so `npx -y @concierge/mcp` runs it as a script.
-  banner: ({ format }) => {
-    return format === 'esm' ? { js: '' } : {};
-  },
+  // The #!/usr/bin/env node shebang is preserved by tsup from stdio.ts source.
   external: [
     'zod',
     '@modelcontextprotocol/sdk',

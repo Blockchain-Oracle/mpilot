@@ -9,7 +9,11 @@ export interface StreamableHttpHandlerOpts extends CreateConciergeMcpServerOpts 
   /**
    * Session id generator. The MCP SDK expects a deterministic generator per
    * `Mcp-Session-Id` header so the Worker can route streaming responses.
-   * Defaults to `crypto.randomUUID()` which is available on Workers + Node 19+.
+   *
+   * **Security (CWE-330):** the generator MUST produce cryptographically
+   * random IDs. A predictable generator allows session hijack on the hosted
+   * variant. The default uses `globalThis.crypto.randomUUID` (UUID v4, 122
+   * bits of entropy). Overrides should reuse the same primitive.
    */
   readonly sessionIdGenerator?: () => string;
 }
@@ -19,17 +23,31 @@ export interface StreamableHttpHandlerOpts extends CreateConciergeMcpServerOpts 
  * wrapper (story-133) is responsible for adapting Cloudflare's Request/Response
  * to the transport — this factory keeps the server-creation seam testable
  * without pulling Cloudflare's runtime.
+ *
+ * Round-1: fail loud if the runtime lacks `crypto.randomUUID` AND no override
+ * is provided. Node ≥ 22 (ADR-018) always has it, but hostile sandboxes /
+ * stripped-down Workers may not.
  */
 export function createStreamableHttpHandler(opts: StreamableHttpHandlerOpts): {
   readonly server: ReturnType<typeof createConciergeMcpServer>;
   readonly transport: StreamableHTTPServerTransport;
 } {
+  const sessionIdGenerator = opts.sessionIdGenerator ?? defaultSessionIdGenerator();
   const server = createConciergeMcpServer({
     tools: opts.tools,
     ...(opts.info !== undefined ? { info: opts.info } : {}),
+    ...(opts.onToolError !== undefined ? { onToolError: opts.onToolError } : {}),
   });
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: opts.sessionIdGenerator ?? (() => globalThis.crypto.randomUUID()),
-  });
+  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator });
   return { server, transport };
+}
+
+function defaultSessionIdGenerator(): () => string {
+  const cryptoApi = globalThis.crypto;
+  if (cryptoApi === undefined || typeof cryptoApi.randomUUID !== 'function') {
+    throw new Error(
+      '[@concierge/mcp] runtime lacks `globalThis.crypto.randomUUID` — pass `sessionIdGenerator` explicitly (must be cryptographically random; CWE-330).',
+    );
+  }
+  return () => cryptoApi.randomUUID();
 }
