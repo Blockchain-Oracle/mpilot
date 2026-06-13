@@ -737,31 +737,34 @@ stories:
   # ─────────────────────────────────────────────────────────────────
   # Epic E11 — Mainnet Deployment + Sepolia Playground
   # ─────────────────────────────────────────────────────────────────
-  - id: story-190-sepolia-mock-deploy
+  # Renamed 2026-06-13 to match story file IDs: story-190 is mainnet-deploy-
+  # runbook; story-192 is the sepolia playground. Sprint-status had them
+  # inverted, leaving story-190's scope ambiguous.
+  - id: story-190-mainnet-deploy-runbook
     epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
-    status: PENDING
-    depends_on: [story-18-deploy-script-sepolia]
+    status: COMPLETE
+    depends_on: [story-19-deploy-script-mainnet-gated]
     issue_url: ""
     pr_url: ""
     merged_at: ""
   - id: story-191-sepolia-faucet-page
     epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
     status: PENDING
-    depends_on: [story-190-sepolia-mock-deploy, story-107-app-dashboard]
+    depends_on: [story-192-sepolia-playground-deploy, story-107-app-dashboard]
     issue_url: ""
     pr_url: ""
     merged_at: ""
-  - id: story-192-mainnet-deploy-runbook
+  - id: story-192-sepolia-playground-deploy
     epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
     status: PENDING
-    depends_on: [story-19-deploy-script-mainnet-gated]
+    depends_on: [story-18-deploy-script-sepolia]
     issue_url: ""
     pr_url: ""
     merged_at: ""
   - id: story-193-mainnet-deploy-execution
     epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
     status: PENDING
-    depends_on: [story-192-mainnet-deploy-runbook, story-70-runtime-integration-tests, story-83-attestation-write-pipeline, story-115-emergency-stop-flow]
+    depends_on: [story-190-mainnet-deploy-runbook, story-70-runtime-integration-tests, story-83-attestation-write-pipeline, story-115-emergency-stop-flow]
     issue_url: ""
     pr_url: ""
     merged_at: ""

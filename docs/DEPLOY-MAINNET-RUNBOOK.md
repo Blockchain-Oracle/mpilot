@@ -1,5 +1,29 @@
 # Deploy Mainnet Runbook — Concierge on Mantle Mainnet (chain 5000)
 
+## No-surprises rules (read first)
+
+- **Never deploy on a Friday.** Mistakes compound over the weekend with
+  no on-call coverage. Deploy Mon–Thu only.
+- **Never deploy without preflight script green.**
+  `bash scripts/preflight-mainnet.sh` must exit 0. Bypassing it has caused
+  every Mainnet incident we have lived through.
+- **Never deploy without a second pair of eyes** if real money is in
+  play. Pair the deploy: one driver, one observer. The observer reads
+  every output aloud and flags anomalies.
+- **Never skip Mantlescan verification.** Unverified bytecode = judges
+  see red. The deploy command's `--verify` flag is non-negotiable.
+
+The companion files implement these rules:
+
+- [`DEPLOY-MAINNET-PRECHECK.md`](./DEPLOY-MAINNET-PRECHECK.md) — sign-off
+  checklist (must be screenshotted to deploys channel before broadcast).
+- [`scripts/preflight-mainnet.sh`](../scripts/preflight-mainnet.sh) —
+  automated gate (exit 0 only when ALL checks pass).
+- [`scripts/postdeploy-verify-mainnet.sh`](../scripts/postdeploy-verify-mainnet.sh)
+  — post-deploy `cast call` verification.
+- [`DEPLOY-MAINNET-ROLLBACK.md`](./DEPLOY-MAINNET-ROLLBACK.md) — partial
+  deploy, logic upgrade, full redeploy, and session-key revocation.
+
 ## Pre-flight
 
 Complete all checks before running the deploy script.
