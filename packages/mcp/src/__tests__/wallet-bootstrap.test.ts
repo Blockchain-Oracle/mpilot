@@ -52,21 +52,35 @@ describe('bootstrapWallet — first run', () => {
     expect(cfg.agentId).toBeNull();
   });
 
-  it('NEVER logs the session key (anti-leak: stdio bin reserves stdout for MCP)', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  it('round-1: NEVER leaks session key on ANY logger (stdout MCP channel + all console.*)', () => {
+    // Round-1 silent-failure HIGH: stdout is the MCP JSON-RPC channel. A
+    // regression writing the key there would both corrupt MCP framing AND
+    // leak the key. Round-0 spied only console.log + stderr.
+    const spies = {
+      log: vi.spyOn(console, 'log').mockImplementation(() => {}),
+      error: vi.spyOn(console, 'error').mockImplementation(() => {}),
+      warn: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+      info: vi.spyOn(console, 'info').mockImplementation(() => {}),
+      debug: vi.spyOn(console, 'debug').mockImplementation(() => {}),
+      dir: vi.spyOn(console, 'dir').mockImplementation(() => {}),
+      stdout: vi.spyOn(process.stdout, 'write').mockImplementation(() => true),
+      stderr: vi.spyOn(process.stderr, 'write').mockImplementation(() => true),
+    } as const;
     try {
       const cfg = bootstrapWallet({ configPath });
-      // The key MUST NOT appear in any log call.
-      for (const call of logSpy.mock.calls) {
-        for (const arg of call) expect(String(arg)).not.toContain(cfg.sessionKey);
-      }
-      for (const call of stderrSpy.mock.calls) {
-        for (const arg of call) expect(String(arg)).not.toContain(cfg.sessionKey);
+      // Drop the `0x` prefix so a substring check still works against fragments.
+      const keyHex = cfg.sessionKey.slice(2);
+      for (const [label, spy] of Object.entries(spies)) {
+        for (const call of (spy.mock as { calls: unknown[][] }).calls) {
+          for (const arg of call) {
+            const text = String(arg);
+            expect(text, `${label} leaked session key`).not.toContain(cfg.sessionKey);
+            expect(text, `${label} leaked session key hex body`).not.toContain(keyHex);
+          }
+        }
       }
     } finally {
-      logSpy.mockRestore();
-      stderrSpy.mockRestore();
+      for (const spy of Object.values(spies)) spy.mockRestore();
     }
   });
 });
@@ -86,13 +100,15 @@ describe('bootstrapWallet — second run (idempotency)', () => {
     expect(second).toEqual(first);
   });
 
-  it('does NOT overwrite a valid existing config (preserves user-imported keys)', () => {
+  it('round-1: does NOT overwrite a valid existing config (byte-equality, mtime-resolution-independent)', () => {
+    // Round-1 (test #3): mtime granularity varies by filesystem. Asserting
+    // raw byte-equality of the persisted JSON is the rewrite-detection check
+    // regardless of fs mtime resolution.
     const first = bootstrapWallet({ configPath });
-    const beforeMtime = statSync(configPath).mtimeMs;
-    // 10ms gap to make any potential rewrite visible.
+    const bytesBefore = readFileSync(configPath);
     const re = bootstrapWallet({ configPath });
     expect(re.sessionKey).toBe(first.sessionKey);
-    expect(statSync(configPath).mtimeMs).toBe(beforeMtime);
+    expect(readFileSync(configPath).equals(bytesBefore)).toBe(true);
   });
 
   it('THROWS on malformed config (refuses to silently regenerate over corrupt state)', () => {
@@ -106,6 +122,46 @@ describe('bootstrapWallet — second run (idempotency)', () => {
     // Create the directory by running bootstrap once at an unrelated path.
     bootstrapWallet({ configPath: resolve(tmp, '.concierge/_unused.json') });
     writeFileSync(configPath, 'this is not json', { mode: 0o600 });
+    expect(() => bootstrapWallet({ configPath })).toThrow(/malformed/);
+  });
+
+  it('round-1: THROWS on wrong-type sessionKey (JSON-valid, shape-invalid)', () => {
+    // Round-1 (test #4): parseConfig's type-check path was untested.
+    bootstrapWallet({ configPath: resolve(tmp, '.concierge/_unused.json') });
+    writeFileSync(configPath, JSON.stringify({ sessionKey: 42, chainId: 5000 }), {
+      mode: 0o600,
+    });
+    expect(() => bootstrapWallet({ configPath })).toThrow(/malformed/);
+  });
+
+  it('round-1: THROWS on missing chainId (required field)', () => {
+    bootstrapWallet({ configPath: resolve(tmp, '.concierge/_unused.json') });
+    writeFileSync(
+      configPath,
+      JSON.stringify({
+        sessionKey: `0x${'a'.repeat(64)}`,
+        rpcUrl: 'https://rpc.mantle.xyz',
+        agentId: null,
+        createdAt: '2026-06-13T12:00:00Z',
+      }),
+      { mode: 0o600 },
+    );
+    expect(() => bootstrapWallet({ configPath })).toThrow(/malformed/);
+  });
+
+  it('round-1: THROWS on non-integer chainId (5000.5 or "5000")', () => {
+    bootstrapWallet({ configPath: resolve(tmp, '.concierge/_unused.json') });
+    writeFileSync(
+      configPath,
+      JSON.stringify({
+        sessionKey: `0x${'a'.repeat(64)}`,
+        rpcUrl: 'https://rpc.mantle.xyz',
+        chainId: '5000',
+        agentId: null,
+        createdAt: '2026-06-13T12:00:00Z',
+      }),
+      { mode: 0o600 },
+    );
     expect(() => bootstrapWallet({ configPath })).toThrow(/malformed/);
   });
 });
@@ -155,9 +211,31 @@ describe('assertModelEnvOrExit', () => {
     expect(stderrSpy).not.toHaveBeenCalled();
   });
 
-  it('returns silently when AI_MODEL is set (explicit provider choice)', () => {
+  it('returns silently when AI_MODEL + matching provider key are BOTH set', () => {
     vi.stubEnv('AI_MODEL', 'openai:gpt-5.1');
+    vi.stubEnv('OPENAI_API_KEY', 'sk-...');
     expect(() => assertModelEnvOrExit()).not.toThrow();
+  });
+
+  it('round-1 HIGH: AI_MODEL set WITHOUT matching key → exit 2 (loud at startup, not at inference)', () => {
+    // Round-1 silent-failure HIGH: AI_MODEL="openai:..." without
+    // OPENAI_API_KEY was passing the check (any key sufficed), deferring
+    // the failure to first inference. Now: provider-specific assertion.
+    vi.stubEnv('AI_MODEL', 'openai:gpt-5.1');
+    // ANTHROPIC_API_KEY is irrelevant to openai — should NOT save us.
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test');
+    expect(() => assertModelEnvOrExit()).toThrow('exit-2');
+    const calls = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
+    expect(calls).toContain('OPENAI_API_KEY');
+    expect(calls).toContain('AI_MODEL');
+  });
+
+  it('round-1: AI_MODEL with unknown provider → exit 2 with supported-list message', () => {
+    vi.stubEnv('AI_MODEL', 'mistral:large');
+    expect(() => assertModelEnvOrExit()).toThrow('exit-2');
+    const calls = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
+    expect(calls).toContain('unknown provider');
+    expect(calls).toContain('mistral');
   });
 
   it('returns silently for each of the 4 supported provider keys', () => {
@@ -179,6 +257,39 @@ describe('assertModelEnvOrExit', () => {
       vi.stubEnv(key, 'test-value');
       expect(() => assertModelEnvOrExit(), `failed for ${key}`).not.toThrow();
     }
+  });
+});
+
+describe('bootstrapWallet — round-1 atomic-write race (TOCTOU CRITICAL)', () => {
+  let tmp: string;
+  let configPath: string;
+  beforeEach(() => {
+    tmp = mkdtempSync(resolve(tmpdir(), 'concierge-bootstrap-race-'));
+    configPath = resolve(tmp, '.concierge/config.json');
+  });
+  afterEach(() => rmSync(tmp, { recursive: true, force: true }));
+
+  it('round-1 CRITICAL: race-winner config is preserved if a parallel write lands first', () => {
+    // Simulate the race by pre-creating a valid config in the same path
+    // BEFORE bootstrapWallet's atomic open(wx) — wx would EEXIST, then
+    // we re-read the winner's config rather than overwriting.
+    const winnerKey = `0x${'b'.repeat(64)}` as const;
+    const winnerConfig = {
+      sessionKey: winnerKey,
+      rpcUrl: 'https://winner.example',
+      chainId: 5000,
+      agentId: null,
+      createdAt: '2026-06-13T11:00:00Z',
+    };
+    // Use bootstrap to create the dir + write a different config.
+    bootstrapWallet({ configPath });
+    writeFileSync(configPath, JSON.stringify(winnerConfig), { mode: 0o600 });
+
+    // Now a fresh bootstrapWallet call must return the WINNER's config,
+    // never silently overwrite.
+    const result = bootstrapWallet({ configPath });
+    expect(result.sessionKey).toBe(winnerKey);
+    expect(result.rpcUrl).toBe('https://winner.example');
   });
 });
 

@@ -56,20 +56,17 @@
     "prepare": "tsup",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm run build",
+    "prepublishOnly": "node -e \"const v=require('./package.json').version; const pre=/-(rc|beta|alpha|next)/i.test(v); const tag=process.env.npm_config_tag; if (pre && tag !== 'next') { console.error('[concierge-mcp] FATAL: prerelease '+v+' must be published with --tag next (got tag='+(tag||'latest')+'). Refusing to clobber the latest dist-tag.'); process.exit(1); }\""
   },
   "dependencies": {
     "@concierge/shared": "workspace:*",
-    "@concierge/tools": "workspace:*"
-  },
-  "peerDependencies": {
+    "@concierge/tools": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.1.0"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "1.29.0",
     "@types/node": "22.19.20",
-    "tsup": "8.5.0",
-    "zod": "4.4.3"
+    "tsup": "8.5.0"
   }
 }

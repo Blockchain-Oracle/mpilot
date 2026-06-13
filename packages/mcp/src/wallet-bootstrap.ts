@@ -1,25 +1,24 @@
 // Auto-generate ephemeral wallet config on first stdio bin run. Per the
 // pokaldot ~/.portaldot-mcp/config.json pattern: zero-friction first-launch
-// for read-only flows. Real Mainnet session-key import (where the user
-// pastes a key bound to their on-chain agent) lands in story-138 via MCP
-// Elicitation `mode: 'url'`.
-//
-// Security model:
-//   * The generated session key is EPHEMERAL — it is NOT bound to any
-//     on-chain agent and CAN'T move funds until story-138's import flow
-//     replaces it. It's enough to satisfy the runtime "have a wallet"
-//     contract for read tools (get_agent_state / get_reputation / ...).
-//   * Config file is written at 0600 + dir at 0700 (CWE-276 lesson from
-//     story-150 install.sh).
-//   * stdout is RESERVED for MCP JSON-RPC — all logs go to stderr.
+// for read-only flows. Real Mainnet session-key import (story-138 via
+// Elicitation `mode: 'url'`) lands later and overwrites the ephemeral key.
 
 import { randomBytes } from 'node:crypto';
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 
 const DEFAULT_RPC_URL = 'https://rpc.mantle.xyz';
 const DEFAULT_CHAIN_ID = 5000; // Mantle Mainnet
+
+/** Round-1 silent-failure HIGH fix: map AI_MODEL prefix → required env var. */
+const PROVIDER_KEY_MAP: Readonly<Record<string, string>> = {
+  anthropic: 'ANTHROPIC_API_KEY',
+  openai: 'OPENAI_API_KEY',
+  google: 'GOOGLE_GENERATIVE_AI_API_KEY',
+  xai: 'XAI_API_KEY',
+};
+const ALL_PROVIDER_KEYS: ReadonlyArray<string> = Object.values(PROVIDER_KEY_MAP);
 
 export interface WalletConfig {
   /** Hex 32-byte private key (ephemeral; not bound to an on-chain agent yet). */
@@ -38,10 +37,7 @@ export interface BootstrapOpts {
   readonly rpcUrl?: string;
   /** Override the chain id (default 5000 — Mantle Mainnet). */
   readonly chainId?: number;
-  /**
-   * Now-source for createdAt — `() => string` ISO-8601. Defaults to wall
-   * time; tests inject a fixed source.
-   */
+  /** Now-source for createdAt — tests inject a fixed source. */
   readonly now?: () => string;
 }
 
@@ -50,24 +46,29 @@ export function defaultConfigPath(): string {
 }
 
 /**
- * Load existing wallet config or generate + persist a fresh one. Idempotent:
- * if the file already exists with a valid shape, returns it unchanged.
+ * Load existing wallet config or generate + persist a fresh one. Idempotent
+ * and ATOMIC: uses `open(O_WRONLY|O_CREAT|O_EXCL)` so two parallel bin
+ * invocations (Claude Desktop + Cursor first-launch race) can't both
+ * generate over each other. The loser of the race re-reads.
  *
- * Errors are LOUD: a corrupt config file throws rather than silently
- * generating over it (the file might hold the user's real session key from
- * story-138's import).
+ * A malformed config file THROWS rather than silently regenerating — the
+ * file might hold the user's real session key from story-138's import flow.
  */
 export function bootstrapWallet(opts: BootstrapOpts = {}): WalletConfig {
   const configPath = opts.configPath ?? defaultConfigPath();
-  if (existsSync(configPath)) {
-    const raw = readFileSync(configPath, 'utf-8');
-    const parsed = parseConfig(raw);
-    if (parsed === null) {
-      throw new Error(
-        `[@concierge/mcp] wallet-bootstrap: config at ${configPath} exists but is malformed. Refusing to overwrite. Move or delete it manually.`,
-      );
-    }
-    return parsed;
+
+  // Fast path: file already exists, parse + return.
+  const existing = tryReadConfig(configPath);
+  if (existing !== null) return existing;
+
+  // Round-1: only chmod the dedicated dir when it was newly created here.
+  // If `configPath` is overridden to a nested path (tests, custom hosts),
+  // we still need the parent to exist but won't tighten an unrelated dir.
+  const dir = dirname(configPath);
+  const dirExistedBefore = existsSync(dir);
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  if (!dirExistedBefore) {
+    chmodSync(dir, 0o700);
   }
 
   const now = opts.now ?? (() => new Date().toISOString());
@@ -78,14 +79,48 @@ export function bootstrapWallet(opts: BootstrapOpts = {}): WalletConfig {
     agentId: null,
     createdAt: now(),
   };
+  const serialized = `${JSON.stringify(fresh, null, 2)}\n`;
 
-  // CWE-276: tighten perms BEFORE write. 0700 on dir + 0600 on file.
-  const dir = dirname(configPath);
-  mkdirSync(dir, { recursive: true, mode: 0o700 });
-  chmodSync(dir, 0o700);
-  writeFileSync(configPath, `${JSON.stringify(fresh, null, 2)}\n`, { mode: 0o600 });
-  chmodSync(configPath, 0o600);
-  return fresh;
+  // Round-1 CRITICAL (TOCTOU): atomic create. wx mode (O_WRONLY|O_CREAT|O_EXCL)
+  // FAILS with EEXIST if another process wrote between our existsSync and
+  // here — we then re-read THEIR config rather than overwriting (which would
+  // discard a possibly-imported real session key from story-138 later).
+  try {
+    const fd = openSync(configPath, 'wx', 0o600);
+    writeFileSync(fd, serialized);
+    chmodSync(configPath, 0o600);
+    return fresh;
+  } catch (err) {
+    const e = err as NodeJS.ErrnoException;
+    if (e.code === 'EEXIST') {
+      const winnerConfig = tryReadConfig(configPath);
+      if (winnerConfig !== null) return winnerConfig;
+      throw new Error(
+        `[@concierge/mcp] wallet-bootstrap: race winner wrote a malformed config at ${configPath}. Refusing to overwrite.`,
+      );
+    }
+    throw err;
+  }
+}
+
+function tryReadConfig(configPath: string): WalletConfig | null {
+  // Round-1 (silent-failure #1 cosmetic): single try/catch on read avoids the
+  // existsSync→readFileSync TOCTOU. ENOENT → null; other errors propagate.
+  let raw: string;
+  try {
+    raw = readFileSync(configPath, 'utf-8');
+  } catch (err) {
+    const e = err as NodeJS.ErrnoException;
+    if (e.code === 'ENOENT') return null;
+    throw err;
+  }
+  const parsed = parseConfig(raw);
+  if (parsed === null) {
+    throw new Error(
+      `[@concierge/mcp] wallet-bootstrap: config at ${configPath} exists but is malformed. Refusing to overwrite. Move or delete it manually.`,
+    );
+  }
+  return parsed;
 }
 
 function generateSessionKey(): `0x${string}` {
@@ -121,24 +156,39 @@ function parseConfig(raw: string): WalletConfig | null {
 }
 
 /**
- * Environment check for the AI model provider key. Exit code 2 with a
- * pointed stderr message if NONE of the recognized env vars are set AND
- * AI_MODEL isn't configured. Stdout stays clean — reserved for MCP traffic.
+ * Round-1 silent-failure HIGH fix: if AI_MODEL is set, require the MATCHING
+ * provider key, not just any key. Round-0 returned silently when AI_MODEL was
+ * set, deferring "no OPENAI_API_KEY" crashes to first inference — false
+ * assurance.
+ *
+ * Exit code 2 + stderr message. Stdout stays clean (reserved for MCP).
  */
 export function assertModelEnvOrExit(): void {
-  const provider = process.env['AI_MODEL'] ?? '';
-  if (provider !== '') return; // user explicitly chose a model
+  const aiModel = process.env['AI_MODEL'] ?? '';
 
-  const keys = [
-    'ANTHROPIC_API_KEY',
-    'OPENAI_API_KEY',
-    'GOOGLE_GENERATIVE_AI_API_KEY',
-    'XAI_API_KEY',
-  ];
-  if (keys.some((k) => (process.env[k] ?? '') !== '')) return;
+  if (aiModel !== '') {
+    const colon = aiModel.indexOf(':');
+    const provider = colon >= 0 ? aiModel.slice(0, colon) : aiModel;
+    const requiredKey = PROVIDER_KEY_MAP[provider];
+    if (requiredKey === undefined) {
+      process.stderr.write(
+        `[concierge-mcp] FATAL: AI_MODEL="${aiModel}" references unknown provider "${provider}". Supported: ${Object.keys(PROVIDER_KEY_MAP).join(', ')}.\n`,
+      );
+      process.exit(2);
+    }
+    if ((process.env[requiredKey] ?? '') === '') {
+      process.stderr.write(
+        `[concierge-mcp] FATAL: AI_MODEL="${aiModel}" requires ${requiredKey} to be set.\n`,
+      );
+      process.exit(2);
+    }
+    return;
+  }
 
+  // No AI_MODEL — any provider key suffices, default model is anthropic.
+  if (ALL_PROVIDER_KEYS.some((k) => (process.env[k] ?? '') !== '')) return;
   process.stderr.write(
-    `[concierge-mcp] FATAL: no AI model configured. Set one of ${keys.join(' / ')} or AI_MODEL="provider:model".\n`,
+    `[concierge-mcp] FATAL: no AI model configured. Set one of ${ALL_PROVIDER_KEYS.join(' / ')} or AI_MODEL="provider:model".\n`,
   );
   process.exit(2);
 }
