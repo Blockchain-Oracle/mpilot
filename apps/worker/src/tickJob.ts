@@ -1,23 +1,29 @@
-import { ConciergeError } from '@concierge/sdk';
+import { sanitizeError } from '@concierge/runtime';
 import type { Job } from 'bullmq';
+import { assertAgentId } from './agentId.ts';
 import type { DeadLetterQueue } from './dlq.ts';
 
-const AGENT_ID_RE = /^[a-zA-Z0-9_-]{1,128}$/;
 const DEFAULT_MAX_ATTEMPTS = 3;
 
 /**
- * Tick result the orchestrator returns. The skip variant is a SUCCESS, not
- * a failure (per CLAUDE.md no-silent-failures: a skipped tick = "another
- * worker holds the lock" — mark BullMQ job completed, don't retry).
+ * Tick result the orchestrator returns. The skip variants are SUCCESSES,
+ * NOT failures (per CLAUDE.md no-silent-failures + story-68 spec).
+ *
+ * - `already_running`: another worker holds the lock — a real production
+ *   skip, mark BullMQ job completed, don't retry.
+ * - `not_wired`: runtime tick not yet bound (boot-time stub gate). Logged
+ *   loudly via `logger.warn` and counted separately so deploy dashboards
+ *   surface "story-69 not landed" rather than blending with normal skips.
  */
 export type TickJobResult =
   | { readonly outcome: 'ok'; readonly tickId: string }
-  | { readonly outcome: 'skipped'; readonly reason: 'already_running' };
+  | { readonly outcome: 'skipped'; readonly reason: 'already_running' | 'not_wired' };
 
 export interface TickJobLogger {
-  debug(msg: string, meta?: Record<string, unknown>): void;
-  info(msg: string, meta?: Record<string, unknown>): void;
-  error(msg: string, meta?: Record<string, unknown>): void;
+  debug(meta: Record<string, unknown>, msg: string): void;
+  info(meta: Record<string, unknown>, msg: string): void;
+  warn(meta: Record<string, unknown>, msg: string): void;
+  error(meta: Record<string, unknown>, msg: string): void;
 }
 
 export interface MakeTickJobDeps {
@@ -28,14 +34,24 @@ export interface MakeTickJobDeps {
   readonly maxAttempts?: number;
 }
 
+/** Sanitize a thrown error's message via the shared runtime sanitizer (apikey URL strip, etc.). */
+function sanitizedReason(err: unknown): string {
+  return sanitizeError(err).message;
+}
+
 /**
- * Build the BullMQ job processor. Failure handling matrix:
- *   - tick returns 'ok'        → job completes
- *   - tick returns 'skipped'   → job completes (lock contention = success)
- *   - tick throws + attempt < max → rethrow so BullMQ retries with backoff
- *   - tick throws + attempt == max → enqueue to DLQ, then return normally
- *     (BullMQ marks the original job 'failed' but the DLQ row is the
- *     reconcile signal)
+ * Build the BullMQ job processor. BullMQ v5 semantics: `job.attemptsMade`
+ * is the count of previously COMPLETED attempts; on the first try it is 0.
+ * Compare `attemptsMade + 1 >= maxAttempts` to detect the FINAL try.
+ *
+ * Failure matrix:
+ *   - tick returns ok/skipped    → complete
+ *   - tick throws + attempt < N  → rethrow → BullMQ retries with backoff
+ *   - tick throws + attempt = N  → enqueue DLQ, then rethrow (BullMQ marks
+ *                                  failed; DLQ row is the reconcile signal)
+ *   - DLQ enqueue THROWS         → log distinct error; rethrow ORIGINAL
+ *                                  tick error so the failed-handler still
+ *                                  sees the real cause (round-1 fix).
  */
 export function makeTickJob(deps: MakeTickJobDeps) {
   const maxAttempts = deps.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
@@ -44,38 +60,44 @@ export function makeTickJob(deps: MakeTickJobDeps) {
     signal: AbortSignal,
   ): Promise<TickJobResult> {
     const { agentId } = job.data;
-    if (typeof agentId !== 'string' || !AGENT_ID_RE.test(agentId)) {
-      throw new ConciergeError(
-        'InvariantViolation',
-        `[@concierge/worker] tickJob: agentId must match ${AGENT_ID_RE.source}.`,
-      );
-    }
+    assertAgentId(agentId, 'tickJob');
     try {
       const result = await deps.runTick(agentId, signal);
       if (result.outcome === 'skipped') {
-        deps.logger.debug('tick skipped: lock held', { agentId, jobId: job.id });
+        const fn = result.reason === 'not_wired' ? deps.logger.warn : deps.logger.debug;
+        fn.call(deps.logger, { agentId, jobId: job.id, reason: result.reason }, 'tick skipped');
       } else {
-        deps.logger.info('tick ok', { agentId, jobId: job.id, tickId: result.tickId });
+        deps.logger.info({ agentId, jobId: job.id, tickId: result.tickId }, 'tick ok');
       }
       return result;
     } catch (err) {
       const attempts = job.attemptsMade + 1;
-      const reason = err instanceof Error ? err.message : String(err);
-      deps.logger.error('tick failed', {
-        agentId,
-        jobId: job.id,
-        attempts,
-        maxAttempts,
-        reason,
-      });
+      const reason = sanitizedReason(err);
+      deps.logger.error({ agentId, jobId: job.id, attempts, maxAttempts, reason }, 'tick failed');
       if (attempts >= maxAttempts) {
-        // Final retry exhausted — route to DLQ for manual review.
-        await deps.dlq.enqueue({
-          agentId,
-          attempts,
-          failedReason: reason,
-          failedAt: new Date().toISOString(),
-        });
+        try {
+          await deps.dlq.enqueue({
+            agentId,
+            attempts,
+            failedReason: reason,
+            failedAt: new Date().toISOString(),
+          });
+        } catch (dlqErr) {
+          // Round-1 fix: surface DLQ failure DISTINCTLY so ops sees both
+          // problems (the original tick failure AND the lost DLQ row). The
+          // original `err` is the one that gets re-thrown to BullMQ.
+          deps.logger.error(
+            {
+              agentId,
+              jobId: job.id,
+              attempts,
+              reason,
+              dlqError: sanitizedReason(dlqErr),
+              errorId: 'dlq_enqueue_failed',
+            },
+            'DLQ enqueue failed; original tick failure preserved',
+          );
+        }
       }
       throw err;
     }

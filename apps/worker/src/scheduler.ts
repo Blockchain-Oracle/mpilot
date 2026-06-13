@@ -1,10 +1,10 @@
 import { ConciergeError } from '@concierge/sdk';
 import type { Queue } from 'bullmq';
+import { assertAgentId } from './agentId.ts';
 
 export const TICK_QUEUE_NAME = 'concierge-ticks';
 
-const AGENT_ID_RE = /^[a-zA-Z0-9_-]{1,128}$/;
-const MIN_CADENCE_MS = 5_000; // 5s floor — anything tighter hammers the bundler
+const MIN_CADENCE_MS = 5_000; // 5s floor — tighter hammers the bundler
 
 export interface ScheduleAgentTicksOpts {
   readonly agentId: string;
@@ -12,21 +12,20 @@ export interface ScheduleAgentTicksOpts {
 }
 
 /**
- * Add (or update) a per-agent repeatable BullMQ job. The `repeat.key` is the
+ * Add (or update) a per-agent repeatable BullMQ job. `repeat.key` is the
  * load-bearing dedup signal — re-adding the same agent with a different
- * cadence REPLACES the prior schedule rather than spawning a duplicate. Per
- * `research/concierge/04-agent-runtime.md` § 5.
+ * cadence REPLACES the prior schedule. Per `research/concierge/04-agent-
+ * runtime.md` § 5.
+ *
+ * **Caller contract:** Rejection means the schedule did NOT land. The
+ * caller is responsible for retry; failed schedules are NOT persisted to
+ * any DLQ on this side. Wire retries at the orchestrator boundary.
  */
 export async function scheduleAgentTicks(
   queue: Queue,
   opts: ScheduleAgentTicksOpts,
 ): Promise<{ readonly jobId: string }> {
-  if (!AGENT_ID_RE.test(opts.agentId)) {
-    throw new ConciergeError(
-      'InvariantViolation',
-      `[@concierge/worker] scheduleAgentTicks: agentId must match ${AGENT_ID_RE.source}.`,
-    );
-  }
+  assertAgentId(opts.agentId, 'scheduleAgentTicks');
   if (!Number.isFinite(opts.cadenceMs) || opts.cadenceMs < MIN_CADENCE_MS) {
     throw new ConciergeError(
       'InvariantViolation',
@@ -48,11 +47,6 @@ export async function scheduleAgentTicks(
 
 /** Stop a per-agent schedule (idempotent — false if not present). */
 export async function unscheduleAgentTicks(queue: Queue, agentId: string): Promise<boolean> {
-  if (!AGENT_ID_RE.test(agentId)) {
-    throw new ConciergeError(
-      'InvariantViolation',
-      `[@concierge/worker] unscheduleAgentTicks: agentId must match ${AGENT_ID_RE.source}.`,
-    );
-  }
+  assertAgentId(agentId, 'unscheduleAgentTicks');
   return queue.removeJobScheduler(`tick-${agentId}`);
 }
