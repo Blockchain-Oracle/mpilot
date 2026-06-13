@@ -863,11 +863,11 @@ stories:
     merged_at: "2026-06-10T18:17:56Z"
   - id: story-320-model-agnostic-provider
     epic: "Epic E13 — Composable Primitive"
-    status: PENDING
+    status: COMPLETE
     depends_on: [story-22-sdk-skeleton]
     issue_url: ""
-    pr_url: ""
-    merged_at: ""
+    pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/125"
+    merged_at: "2026-06-13"
 
   # Epic E14 — Composable UI (react headless + styled + adapters)
   - id: story-310-react-headless
