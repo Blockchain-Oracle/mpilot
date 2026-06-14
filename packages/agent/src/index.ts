@@ -1,7 +1,10 @@
 export {
+  type AuthGate,
   type CreateChatHandlerDeps,
   createChatHandler,
+  DEFAULT_MAX_BODY_BYTES,
   DEFAULT_MAX_STEPS,
+  MAX_GOAL_LENGTH,
   renderSystemPrompt,
   type SystemPromptContext,
 } from './chat/index.ts';
