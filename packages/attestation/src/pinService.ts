@@ -121,7 +121,10 @@ export function createPinataPinService(config: {
       }
       const cid = typeof body.data?.cid === 'string' ? body.data.cid : '';
       if (!isValidCid(cid)) {
-        throw new Error(`pinata: returned malformed CID '${cid.slice(0, 64)}'`);
+        // security review (round 2 LOW / CWE-117): cid failed isValidCid so
+        // the charset guarantee is broken — strip controls before embedding
+        // in the thrown message so downstream loggers can't be log-forged.
+        throw new Error(`pinata: returned malformed CID '${stripCtrl(cid).slice(0, 64)}'`);
       }
       // Context7 audit M2: prefer Pinata's authoritative `data.id` (UUID)
       // over a synthesised `pinata:${cid}`. Pin reconciliation, DELETE,
