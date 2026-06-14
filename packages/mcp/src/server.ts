@@ -2,6 +2,7 @@ import { ConciergeError } from '@concierge-mantle/sdk';
 import { bigintSafeStringify, type ConciergeTool } from '@concierge-mantle/tools';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import { registerUIResources, uiResourceUriForCardId } from './registerUIResources.ts';
 
 const SERVER_INFO = { name: 'concierge-mcp', version: '0.0.0' } as const;
 const SANITIZE_ERR_MSG_MAX = 512;
@@ -24,6 +25,11 @@ export function createConciergeMcpServer(opts: CreateConciergeMcpServerOpts): Mc
   if (opts.tools.length === 0) onEmptyToolset();
   const server = new McpServer(info);
 
+  // Story-137 / ADR-017 Rail 2 (SEP-1865): register the four ui://concierge/*
+  // HTML resources BEFORE the tools so the `_meta.ui.resourceUri` references
+  // below resolve to a known resource at list-time.
+  registerUIResources(server);
+
   for (const tool of opts.tools) {
     const inputObject = assertZodObject(tool.inputSchema, tool.name, 'inputSchema');
     const outputObject = assertZodObject(tool.outputSchema, tool.name, 'outputSchema');
@@ -39,6 +45,7 @@ export function createConciergeMcpServer(opts: CreateConciergeMcpServerOpts): Mc
       inputSchema: z.ZodRawShape;
       outputSchema: z.ZodRawShape;
       annotations?: Record<string, unknown>;
+      _meta?: Record<string, unknown>;
     } = {
       description: tool.description,
       inputSchema: inputObject.shape,
@@ -47,6 +54,13 @@ export function createConciergeMcpServer(opts: CreateConciergeMcpServerOpts): Mc
     if (tool.title !== undefined) registration.title = tool.title;
     if (tool.annotations !== undefined) {
       registration.annotations = { ...tool.annotations };
+    }
+    // Story-137 / SEP-1865: if the tool declares a `uiCardId`, attach the
+    // canonical ui:// resource URI in `_meta.ui.resourceUri` so MCP hosts
+    // know to render the result inside the matching sandboxed iframe.
+    const uiResourceUri = uiResourceUriForCardId(tool.uiCardId);
+    if (uiResourceUri !== undefined) {
+      registration._meta = { ui: { resourceUri: uiResourceUri } };
     }
 
     server.registerTool(tool.name, registration, async (args: unknown) => {

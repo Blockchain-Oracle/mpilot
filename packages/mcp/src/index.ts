@@ -1,4 +1,9 @@
 export {
+  registerUIResources,
+  UI_RESOURCES,
+  uiResourceUriForCardId,
+} from './registerUIResources.ts';
+export {
   type CreateConciergeMcpServerOpts,
   createConciergeMcpServer,
 } from './server.ts';
