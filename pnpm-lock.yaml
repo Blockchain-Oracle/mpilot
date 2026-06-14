@@ -235,6 +235,12 @@ importers:
 
   packages/mcp:
     dependencies:
+      '@concierge-mantle/attestation':
+        specifier: workspace:*
+        version: link:../attestation
+      '@concierge-mantle/sdk':
+        specifier: workspace:*
+        version: link:../sdk
       '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../shared

@@ -18,12 +18,12 @@
 
 ## File modification map
 
-- `apps/mcp-server/src/tools/read/getAgentState.ts` — NEW — tool definition: input { agentId }, returns current state (current goal, policy, open positions, last 5 ticks summary)
-- `apps/mcp-server/src/tools/read/getReputation.ts` — NEW — tool definition: input { agentId, limit?, offset? }, returns paginated attestation history via loadAgentHistory (story-84)
-- `apps/mcp-server/src/tools/read/getAttestation.ts` — NEW — tool definition: input { uid }, returns a single attestation including decoded payload
-- `apps/mcp-server/src/tools/read/index.ts` — NEW — barrel export + tool registration helper
-- `apps/mcp-server/src/server.ts` — UPDATE — registers all read tools via `mcp.registerTool()`
-- `apps/mcp-server/src/__tests__/tools-read.test.ts` — NEW — integration tests (in-memory transport) for each tool
+- `packages/mcp/src/tools/read/getAgentState.ts` — NEW — tool definition: input { agentId }, returns current state (current goal, policy, open positions, last 5 ticks summary)
+- `packages/mcp/src/tools/read/getReputation.ts` — NEW — tool definition: input { agentId, limit?, offset? }, returns paginated attestation history via loadAgentHistory (story-84)
+- `packages/mcp/src/tools/read/getAttestation.ts` — NEW — tool definition: input { uid }, returns a single attestation including decoded payload
+- `packages/mcp/src/tools/read/index.ts` — NEW — barrel export + tool registration helper
+- `packages/mcp/src/server.ts` — UPDATE — registers all read tools via `mcp.registerTool()`
+- `packages/mcp/src/__tests__/tools-read.test.ts` — NEW — integration tests (in-memory transport) for each tool
 
 ---
 
@@ -83,16 +83,16 @@ test -f src/tools/read/getAttestation.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/mcp-server run build
+pnpm --filter @concierge-mantle/mcp run build
 test $? -eq 0
 
 # Tools registered
 for tool in get_agent_state get_reputation get_attestation; do
-  grep -q "$tool" apps/mcp-server/src/server.ts || { echo "missing $tool registration"; exit 1; }
+  grep -q "$tool" packages/mcp/src/server.ts || { echo "missing $tool registration"; exit 1; }
 done
 
 # Tests pass
-pnpm --filter @concierge-mantle/mcp-server run test 2>&1 | grep "tools-read" | grep -q "PASS"
+pnpm --filter @concierge-mantle/mcp run test 2>&1 | grep "tools-read" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```
@@ -109,3 +109,11 @@ bun scripts/check-file-loc.mjs
 - **Workers CPU budget**: each tool call must complete in <10s (free) or <30s (paid). loadAgentHistory with 50 entries + IPFS fetches needs to fit. Use cached IPFS payloads (story-84) to stay under budget.
 - **No mutation tools in this story** — those are story-132. Keeping read/write split is important for the auth model (story-134 OAuth gates writes).
 - Cross-ref: `research/concierge/07-mcp-server-pattern.md` § tool design, story-84 loadAgentHistory.
+
+---
+
+## ⚠️ Spec drift (2026-06-14, accepted by implementation)
+
+Original spec named `apps/mcp-server/` + `@concierge-mantle/mcp-server`; the as-built code lives at `packages/mcp/` + `@concierge-mantle/mcp` per ADR-011 amended (stdio-first packaging). Story rewritten in-place.
+
+**`get_attestation` input also changed** from `{ uid }` to `{ agentId, feedbackHash }`. ERC-8004 ReputationRegistry has no by-UID index — lookup MUST scan the agent's feedback list and filter. Surfacing this required input makes the cost obvious to the caller.
