@@ -24,6 +24,7 @@ export { tool } from './tool.ts';
 export type {
   ConciergeAgentLike,
   ConciergeTool,
+  ConciergeToolAnnotations,
   ProviderToolFactory,
   TickPhase,
   UICardId,

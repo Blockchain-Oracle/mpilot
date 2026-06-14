@@ -27,38 +27,54 @@ export function createConciergeMcpServer(opts: CreateConciergeMcpServerOpts): Mc
     const inputObject = assertZodObject(tool.inputSchema, tool.name, 'inputSchema');
     const outputObject = assertZodObject(tool.outputSchema, tool.name, 'outputSchema');
 
-    server.registerTool(
-      tool.name,
-      {
-        description: tool.description,
-        inputSchema: inputObject.shape,
-        outputSchema: outputObject.shape,
-      },
-      async (args: unknown) => {
-        try {
-          // SDK pre-validates the FULL zod schema (shape + refinements) before
-          // this handler runs. Invalid inputs surface as -32602; never reach here.
-          const rawResult = await tool.invoke(args as never);
-          const result = scrubPrototypePollution(rawResult);
-          // Round-2: do NOT cap success-path text (was 512 chars truncating
-          // mid-JSON). The text channel is the readable form of
-          // structuredContent; only the error path needs the regex-cost cap.
-          const text = bigintSafeStringify(result);
-          return {
-            content: [{ type: 'text', text }],
-            structuredContent: result as Record<string, unknown>,
-          };
-        } catch (err) {
-          onToolError({ toolName: tool.name, error: err });
-          const message =
-            err instanceof Error ? sanitizeErrMessage(err.message) : 'tool execution failed';
-          return {
-            content: [{ type: 'text', text: `Tool '${tool.name}' failed: ${message}` }],
-            isError: true,
-          };
-        }
-      },
-    );
+    // Context7 audit M3 (2026-06-14): forward title + annotations to the MCP
+    // SDK's registerTool. MCP clients (Claude Desktop, Inspector, etc.) read
+    // annotations.readOnlyHint/idempotentHint/openWorldHint to render the right
+    // confirmation UX — without these, read-only tools get the same "destructive"
+    // gate as write tools.
+    const registration: {
+      title?: string;
+      description: string;
+      inputSchema: z.ZodRawShape;
+      outputSchema: z.ZodRawShape;
+      annotations?: Record<string, unknown>;
+    } = {
+      description: tool.description,
+      inputSchema: inputObject.shape,
+      outputSchema: outputObject.shape,
+    };
+    if (tool.title !== undefined) registration.title = tool.title;
+    if (tool.annotations !== undefined) {
+      registration.annotations = { ...tool.annotations };
+    }
+
+    server.registerTool(tool.name, registration, async (args: unknown) => {
+      try {
+        // SDK pre-validates the FULL zod schema (shape + refinements) before
+        // this handler runs. Invalid inputs surface as -32602; never reach here.
+        const rawResult = await tool.invoke(args as never);
+        const result = scrubPrototypePollution(rawResult);
+        const text = bigintSafeStringify(result);
+        return {
+          content: [{ type: 'text', text }],
+          structuredContent: result as Record<string, unknown>,
+        };
+      } catch (err) {
+        onToolError({ toolName: tool.name, error: err });
+        const message =
+          err instanceof Error ? sanitizeErrMessage(err.message) : 'tool execution failed';
+        // Context7 audit M4 (2026-06-14): include structured error code in the
+        // tool-result `_meta` block so MCP clients can branch on the typed
+        // ConciergeError code (ConfigError, RpcError, AttestationFailed, …)
+        // without parsing the human message string.
+        const code = extractErrorCode(err);
+        return {
+          content: [{ type: 'text', text: `Tool '${tool.name}' failed: ${message}` }],
+          isError: true,
+          _meta: code !== undefined ? { code } : undefined,
+        };
+      }
+    });
   }
 
   return server;
@@ -115,6 +131,15 @@ function walk(node: unknown): unknown {
     out[k] = walk(v);
   }
   return out;
+}
+
+/** Context7 audit M4: pull `.type`/`.code` off ConciergeError-shaped errors for `_meta.code`. */
+function extractErrorCode(err: unknown): string | undefined {
+  if (err === null || typeof err !== 'object') return undefined;
+  const e = err as { type?: unknown; code?: unknown };
+  if (typeof e.type === 'string' && e.type.length > 0) return e.type;
+  if (typeof e.code === 'string' && e.code.length > 0) return e.code;
+  return undefined;
 }
 
 /** Round-2: cap restricted to error messages (was truncating success text). */

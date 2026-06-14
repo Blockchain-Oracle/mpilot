@@ -1,3 +1,4 @@
+import { canonicalize } from '@concierge-mantle/attestation';
 import { ConciergeError } from '@concierge-mantle/sdk';
 import { reputationRegistryAbi } from '@concierge-mantle/shared/abi';
 import { tool } from '@concierge-mantle/tools';
@@ -6,11 +7,12 @@ import {
   AbiEventSignatureNotFoundError,
   ContractFunctionRevertedError,
   decodeEventLog,
+  keccak256,
+  toBytes,
 } from 'viem';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 import type { ReceiptLog } from '../_types.ts';
-import { hashActionPayload } from '../eip712.ts';
 
 export const AttestActionInput = z.object({
   agentId: z.bigint().describe('Agent NFT token ID from registerAgent'),
@@ -32,7 +34,9 @@ export const AttestActionOutput = z.object({
   feedbackHash: z
     .string()
     .regex(/^0x[0-9a-fA-F]{64}$/)
-    .describe('EIP-712 hash committed on-chain as the tamper-evident payload commitment'),
+    .describe(
+      'Canonical-JSON keccak256 hash committed on-chain as the tamper-evident payload commitment (per ADR-004 and Context7 audit C2 — replaces prior EIP-712 path that diverged from attestation/hash.ts)',
+    ),
 });
 
 function scanForFeedbackIndex(
@@ -91,7 +95,21 @@ export async function executeAttestAction(
 ): Promise<z.infer<typeof AttestActionOutput>> {
   assertAttestInputValid(ctx, input);
 
-  const feedbackHash = hashActionPayload(input.actionPayload, input.agentId, ctx.chainId);
+  // Context7 audit C2 + ADR-004: the canonical attestation hash is
+  // keccak256(toBytes(canonicalize(envelope))) — the SAME function
+  // attestation/hash.ts's computeFeedbackPair uses. Previously
+  // hashActionPayload (deleted) computed EIP-712 typed-data instead,
+  // producing a DIFFERENT bytes32 for the same envelope; verifiers
+  // reading the on-chain feedbackHash and pulling IPFS bytes could not
+  // reproduce the commitment. Unverifiable receipts. Canonicalize over
+  // the wire envelope {schema, agentId, payload} so the IPFS bytes
+  // (which writeAttestation pins) match the keccak preimage exactly.
+  const canonicalEnvelope = canonicalize({
+    schema: input.providerSchema,
+    agentId: input.agentId.toString(),
+    payload: input.actionPayload,
+  });
+  const feedbackHash = keccak256(toBytes(canonicalEnvelope));
 
   let txHash: `0x${string}`;
   try {

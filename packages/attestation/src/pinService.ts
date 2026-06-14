@@ -45,7 +45,10 @@ const PINATA_V3_HOST = 'https://uploads.pinata.cloud';
  * base32-encoded CIDv1 codecs (bafy/bafk/bafr/etc) with a 256-char
  * upper bound (CWE-1284 DoS guard; real CIDv1 sha2-256 is ~59 chars).
  */
-const CID_V1_RE = /^ba[a-z2-7]{56,256}$/;
+// Context7 audit L3: tightened upper bound from 256 → 128. Observed real-
+// world CIDv1 (sha2-256, base32) lengths are 56–60 chars; 128 leaves
+// headroom for future hash sizes without permitting pathological inputs.
+const CID_V1_RE = /^ba[a-z2-7]{56,128}$/;
 const CID_V0_RE = /^Qm[1-9A-HJ-NP-Za-km-z]{44}$/;
 function isValidCid(s: string): boolean {
   return CID_V1_RE.test(s) || CID_V0_RE.test(s);
@@ -95,7 +98,10 @@ export function createPinataPinService(config: {
         const safeStatus = stripCtrl(res.statusText).slice(0, 128);
         throw new Error(`pinata: ${res.status} ${safeStatus}`);
       }
-      const body = (await res.json()) as { data?: { cid?: unknown }; error?: unknown };
+      const body = (await res.json()) as {
+        data?: { cid?: unknown; id?: unknown };
+        error?: unknown;
+      };
       // Round-2: handle the 200-with-error-envelope case. Pinata can return
       // 200 + `{ error: 'quota exceeded' }` for soft failures. Without this
       // check, body.data?.cid is undefined and the malformed-CID error path
@@ -108,7 +114,14 @@ export function createPinataPinService(config: {
       if (!isValidCid(cid)) {
         throw new Error(`pinata: returned malformed CID '${cid.slice(0, 64)}'`);
       }
-      return { cid, pinId: `pinata:${cid}` };
+      // Context7 audit M2: prefer Pinata's authoritative `data.id` (UUID)
+      // over a synthesised `pinata:${cid}`. Pin reconciliation, DELETE,
+      // and dashboard correlation all require the UUID — the CID alone
+      // isn't unique across re-uploads. Fall back to the CID-derived form
+      // if Pinata ever returns a response without `id` (defensive).
+      const pinataId = typeof body.data?.id === 'string' ? body.data.id : '';
+      const pinId = pinataId.length > 0 ? `pinata:${pinataId}` : `pinata:${cid}`;
+      return { cid, pinId };
     },
   };
 }

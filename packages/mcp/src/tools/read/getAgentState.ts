@@ -20,10 +20,13 @@ const RECENT_LIMIT = 5;
 export function createGetAgentStateTool(deps: CreateReadToolsDeps): ConciergeTool {
   return tool({
     name: 'get_agent_state',
+    title: 'Get agent public state',
     description:
       'Read the public state of a Concierge agent by its ERC-8004 NFT id: owner address, attestation count, and the 5 most-recent attestations.',
     inputSchema: GetAgentStateInputSchema,
     outputSchema: GetAgentStateOutputSchema,
+    // Context7 audit M3: read-only on-chain lookup — idempotent, hits Mantle RPC.
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
     invoke: async ({ agentId }): Promise<GetAgentStateOutput> => {
       const id = safeBigInt(agentId, 'agentId');
       const [owner, history] = await Promise.all([

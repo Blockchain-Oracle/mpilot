@@ -1,11 +1,37 @@
+import { canonicalize } from '@concierge-mantle/attestation';
 import { ConciergeError } from '@concierge-mantle/sdk';
 import { reputationRegistryAbi } from '@concierge-mantle/shared/abi';
-import { encodeAbiParameters, encodeEventTopics, parseAbiParameters } from 'viem';
+import {
+  encodeAbiParameters,
+  encodeEventTopics,
+  keccak256,
+  parseAbiParameters,
+  toBytes,
+} from 'viem';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';
 import { executeAttestAction } from '../../actions/attestAction.ts';
 import { executeRegisterAgent } from '../../actions/registerAgent.ts';
-import { hashActionPayload } from '../../eip712.ts';
+
+// Context7 audit C2: production attestation hash is now
+// keccak256(toBytes(canonicalize({schema, agentId, payload}))). This helper
+// mirrors `attestAction.ts` so test expectations match the wire bytes.
+function expectedFeedbackHash(
+  payload: { schema: string } & Record<string, unknown>,
+  agentId: bigint,
+  providerSchema?: string,
+): `0x${string}` {
+  return keccak256(
+    toBytes(
+      canonicalize({
+        schema: providerSchema ?? payload.schema,
+        agentId: agentId.toString(),
+        payload,
+      }),
+    ),
+  );
+}
+
 import {
   type AnvilFork,
   IDENTITY_REGISTRY_SEPOLIA,
@@ -31,7 +57,7 @@ const ACTION_PAYLOAD = {
 // Build a minimal NewFeedback log entry for the given feedbackIndex
 function makeNewFeedbackLog(feedbackIndex: bigint) {
   // NewFeedback(agentId indexed, clientAddress indexed, feedbackIndex, value, valueDecimals, indexedTag1 indexed, tag1, tag2, endpoint, feedbackURI, feedbackHash)
-  const feedbackHash = hashActionPayload(ACTION_PAYLOAD, AGENT_ID, 5000);
+  const feedbackHash = expectedFeedbackHash(ACTION_PAYLOAD, AGENT_ID);
 
   const topics = encodeEventTopics({
     abi: reputationRegistryAbi,
@@ -122,7 +148,7 @@ describe('attestAction — happy path', () => {
       providerSchema: SCHEMA,
       actionPayload: ACTION_PAYLOAD,
     });
-    const expected = hashActionPayload(ACTION_PAYLOAD, AGENT_ID, 5000);
+    const expected = expectedFeedbackHash(ACTION_PAYLOAD, AGENT_ID);
     expect(result.feedbackHash).toBe(expected);
   });
 
@@ -263,7 +289,7 @@ describe('attestAction — fork: live Sepolia ReputationRegistry', () => {
     });
     expect(result.txHash).toMatch(/^0x[0-9a-fA-F]{64}$/);
     expect(result.feedbackIndex).toBeGreaterThanOrEqual(0n);
-    expect(result.feedbackHash).toBe(hashActionPayload(payload, agentId, 5003));
+    expect(result.feedbackHash).toBe(expectedFeedbackHash(payload, agentId));
   });
 
   it('attest against non-existent agentId throws AttestationFailed with reason AgentNotFound', async () => {

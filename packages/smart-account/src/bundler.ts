@@ -7,34 +7,36 @@ import {
   createPaymasterClient as viemCreatePaymasterClient,
 } from 'viem/account-abstraction';
 import { CHAIN_CONFIGS } from './constants.ts';
-import { sanitizeCause } from './internal.ts';
+import { type PaymasterMode, sanitizeCause, shouldUsePaymaster } from './internal.ts';
 import type { SupportedChain } from './types.ts';
 
 export type { BundlerClient, PaymasterClient };
 
-/** Discriminated bundle: mainnet has null paymaster (user pays); sepolia has a live client (demo sponsorship). */
-export type BundlerBundle =
-  | {
-      readonly chain: 'mantle-mainnet';
-      readonly bundlerClient: BundlerClient;
-      readonly paymasterClient: null;
-    }
-  | {
-      readonly chain: 'mantle-sepolia';
-      readonly bundlerClient: BundlerClient;
-      readonly paymasterClient: PaymasterClient;
-    };
+/** Bundle. `paymasterClient` is null when caller opts into user-pays. */
+export interface BundlerBundle {
+  readonly chain: SupportedChain;
+  readonly bundlerClient: BundlerClient;
+  readonly paymasterClient: PaymasterClient | null;
+}
 
 export interface CreateBundlerClientConfig {
   chain: SupportedChain;
   /** Defaults to `process.env.PIMLICO_API_KEY` */
   apiKey?: string;
+  /**
+   * Paymaster strategy. Context7 audit H3: defaults via `shouldUsePaymaster`
+   * — sepolia → 'pimlico', mainnet → 'none'. Override per call.
+   * Previously hardcoded chain-based, which could disagree with
+   * `createConciergeAccount`'s decision; now both go through the same
+   * helper.
+   */
+  paymaster?: PaymasterMode;
 }
 
 /**
- * Returns a Pimlico bundler client for the given Mantle chain.
- * For mantle-sepolia the paymaster client is set (demo sponsorship).
- * For mantle-mainnet the paymaster client is null (user pays gas in MNT).
+ * Returns a Pimlico bundler client + paymaster bundle for the given chain.
+ * Paymaster wiring routed through `shouldUsePaymaster` so this entry point
+ * and `createConciergeAccount` always agree.
  */
 export function createBundlerClient(config: CreateBundlerClientConfig): BundlerBundle {
   // biome-ignore lint/complexity/useLiteralKeys: noPropertyAccessFromIndexSignature requires bracket notation
@@ -66,26 +68,20 @@ export function createBundlerClient(config: CreateBundlerClientConfig): BundlerB
       sanitizeCause(err, apiKey),
     );
   }
-  if (config.chain === 'mantle-mainnet') {
-    return { chain: 'mantle-mainnet', bundlerClient, paymasterClient: null };
+
+  const usePaymaster = shouldUsePaymaster(config.chain, config.paymaster);
+  if (!usePaymaster) {
+    return { chain: config.chain, bundlerClient, paymasterClient: null };
   }
-  if (config.chain === 'mantle-sepolia') {
-    let paymasterClient: PaymasterClient;
-    try {
-      paymasterClient = viemCreatePaymasterClient({ transport: http(bundlerUrl) });
-    } catch (err) {
-      throw new ConciergeError(
-        'RpcError',
-        `[@concierge-mantle/smart-account] createBundlerClient: paymaster transport init failed (chain: '${config.chain}')`,
-        sanitizeCause(err, apiKey),
-      );
-    }
-    return { chain: 'mantle-sepolia', bundlerClient, paymasterClient };
+  let paymasterClient: PaymasterClient;
+  try {
+    paymasterClient = viemCreatePaymasterClient({ transport: http(bundlerUrl) });
+  } catch (err) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge-mantle/smart-account] createBundlerClient: paymaster transport init failed (chain: '${config.chain}')`,
+      sanitizeCause(err, apiKey),
+    );
   }
-  const _exhaust: never = config.chain;
-  void _exhaust;
-  throw new ConciergeError(
-    'ConfigError',
-    `[@concierge-mantle/smart-account] createBundlerClient: unhandled chain '${String(config.chain)}'`,
-  );
+  return { chain: config.chain, bundlerClient, paymasterClient };
 }

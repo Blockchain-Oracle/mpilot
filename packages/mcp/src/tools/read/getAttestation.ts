@@ -32,10 +32,12 @@ const SCAN_LIMIT = 200;
 export function createGetAttestationTool(deps: CreateReadToolsDeps): ConciergeTool {
   return tool({
     name: 'get_attestation',
+    title: 'Get attestation by feedbackHash',
     description:
       "Read a single attestation by its on-chain feedbackHash. Requires agentId because ERC-8004 doesn't index by hash. Returns a distinct error when the agent has more than 200 attestations and the scan window is exceeded (paginate via get_reputation instead).",
     inputSchema: GetAttestationInputSchema,
     outputSchema: GetAttestationOutputSchema,
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
     invoke: async ({ agentId, feedbackHash }): Promise<GetAttestationOutput> => {
       const result = await loadAgentHistory(
         { agentId: safeBigInt(agentId, 'agentId'), limit: SCAN_LIMIT, offset: 0 },
