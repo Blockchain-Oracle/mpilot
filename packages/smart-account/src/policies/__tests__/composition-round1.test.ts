@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { ParamCondition } from '@zerodev/permissions/policies';
 import type { Address, Hex } from 'viem';
 import { pad, toHex } from 'viem';

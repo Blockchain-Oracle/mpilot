@@ -1,4 +1,4 @@
-# Story — `@concierge/aave-v3-mantle` integration tests
+# Story — `@concierge-mantle/aave-v3-mantle` integration tests
 
 **ID:** story-31-aave-v3-mantle-tests
 **Epic:** Epic E3 — Action Providers
@@ -35,7 +35,7 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge/aave-v3-mantle run test` runs
+When `pnpm --filter @concierge-mantle/aave-v3-mantle run test` runs
 Then exit code is 0 AND ≥ 20 test cases pass
 
 Given test_provider_ExposesSixActions
@@ -83,7 +83,7 @@ When `pnpm scripts/check-file-loc.mjs` runs
 Then every test file is ≤ 400 LOC
 
 Given coverage report
-When `pnpm --filter @concierge/aave-v3-mantle run test --coverage` runs
+When `pnpm --filter @concierge-mantle/aave-v3-mantle run test --coverage` runs
 Then line coverage on `packages/providers/aave-v3-mantle/src/` is ≥ 85%
 ```
 
@@ -93,17 +93,17 @@ Then line coverage on `packages/providers/aave-v3-mantle/src/` is ≥ 85%
 
 ```bash
 # Tests pass
-pnpm --filter @concierge/aave-v3-mantle run test --reporter=verbose
+pnpm --filter @concierge-mantle/aave-v3-mantle run test --reporter=verbose
 test $? -eq 0
 
 # ≥ 20 test cases
-pnpm --filter @concierge/aave-v3-mantle run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 20 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/aave-v3-mantle run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 20 {exit 0} {exit 1}'
 
 # E-Mode silent-fail-trap test passes (load-bearing)
-pnpm --filter @concierge/aave-v3-mantle run test --reporter=verbose 2>&1 | grep "WithoutEMode_ThrowsClientSide" | grep -q "✓"
+pnpm --filter @concierge-mantle/aave-v3-mantle run test --reporter=verbose 2>&1 | grep "WithoutEMode_ThrowsClientSide" | grep -q "✓"
 
 # Coverage ≥ 85%
-cov=$(pnpm --filter @concierge/aave-v3-mantle run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @concierge-mantle/aave-v3-mantle run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 85
 
 # No file exceeds 400 LOC

@@ -102,7 +102,7 @@ forge test --match-contract MockAaveOracleTest 2>&1 | grep -E "\[PASS\]" | wc -l
 
 ## Notes for coding agent
 
-- **The `Capped sUSDe/USDT/USD` composite mechanic is NOT replicated.** The mock just returns the final 8-decimal USD price. The agent runtime (via `@concierge/aave-v3-mantle` provider) calls `getAssetPrice(asset)` which is the same interface real Aave Oracle exposes — so the agent doesn't branch.
+- **The `Capped sUSDe/USDT/USD` composite mechanic is NOT replicated.** The mock just returns the final 8-decimal USD price. The agent runtime (via `@concierge-mantle/aave-v3-mantle` provider) calls `getAssetPrice(asset)` which is the same interface real Aave Oracle exposes — so the agent doesn't branch.
 - **Seeded prices match Mainnet snapshot from 2026-06-03 audit** so Sepolia demos feel real-shaped. If Abu wants to demo a depeg, he calls `setAssetPrice(mockSUSDe, 95000000)` mid-demo and the agent's depeg monitor (story-48 in the original Patron stories — equivalent will live in Concierge's tick loop story-65 propose phase) fires the rotate path.
 - **`AssetPriceUnavailable` is a typed error, NOT a silent `return 0`.** Real Aave Oracle reverts on stale composite reads; the mock does the same. The agent's `simulate()` phase catches this and treats it as `oracle_unavailable` per ADR-008 + `research/concierge/03-providers/aave-v3-mantle.md` § IAaveOracle staleness caveat.
 - **`PriceUpdated` event** lets off-chain observers (Concierge dashboard / Sepolia faucet UI) react to admin price changes.

@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import { ADDRESSES } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { executeGetYieldRate } from '../../actions/getYieldRate.ts';
 import { type AnvilFork, startAnvilFork } from '../setup.ts';

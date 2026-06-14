@@ -97,7 +97,7 @@ describe('SKILL.md frontmatter', () => {
 
   it('tools list contains the 6 MCP-exposed tool names (set equality, order-agnostic)', () => {
     // NOTE: this asserts the manifest's CURRENT contract with the MCP server
-    // (story-130). If/when @concierge/mcp wires real tools that don't match,
+    // (story-130). If/when @concierge-mantle/mcp wires real tools that don't match,
     // either this manifest needs updating OR the MCP tool names need to
     // change — the test failure is the gate, not the bug.
     const md = readSkillMd();

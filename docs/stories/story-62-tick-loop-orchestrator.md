@@ -18,7 +18,7 @@
 
 ## File modification map
 
-- `packages/runtime/package.json` — NEW — peer deps + workspace deps on `@concierge/sdk`, `@concierge/llm`, all 7 providers, `@concierge/smart-account`, `@concierge/shared`, `drizzle-orm`, `ioredis`, `pino`
+- `packages/runtime/package.json` — NEW — peer deps + workspace deps on `@concierge-mantle/sdk`, `@concierge-mantle/llm`, all 7 providers, `@concierge-mantle/smart-account`, `@concierge-mantle/shared`, `drizzle-orm`, `ioredis`, `pino`
 - `packages/runtime/src/index.ts` — NEW — barrel exports
 - `packages/runtime/src/tick.ts` — NEW — `tick(agentId: string): Promise<TickResult>`. Sequence: acquire Redis NX lock (`lock:agent:${agentId}` with 60s TTL) → loadState → runPhase('plan') → if NOOP return early → runPhase('simulate') → if NOT OK return early → runPhase('propose') → if requiresApproval return early (awaiting user) → runPhase('execute') → runPhase('record') → release lock → return result. Each phase wrapped in try/catch; phase failure breaks the chain (NEVER silently continues to next phase). Pino structured logging per phase with `agentId`, `phase`, `tickId`, `durationMs`.
 - `packages/runtime/src/lock.ts` — NEW — Redis NX lock helpers: `acquireLock(key, ttlMs)`, `releaseLock(key)`. Uses `ioredis` `SET key value NX EX ttl`. Returns boolean for acquireLock (true = acquired, false = already held).
@@ -86,7 +86,7 @@ test -f src/types.ts
 
 cd ../..
 
-pnpm --filter @concierge/runtime run build
+pnpm --filter @concierge-mantle/agent run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -104,7 +104,7 @@ grep -qE "(SET.*NX|setNX|setnx)" packages/runtime/src/lock.ts
 grep -q "finally" packages/runtime/src/tick.ts
 
 # Unit tests pass
-pnpm --filter @concierge/runtime run test 2>&1 | grep "tick" | grep -q "PASS"
+pnpm --filter @concierge-mantle/agent run test 2>&1 | grep "tick" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

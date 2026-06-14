@@ -141,7 +141,7 @@ export class ConciergeError extends Error {
     super(message, cause === undefined ? undefined : { cause });
     if (!isConciergeErrorType(type)) {
       throw new TypeError(
-        `[@concierge/sdk] ConciergeError: unknown type "${String(type)}" — expected one of: ${CONCIERGE_ERROR_TYPES.join(', ')}.`,
+        `[@concierge-mantle/sdk] ConciergeError: unknown type "${String(type)}" — expected one of: ${CONCIERGE_ERROR_TYPES.join(', ')}.`,
       );
     }
     this.type = type;
@@ -208,7 +208,7 @@ export class ConciergeError extends Error {
         // A secondary throw from toJSON() is catastrophic in error-reporting paths.
         // Log it so the bug is traceable, then fall back to a safe placeholder.
         console.error(
-          `[@concierge/sdk] ConciergeError.toJSON: failed to serialize metadata for type "${this.type}":`,
+          `[@concierge-mantle/sdk] ConciergeError.toJSON: failed to serialize metadata for type "${this.type}":`,
           serializationErr,
         );
         result['metadata'] = '[unserializable metadata]';

@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_MODEL_BY_PHASE,

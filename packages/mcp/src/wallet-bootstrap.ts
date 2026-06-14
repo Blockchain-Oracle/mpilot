@@ -73,7 +73,7 @@ export function bootstrapWallet(opts: BootstrapOpts = {}): WalletConfig {
   const rpcUrl = opts.rpcUrl ?? process.env['CONCIERGE_RPC_URL'] ?? DEFAULT_RPC_URL;
   if (!RPC_URL_RE.test(rpcUrl)) {
     throw new Error(
-      `[@concierge/mcp] wallet-bootstrap: CONCIERGE_RPC_URL has hostile shape (got '${rpcUrl.slice(0, 64)}'). Expected http(s) origin.`,
+      `[@concierge-mantle/mcp] wallet-bootstrap: CONCIERGE_RPC_URL has hostile shape (got '${rpcUrl.slice(0, 64)}'). Expected http(s) origin.`,
     );
   }
 
@@ -116,7 +116,7 @@ export function bootstrapWallet(opts: BootstrapOpts = {}): WalletConfig {
     // Round-2 silent-failure MEDIUM: thin context on EROFS/EACCES. Wrap with
     // wallet-bootstrap prefix + path so the user knows the failure layer.
     safeUnlink(tmpPath);
-    if (err instanceof Error && err.message.startsWith('[@concierge/mcp]')) throw err;
+    if (err instanceof Error && err.message.startsWith('[@concierge-mantle/mcp]')) throw err;
     throw wrapWalletErr(err, 'create config', configPath);
   }
 }
@@ -124,7 +124,9 @@ export function bootstrapWallet(opts: BootstrapOpts = {}): WalletConfig {
 function wrapWalletErr(err: unknown, op: string, path: string): Error {
   const code = (err as NodeJS.ErrnoException).code ?? 'unknown';
   const msg = err instanceof Error ? err.message : String(err);
-  return new Error(`[@concierge/mcp] wallet-bootstrap: ${op} at ${path} failed (${code}): ${msg}`);
+  return new Error(
+    `[@concierge-mantle/mcp] wallet-bootstrap: ${op} at ${path} failed (${code}): ${msg}`,
+  );
 }
 
 function safeUnlink(path: string): void {
@@ -176,7 +178,7 @@ function tryReadConfig(configPath: string): WalletConfig | null {
   const parsed = parseConfig(raw);
   if (parsed === null) {
     throw new Error(
-      `[@concierge/mcp] wallet-bootstrap: config at ${configPath} exists but is malformed. Refusing to overwrite. Move or delete it manually.`,
+      `[@concierge-mantle/mcp] wallet-bootstrap: config at ${configPath} exists but is malformed. Refusing to overwrite. Move or delete it manually.`,
     );
   }
   return parsed;

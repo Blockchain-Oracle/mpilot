@@ -33,7 +33,7 @@ export function createConciergeTools(
       produced = factory(agent);
     } catch (cause) {
       throw new Error(
-        `[@concierge/tools] factory at index ${idx} threw during construction: ${
+        `[@concierge-mantle/tools] factory at index ${idx} threw during construction: ${
           cause instanceof Error ? cause.message : String(cause)
         }`,
         { cause },
@@ -43,7 +43,7 @@ export function createConciergeTools(
       // Suppress the secondary unhandledRejection so users see only OUR error.
       (produced as Promise<unknown>).catch(() => {});
       throw new TypeError(
-        `[@concierge/tools] factory at index ${idx} returned a Promise. ProviderToolFactory must be synchronous; await any async setup before calling createConciergeTools.`,
+        `[@concierge-mantle/tools] factory at index ${idx} returned a Promise. ProviderToolFactory must be synchronous; await any async setup before calling createConciergeTools.`,
       );
     }
     if (!Array.isArray(produced)) {
@@ -56,7 +56,7 @@ export function createConciergeTools(
         typeof (produced as { then?: unknown }).then === 'function';
       const hint = maybeThen ? ' (looks like a thenable — did you forget to await?)' : '';
       throw new TypeError(
-        `[@concierge/tools] factory at index ${idx} returned ${typeof produced}, expected ConciergeTool[]${hint}`,
+        `[@concierge-mantle/tools] factory at index ${idx} returned ${typeof produced}, expected ConciergeTool[]${hint}`,
       );
     }
 
@@ -70,12 +70,12 @@ export function createConciergeTools(
         typeof t.invoke !== 'function'
       ) {
         throw new TypeError(
-          `[@concierge/tools] factory at index ${idx} produced an invalid tool (missing/invalid name|description|invoke); got name=${JSON.stringify(t?.name)}`,
+          `[@concierge-mantle/tools] factory at index ${idx} produced an invalid tool (missing/invalid name|description|invoke); got name=${JSON.stringify(t?.name)}`,
         );
       }
       if (!isZodSchema(t.inputSchema) || !isZodSchema(t.outputSchema)) {
         throw new TypeError(
-          `[@concierge/tools] tool "${t.name}" inputSchema/outputSchema must be Zod schemas (got input=${typeof t.inputSchema}, output=${typeof t.outputSchema})`,
+          `[@concierge-mantle/tools] tool "${t.name}" inputSchema/outputSchema must be Zod schemas (got input=${typeof t.inputSchema}, output=${typeof t.outputSchema})`,
         );
       }
       // Collect-first / throw-once: a tool with BOTH transform inputSchema AND
@@ -86,7 +86,7 @@ export function createConciergeTools(
       if (isZodPipe(t.outputSchema)) pipeFields.push('outputSchema');
       if (pipeFields.length > 0) {
         throw new TypeError(
-          `[@concierge/tools] tool "${t.name}" ${pipeFields.join(' and ')} use(s) .transform() or .pipe() — cannot be represented in JSON Schema (perform normalization inside invoke() instead of in the schema).`,
+          `[@concierge-mantle/tools] tool "${t.name}" ${pipeFields.join(' and ')} use(s) .transform() or .pipe() — cannot be represented in JSON Schema (perform normalization inside invoke() instead of in the schema).`,
         );
       }
       // Same pattern for ZodObject: MCP tool-call args + return both must be
@@ -96,13 +96,13 @@ export function createConciergeTools(
       if (!isZodObject(t.outputSchema)) nonObjectFields.push('outputSchema');
       if (nonObjectFields.length > 0) {
         throw new TypeError(
-          `[@concierge/tools] tool "${t.name}" ${nonObjectFields.join(' and ')} must be a z.ZodObject (MCP / Vercel AI / OpenAI tool-calls pass args + structuredContent as objects); wrap scalar values in z.object({ value: ... })`,
+          `[@concierge-mantle/tools] tool "${t.name}" ${nonObjectFields.join(' and ')} must be a z.ZodObject (MCP / Vercel AI / OpenAI tool-calls pass args + structuredContent as objects); wrap scalar values in z.object({ value: ... })`,
         );
       }
       if (t.supportsNetwork !== undefined) {
         if (typeof t.supportsNetwork !== 'function') {
           throw new TypeError(
-            `[@concierge/tools] tool "${t.name}".supportsNetwork must be a function, got ${typeof t.supportsNetwork}`,
+            `[@concierge-mantle/tools] tool "${t.name}".supportsNetwork must be a function, got ${typeof t.supportsNetwork}`,
           );
         }
         let verdict: unknown;
@@ -113,7 +113,7 @@ export function createConciergeTools(
           // threw, then re-raise. Failing fast at registration is correct —
           // silently skipping the tool would hide the bug.
           throw new Error(
-            `[@concierge/tools] tool "${t.name}".supportsNetwork threw: ${
+            `[@concierge-mantle/tools] tool "${t.name}".supportsNetwork threw: ${
               cause instanceof Error ? cause.message : String(cause)
             }`,
             { cause },
@@ -121,7 +121,7 @@ export function createConciergeTools(
         }
         if (typeof verdict !== 'boolean') {
           throw new TypeError(
-            `[@concierge/tools] tool "${t.name}".supportsNetwork must return boolean, got ${typeof verdict}`,
+            `[@concierge-mantle/tools] tool "${t.name}".supportsNetwork must return boolean, got ${typeof verdict}`,
           );
         }
         if (!verdict) continue;
@@ -130,7 +130,7 @@ export function createConciergeTools(
       const prior = seen.get(t.name);
       if (prior !== undefined) {
         throw new Error(
-          `[@concierge/tools] duplicate tool name "${t.name}" — registered by factory ${prior} and factory ${idx}`,
+          `[@concierge-mantle/tools] duplicate tool name "${t.name}" — registered by factory ${prior} and factory ${idx}`,
         );
       }
       seen.set(t.name, idx);

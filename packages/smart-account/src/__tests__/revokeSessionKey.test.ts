@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import type { Address, Hex } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { revokeSessionKey } from '../revokeSessionKey.ts';

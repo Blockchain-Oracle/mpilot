@@ -90,7 +90,7 @@ test "$files" = "contracts/script/lib/Addresses.sol"
 
 ## Notes for coding agent
 
-- **Addresses are constants, NOT magic literals.** All hex addresses live in `contracts/script/lib/Addresses.sol` as `address constant AAVE_V3_POOL_MAINNET = 0x458F293454fE0d67EC0655f3672301301DD51422;`. Other contracts/scripts import them by name. Reference: `story-cdr/packages/contracts/src/addresses.ts` for the TS-side equivalent + `@concierge/shared/addresses.ts` (story-20) which auto-syncs.
+- **Addresses are constants, NOT magic literals.** All hex addresses live in `contracts/script/lib/Addresses.sol` as `address constant AAVE_V3_POOL_MAINNET = 0x458F293454fE0d67EC0655f3672301301DD51422;`. Other contracts/scripts import them by name. Reference: `story-cdr/packages/contracts/src/addresses.ts` for the TS-side equivalent + `@concierge-mantle/shared/addresses.ts` (story-20) which auto-syncs.
 - **Sepolia mock caching** prevents `getConfig()` from redeploying mocks on every call. Cache pattern:
   ```solidity
   NetworkConfig private _sepoliaConfig;

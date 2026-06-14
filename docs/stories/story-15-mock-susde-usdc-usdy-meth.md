@@ -111,6 +111,6 @@ forge test --match-contract MockTokenTest 2>&1 | grep -E "\[PASS\]" | wc -l | aw
   - Real USDC on Mantle: `0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9`
   - Real USDY: `0x5bE26527e817998A7206475496fDE1E68957c5A6`
   - Real mETH: `0xcDA86A272531e8640cD7F1a92c01839911B90bb0`
-- The agent runtime's address resolution (story-20's `@concierge/shared/addresses.ts`) routes by chain id — Mainnet (5000) → real addresses, Sepolia (5003) → these mock addresses populated by deploy script (story-18).
+- The agent runtime's address resolution (story-20's `@concierge-mantle/shared/addresses.ts`) routes by chain id — Mainnet (5000) → real addresses, Sepolia (5003) → these mock addresses populated by deploy script (story-18).
 - Cross-ref: ADR-012 (Sepolia playground), `archive/patron-2026-06-02/docs/stories/story-15-mock-susde-usdc-usdy-meth.md` (Patron-pattern reference).
 - All files MUST stay under 400 LOC.

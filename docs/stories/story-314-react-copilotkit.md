@@ -1,4 +1,4 @@
-# Story — `@concierge/react-copilotkit` adapter (covers AG-UI / LangGraph / CrewAI / Mastra / Pydantic AI)
+# Story — `@concierge-mantle/react-copilotkit` adapter (covers AG-UI / LangGraph / CrewAI / Mastra / Pydantic AI)
 
 **ID:** story-314-react-copilotkit
 **Epic:** Epic E14 — Composable UI
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** developer using CopilotKit / AG-UI Protocol (which transitively covers LangGraph, CrewAI, Mastra, Pydantic AI, AutoGen2, MS Agent Framework)
-**I want to** `pnpm add @concierge/react-copilotkit` and call `useConciergeActions()` inside my `<CopilotKit>` provider
+**I want to** `pnpm add @concierge-mantle/react-copilotkit` and call `useConciergeActions()` inside my `<CopilotKit>` provider
 **So that** all Concierge cards register as CopilotKit frontend tools and render automatically when the agent emits them
 
 ---
 
 ## File modification map
 
-- `packages/react-copilotkit/package.json` — NEW — ESM-only; peer deps on `@copilotkit/react-core ^1.59`, `react`, `@concierge/react`
+- `packages/react-copilotkit/package.json` — NEW — ESM-only; peer deps on `@copilotkit/react-core ^1.59`, `react`, `@concierge-mantle/react`
 - `packages/react-copilotkit/src/useConciergeActions.tsx` — NEW — hook calling `useCopilotAction` (or `useFrontendTool` v2 — pin at impl time per AUDIT §10) for each Concierge card
 - `packages/react-copilotkit/src/__tests__/useConciergeActions.test.tsx` — NEW — ≥ 5 cases (renderHook)
 - `packages/react-copilotkit/README.md` — NEW — quickstart
@@ -34,14 +34,14 @@ Then `useCopilotAction` (or `useFrontendTool`) is called for each Concierge card
 
 Given the agent emits a tool call for `proposeAction`
 When CopilotKit's runtime resolves the registered action
-Then ProposalPart from @concierge/react is rendered with the args + result
+Then ProposalPart from @concierge-mantle/react is rendered with the args + result
 
 Given API naming decision
 When the impl is reviewed
 Then it pins consistently to one of `useCopilotAction` or `useFrontendTool` (NOT both) AND the README explains the pin decision per AUDIT §10
 
 Given typecheck + build + tests
-When `pnpm --filter @concierge/react-copilotkit build && pnpm --filter @concierge/react-copilotkit test` runs
+When `pnpm --filter @concierge-mantle/react-copilotkit build && pnpm --filter @concierge-mantle/react-copilotkit test` runs
 Then ≥ 5 cases pass and exit 0
 ```
 
@@ -65,8 +65,8 @@ if [ "$useCopilotAction_count" -gt 0 ] && [ "$useFrontendTool_count" -gt 0 ]; th
   exit 1
 fi
 
-pnpm --filter @concierge/react-copilotkit build
-pnpm --filter @concierge/react-copilotkit test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 5 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/react-copilotkit build
+pnpm --filter @concierge-mantle/react-copilotkit test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 5 {exit 0} {exit 1}'
 ```
 
 ---
@@ -78,13 +78,13 @@ Implementation skeleton:
 ```typescript
 'use client';
 import { useCopilotAction /* OR useFrontendTool */ } from '@copilotkit/react-core';
-import { ProposalPart, TickPart, PortfolioPart, ReputationPart } from '@concierge/react';
+import { ProposalPart, TickPart, PortfolioPart, ReputationPart } from '@concierge-mantle/react';
 
 export function useConciergeActions() {
   useCopilotAction({
     name: 'proposeAction',
     description: 'Show a Concierge proposal card with Approve/Reject/Edit',
-    parameters: [/* derived from @concierge/tools ConciergeTool inputSchema */],
+    parameters: [/* derived from @concierge-mantle/tools ConciergeTool inputSchema */],
     render: (args, result, status) => <ProposalPart part={{ /* mapped */ }} />,
   });
   useCopilotAction({ name: 'executeTick', /* ... */ });

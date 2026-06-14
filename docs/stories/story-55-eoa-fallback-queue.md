@@ -73,11 +73,11 @@ test -f src/eoaFallback/sender.ts
 
 cd ../..
 
-pnpm --filter @concierge/smart-account run build
+pnpm --filter @concierge-mantle/smart-account run build
 test $? -eq 0
 
 # Integration test passes (requires a Postgres test container)
-pnpm --filter @concierge/smart-account run test 2>&1 | grep "eoaFallback" | grep -q "PASS"
+pnpm --filter @concierge-mantle/smart-account run test 2>&1 | grep "eoaFallback" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

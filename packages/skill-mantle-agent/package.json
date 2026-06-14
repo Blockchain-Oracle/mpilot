@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/skill-mantle-agent",
+  "name": "@concierge-mantle/skill-mantle-agent",
   "version": "0.1.0",
   "private": true,
   "description": "RealClaw skill package for Concierge — see SKILL.md for the user-facing description (source of truth).",

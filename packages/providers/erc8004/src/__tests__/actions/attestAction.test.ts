@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import { reputationRegistryAbi } from '@concierge/shared/abi';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { reputationRegistryAbi } from '@concierge-mantle/shared/abi';
 import { encodeAbiParameters, encodeEventTopics, parseAbiParameters } from 'viem';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';

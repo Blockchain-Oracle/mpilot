@@ -1,11 +1,11 @@
-// BDD coverage for the @concierge/vercel-ai adapter: ToolSet shape, v6 tool()
+// BDD coverage for the @concierge-mantle/vercel-ai adapter: ToolSet shape, v6 tool()
 // field passthrough, execute→invoke delegation (incl. rejection passthrough +
 // unary call), multi-factory merging, schema reference identity, empty-registry
 // default, registry error propagation, type-level inference
 // (InferToolInput/Output), and streamText + MockLanguageModelV3 integrations
 // (happy path + tool-error surfacing).
 
-import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@concierge/tools';
+import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@concierge-mantle/tools';
 import { type InferToolInput, type InferToolOutput, streamText } from 'ai';
 import { convertArrayToReadableStream, MockLanguageModelV3 } from 'ai/test';
 import { describe, expect, expectTypeOf, it } from 'vitest';

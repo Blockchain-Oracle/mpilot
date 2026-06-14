@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import type { LlmCallContext, Model, TickPhase } from './types.ts';
 
 export const MODEL_SONNET: Model = 'claude-sonnet-4-6';
@@ -28,7 +28,7 @@ export function routeModelForPhase(phase: TickPhase, ctx?: LlmCallContext): Mode
   if (!base) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/llm] routeModelForPhase: unknown phase '${String(phase)}'.`,
+      `[@concierge-mantle/llm] routeModelForPhase: unknown phase '${String(phase)}'.`,
     );
   }
   return phase === 'decide' && ctx?.riskFlagged === true ? MODEL_OPUS : base;

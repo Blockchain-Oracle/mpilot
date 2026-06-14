@@ -1,14 +1,14 @@
-# @concierge/openai
+# @concierge-mantle/openai
 
-Raw-shape OpenAI adapter for the framework-agnostic [`@concierge/tools`](../tools)
+Raw-shape OpenAI adapter for the framework-agnostic [`@concierge-mantle/tools`](../tools)
 registry. Wraps **no SDK**: `getOpenAITools` returns the Chat Completions
 wire-format tool array plus a `dispatch()` executor, so the same toolkit drives
 the `openai` client **and** Anthropic Messages raw tool-use — one adapter, two
 runtimes.
 
 ```ts
-import { getOpenAITools } from '@concierge/openai';
-import { aaveTools, dexTools } from '@concierge/providers'; // example factories
+import { getOpenAITools } from '@concierge-mantle/openai';
+import { aaveTools, dexTools } from '@concierge-mantle/providers'; // example factories
 
 const toolkit = getOpenAITools({ chainId: 5000 }, [aaveTools, dexTools]);
 ```
@@ -17,7 +17,7 @@ const toolkit = getOpenAITools({ chainId: 5000 }, [aaveTools, dexTools]);
 
 ```ts
 import OpenAI from 'openai';
-import { bigintSafeStringify, getOpenAITools } from '@concierge/openai';
+import { bigintSafeStringify, getOpenAITools } from '@concierge-mantle/openai';
 
 const client = new OpenAI();
 const toolkit = getOpenAITools(agent, factories);
@@ -55,7 +55,7 @@ only the envelope keys differ:
 
 ```ts
 import Anthropic from '@anthropic-ai/sdk';
-import { bigintSafeStringify, getOpenAITools } from '@concierge/openai';
+import { bigintSafeStringify, getOpenAITools } from '@concierge-mantle/openai';
 
 const client = new Anthropic();
 const toolkit = getOpenAITools(agent, factories);

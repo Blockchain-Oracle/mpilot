@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { tool } from '@concierge-mantle/tools';
 import { parseAbi } from 'viem';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
@@ -49,7 +49,7 @@ export async function executeGetCarryVsAave(
       .catch((err: unknown) => {
         throw new ConciergeError(
           'RpcError',
-          '[@concierge/ethena-susde] getCarryVsAave: failed to fetch Aave reserve data',
+          '[@concierge-mantle/ethena-susde] getCarryVsAave: failed to fetch Aave reserve data',
           err instanceof Error ? err : undefined,
         );
       }),
@@ -60,7 +60,7 @@ export async function executeGetCarryVsAave(
   if (currentVariableBorrowRate === undefined) {
     throw new ConciergeError(
       'RpcError',
-      '[@concierge/ethena-susde] getCarryVsAave: unexpected getReserveData tuple shape',
+      '[@concierge-mantle/ethena-susde] getCarryVsAave: unexpected getReserveData tuple shape',
     );
   }
 

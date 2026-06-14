@@ -1,5 +1,5 @@
 // Fork integration tests for selectors — reads real on-chain state from a Mantle Mainnet fork.
-import { ADDRESSES } from '@concierge/shared';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getBalanceSusde, getBalanceUSDe, getPriceUSD } from '../selectors.ts';
 import { type AnvilFork, startAnvilFork, TEST_ACCOUNT, TOKEN_BALANCE_SLOTS } from './setup.ts';

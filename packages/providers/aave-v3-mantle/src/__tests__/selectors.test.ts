@@ -1,4 +1,4 @@
-import type { Address } from '@concierge/shared';
+import type { Address } from '@concierge-mantle/shared';
 import { parseAbi } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getReserveData, getUserAccountData, getUserEMode, maxSafeBorrow } from '../selectors.ts';

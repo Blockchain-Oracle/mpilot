@@ -86,7 +86,7 @@ cd ../..
 
 test -f packages/runtime/src/executeApprovedProposal.ts
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # Ownership check
@@ -96,7 +96,7 @@ grep -qE "(403|ownership|userId)" apps/web/app/api/proposals/\[id\]/approve/rout
 grep -qE "(409|invalid.*transition|already)" apps/web/lib/state-machine/proposal.ts
 
 # Tests pass
-pnpm --filter @concierge/web run test 2>&1 | grep "approve" | grep -q "PASS"
+pnpm --filter @concierge-mantle/web run test 2>&1 | grep "approve" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

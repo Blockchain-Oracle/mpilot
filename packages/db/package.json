@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/db",
+  "name": "@concierge-mantle/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",

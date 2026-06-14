@@ -83,7 +83,7 @@ test -f src/tools/read/getAttestation.ts
 
 cd ../..
 
-pnpm --filter @concierge/mcp-server run build
+pnpm --filter @concierge-mantle/mcp-server run build
 test $? -eq 0
 
 # Tools registered
@@ -92,7 +92,7 @@ for tool in get_agent_state get_reputation get_attestation; do
 done
 
 # Tests pass
-pnpm --filter @concierge/mcp-server run test 2>&1 | grep "tools-read" | grep -q "PASS"
+pnpm --filter @concierge-mantle/mcp-server run test 2>&1 | grep "tools-read" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

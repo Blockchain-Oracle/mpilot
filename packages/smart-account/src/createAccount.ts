@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator';
 import { createKernelAccount, createKernelAccountClient } from '@zerodev/sdk';
 import { getEntryPoint, KERNEL_V3_1 } from '@zerodev/sdk/constants';
@@ -82,7 +82,7 @@ export async function createConciergeAccount(
   } catch (err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] createConciergeAccount: kernel client init failed (chain: '${config.chain}')`,
+      `[@concierge-mantle/smart-account] createConciergeAccount: kernel client init failed (chain: '${config.chain}')`,
       sanitizeCause(err, apiKey),
     );
   }

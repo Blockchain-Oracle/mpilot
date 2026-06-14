@@ -1,7 +1,7 @@
 // Integration tests for getBalance — tests the full pipeline:
 // ERC20 balanceOf + Agni slot0 for DEX price → compute usdValue + yieldAccrued.
-import { ConciergeError } from '@concierge/sdk';
-import { ADDRESSES } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { executeGetBalance } from '../../actions/getBalance.ts';
 import { type AnvilFork, KNOWN_USDY_HOLDER, startAnvilFork } from '../setup.ts';

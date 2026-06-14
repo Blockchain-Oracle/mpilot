@@ -1,7 +1,7 @@
 // Shared Zod primitives for action input schemas.
 // Centralised here to avoid the unsafe `as z.ZodType<Address>` cast being duplicated per file.
 
-import type { Address } from '@concierge/shared';
+import type { Address } from '@concierge-mantle/shared';
 import { z } from 'zod';
 
 export const HEX_ADDRESS = z.string().regex(/^0x[0-9a-fA-F]{40}$/) as z.ZodType<Address>;

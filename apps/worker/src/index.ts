@@ -1,5 +1,5 @@
-import { sanitizeError } from '@concierge/runtime';
-import { ConciergeError } from '@concierge/sdk';
+import { sanitizeError } from '@concierge-mantle/agent';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { Queue, Worker } from 'bullmq';
 import { Redis } from 'ioredis';
 import pino from 'pino';
@@ -16,7 +16,7 @@ const DEFAULT_BACKOFF_MS = 5_000;
 function requireEnv(key: string): string {
   const v = process.env[key];
   if (typeof v !== 'string' || v.length === 0) {
-    throw new Error(`[@concierge/worker] missing required env: ${key}`);
+    throw new Error(`[@concierge-mantle/worker] missing required env: ${key}`);
   }
   return v;
 }
@@ -56,7 +56,7 @@ async function main(): Promise<void> {
   const runTick = async (_agentId: string, _signal: AbortSignal): Promise<TickJobResult> => {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/worker] runtime tick not wired — story-69 must inject runTick.',
+      '[@concierge-mantle/worker] runtime tick not wired — story-69 must inject runTick.',
     );
   };
 
@@ -106,6 +106,6 @@ main().catch((err) => {
     level: 'error',
     redact: { paths: ['*.password', '*.url', '*.authorization'], censor: '[REDACTED]' },
   });
-  fallback.error({ err: sanitizeError(err).message }, '[@concierge/worker] fatal');
+  fallback.error({ err: sanitizeError(err).message }, '[@concierge-mantle/worker] fatal');
   process.exit(1);
 });

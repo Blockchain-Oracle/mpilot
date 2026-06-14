@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { sanitizeError } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome, Plan } from '../types.ts';
 import {
@@ -38,7 +38,7 @@ export interface NewProposalRow {
 
 /**
  * DI'd repository — production wires drizzle; tests stub in-memory. Keeps
- * @concierge/runtime free of a hard @concierge/db dependency.
+ * @concierge-mantle/agent free of a hard @concierge-mantle/db dependency.
  */
 export interface ProposalRepository {
   findPendingByAgent(agentId: string): Promise<{ readonly id: string } | null>;
@@ -128,25 +128,25 @@ export async function runPropose(
   if (!KIND_SET.has(inputs.kind)) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: unknown kind '${inputs.kind}'.`,
+      `[@concierge-mantle/agent] runPropose: unknown kind '${inputs.kind}'.`,
     );
   }
   if (!PROTOCOL_SET.has(inputs.protocol)) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: unknown protocol '${inputs.protocol}'.`,
+      `[@concierge-mantle/agent] runPropose: unknown protocol '${inputs.protocol}'.`,
     );
   }
   if (!Number.isFinite(inputs.amountUsd) || inputs.amountUsd < 0) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: amountUsd must be finite and non-negative.`,
+      `[@concierge-mantle/agent] runPropose: amountUsd must be finite and non-negative.`,
     );
   }
   if (!USER_ID_RE.test(inputs.state.userId)) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: userId must match ${USER_ID_RE.source}.`,
+      `[@concierge-mantle/agent] runPropose: userId must match ${USER_ID_RE.source}.`,
     );
   }
 
@@ -161,25 +161,25 @@ export async function runPropose(
   if (hfFloor <= 0n) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: policy.hfFloor must be > 0.`,
+      `[@concierge-mantle/agent] runPropose: policy.hfFloor must be > 0.`,
     );
   }
   if (hfBufferBps < 0n) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: policy.hfBufferBps must be >= 0.`,
+      `[@concierge-mantle/agent] runPropose: policy.hfBufferBps must be >= 0.`,
     );
   }
   if (!Number.isFinite(thresholdUSD) || thresholdUSD < 0) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: policy.autoApprovalThresholdUSD must be finite and >= 0.`,
+      `[@concierge-mantle/agent] runPropose: policy.autoApprovalThresholdUSD must be finite and >= 0.`,
     );
   }
   if (!Number.isFinite(ttlMs) || ttlMs <= 0) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: policy.proposalTtlMs must be finite and > 0.`,
+      `[@concierge-mantle/agent] runPropose: policy.proposalTtlMs must be finite and > 0.`,
     );
   }
 
@@ -193,7 +193,7 @@ export async function runPropose(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runPropose: findPendingByAgent failed: ${safe.message}`,
+      `[@concierge-mantle/agent] runPropose: findPendingByAgent failed: ${safe.message}`,
       safe,
     );
   }
@@ -247,7 +247,7 @@ export async function runPropose(
         const safeRec = sanitizeError(recoveryErr);
         throw new ConciergeError(
           'RpcError',
-          `[@concierge/runtime] runPropose: post-unique-violation recovery read failed: ${safeRec.message}`,
+          `[@concierge-mantle/agent] runPropose: post-unique-violation recovery read failed: ${safeRec.message}`,
           safeRec,
         );
       }
@@ -261,13 +261,13 @@ export async function runPropose(
       // the unique partial index is the source of truth.
       throw new ConciergeError(
         'InvariantViolation',
-        `[@concierge/runtime] runPropose: unique_violation fired but no pending row found for agent ${inputs.state.agentId}.`,
+        `[@concierge-mantle/agent] runPropose: unique_violation fired but no pending row found for agent ${inputs.state.agentId}.`,
       );
     }
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runPropose: insert failed: ${safe.message}`,
+      `[@concierge-mantle/agent] runPropose: insert failed: ${safe.message}`,
       safe,
     );
   }
@@ -292,7 +292,7 @@ export async function runPropose(
   if (!parsed.success) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runPropose: malformed event payload: ${parsed.error.message}`,
+      `[@concierge-mantle/agent] runPropose: malformed event payload: ${parsed.error.message}`,
     );
   }
 
@@ -307,7 +307,7 @@ export async function runPropose(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runPropose: publish failed (proposalId=${inserted.id}): ${safe.message}`,
+      `[@concierge-mantle/agent] runPropose: publish failed (proposalId=${inserted.id}): ${safe.message}`,
       safe,
     );
   }

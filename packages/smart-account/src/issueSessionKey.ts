@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { toPermissionValidator } from '@zerodev/permissions';
 import { toECDSASigner } from '@zerodev/permissions/signers';
 import { getPluginsEnableTypedData } from '@zerodev/sdk';
@@ -55,7 +55,7 @@ export async function issueSessionKey(
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] issueSessionKey: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
+      `[@concierge-mantle/smart-account] issueSessionKey: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   const now = Math.floor(Date.now() / 1000);
@@ -64,13 +64,13 @@ export async function issueSessionKey(
   if (validUntil <= validAfter) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] issueSessionKey: validUntil (${validUntil}) must be > validAfter (${validAfter}).`,
+      `[@concierge-mantle/smart-account] issueSessionKey: validUntil (${validUntil}) must be > validAfter (${validAfter}).`,
     );
   }
   if (validUntil <= now) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] issueSessionKey: validUntil (${validUntil}) is already in the past (now=${now}).`,
+      `[@concierge-mantle/smart-account] issueSessionKey: validUntil (${validUntil}) is already in the past (now=${now}).`,
     );
   }
   // Generate the session key bytes locally — DO NOT wrap in SessionKeySecret
@@ -122,7 +122,7 @@ export async function issueSessionKey(
     if (recovered.toLowerCase() !== config.ownerAccount.address.toLowerCase()) {
       throw new ConciergeError(
         'InvalidOwnerSignature',
-        `[@concierge/smart-account] issueSessionKey: EIP-712 signature recovery mismatch — recovered '${recovered}' but expected '${config.ownerAccount.address}'. Owner signTypedData callback may be broken or returning garbage.`,
+        `[@concierge-mantle/smart-account] issueSessionKey: EIP-712 signature recovery mismatch — recovered '${recovered}' but expected '${config.ownerAccount.address}'. Owner signTypedData callback may be broken or returning garbage.`,
       );
     }
     // Only now do we materialize the handle — all the steps that can throw
@@ -150,7 +150,7 @@ async function readValidatorNonce(client: PublicClient, accountAddress: Address)
   if (typeof getKernelV3Nonce !== 'function' && typeof accountMetadata !== 'function') {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/smart-account] issueSessionKey: @zerodev/sdk version drift — neither getKernelV3Nonce nor accountMetadata is callable. Update @zerodev/sdk.',
+      '[@concierge-mantle/smart-account] issueSessionKey: @zerodev/sdk version drift — neither getKernelV3Nonce nor accountMetadata is callable. Update @zerodev/sdk.',
     );
   }
   try {
@@ -164,7 +164,7 @@ async function readValidatorNonce(client: PublicClient, accountAddress: Address)
   } catch (err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] issueSessionKey: failed to read kernel validator nonce for ${accountAddress}.`,
+      `[@concierge-mantle/smart-account] issueSessionKey: failed to read kernel validator nonce for ${accountAddress}.`,
       err,
     );
   }

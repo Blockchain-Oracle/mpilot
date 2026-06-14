@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { http } from 'viem';
 import {
   type BundlerClient,
@@ -42,14 +42,14 @@ export function createBundlerClient(config: CreateBundlerClientConfig): BundlerB
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      "[@concierge/smart-account] createBundlerClient: MissingEnvVar('PIMLICO_API_KEY') — set this env var before creating a bundler client.",
+      "[@concierge-mantle/smart-account] createBundlerClient: MissingEnvVar('PIMLICO_API_KEY') — set this env var before creating a bundler client.",
     );
   }
   const chainConfig = CHAIN_CONFIGS[config.chain];
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createBundlerClient: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
+      `[@concierge-mantle/smart-account] createBundlerClient: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${encodeURIComponent(apiKey)}`;
@@ -62,7 +62,7 @@ export function createBundlerClient(config: CreateBundlerClientConfig): BundlerB
   } catch (err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] createBundlerClient: bundler transport init failed (chain: '${config.chain}')`,
+      `[@concierge-mantle/smart-account] createBundlerClient: bundler transport init failed (chain: '${config.chain}')`,
       sanitizeCause(err, apiKey),
     );
   }
@@ -76,7 +76,7 @@ export function createBundlerClient(config: CreateBundlerClientConfig): BundlerB
     } catch (err) {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/smart-account] createBundlerClient: paymaster transport init failed (chain: '${config.chain}')`,
+        `[@concierge-mantle/smart-account] createBundlerClient: paymaster transport init failed (chain: '${config.chain}')`,
         sanitizeCause(err, apiKey),
       );
     }
@@ -86,6 +86,6 @@ export function createBundlerClient(config: CreateBundlerClientConfig): BundlerB
   void _exhaust;
   throw new ConciergeError(
     'ConfigError',
-    `[@concierge/smart-account] createBundlerClient: unhandled chain '${String(config.chain)}'`,
+    `[@concierge-mantle/smart-account] createBundlerClient: unhandled chain '${String(config.chain)}'`,
   );
 }

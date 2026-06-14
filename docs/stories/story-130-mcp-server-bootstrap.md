@@ -15,22 +15,22 @@ Per architecture.md ADR-011 amendment (rework 2026-06-09), the MCP server archit
 ### What changes
 1. **MCP core moves to `packages/mcp/`** (not `apps/mcp-server/`). It is an npm-publishable package.
 2. **Two binaries / entry points share one server factory**:
-   - `packages/mcp/src/server.ts` — the `createConciergeMcpServer({ tools, env })` factory consuming `@concierge/tools`
-   - `packages/mcp/src/stdio.ts` — stdio bin entry (the **DEFAULT** install path: `claude mcp add concierge -- npx -y @concierge/mcp`)
+   - `packages/mcp/src/server.ts` — the `createConciergeMcpServer({ tools, env })` factory consuming `@concierge-mantle/tools`
+   - `packages/mcp/src/stdio.ts` — stdio bin entry (the **DEFAULT** install path: `claude mcp add concierge -- npx -y @concierge-mantle/mcp`)
    - `apps/mcp/src/index.ts` — Cloudflare Worker wrapper consuming the same factory (the **OPTIONAL secondary** install: `https://mcp.concierge.xyz/mcp`)
 3. **`packages/mcp/package.json` `bin` field**:
    ```jsonc
    { "bin": { "concierge-mcp": "./dist/stdio.js" } }
    ```
-   `npx -y @concierge/mcp` runs the stdio bin by default.
+   `npx -y @concierge-mantle/mcp` runs the stdio bin by default.
 4. **`@modelcontextprotocol/sdk` version pinned to 1.29.x** (audit verified 2026-06-09). v2 API: `server.registerTool(name, { description, inputSchema, outputSchema }, handler)` with `outputSchema` MANDATORY per ADR-014 / 017.
-5. **Tools come from `@concierge/tools`** (story-200), not hand-registered here. The MCP adapter just loops: `for (const t of tools) server.registerTool(t.name, { description: t.description, inputSchema: t.inputSchema.shape, outputSchema: t.outputSchema.shape }, async args => ({ content: [{ type: 'text', text: bigintSafeStringify(await t.invoke(args)) }], structuredContent: await t.invoke(args) }))`.
+5. **Tools come from `@concierge-mantle/tools`** (story-200), not hand-registered here. The MCP adapter just loops: `for (const t of tools) server.registerTool(t.name, { description: t.description, inputSchema: t.inputSchema.shape, outputSchema: t.outputSchema.shape }, async args => ({ content: [{ type: 'text', text: bigintSafeStringify(await t.invoke(args)) }], structuredContent: await t.invoke(args) }))`.
 6. **Worker app is moved to story-133** (already exists), this story now scaffolds the core + stdio bin.
 
 ### Updated file modification map (replaces below)
 
-- `packages/mcp/package.json` — NEW — `"type": "module"`, `"sideEffects": false`, `bin: { "concierge-mcp": "./dist/stdio.js" }`, deps on `@concierge/tools` + `@concierge/agent` + `@concierge/shared`, peer dep on `@modelcontextprotocol/sdk ^1.29` + `zod ^3.25 || ^4.1`
-- `packages/mcp/src/server.ts` — NEW — `createConciergeMcpServer({ agent }: { agent: ConciergeAgent })` factory; returns `McpServer` with all `@concierge/tools` registered + `outputSchema` per tool
+- `packages/mcp/package.json` — NEW — `"type": "module"`, `"sideEffects": false`, `bin: { "concierge-mcp": "./dist/stdio.js" }`, deps on `@concierge-mantle/tools` + `@concierge-mantle/agent` + `@concierge-mantle/shared`, peer dep on `@modelcontextprotocol/sdk ^1.29` + `zod ^3.25 || ^4.1`
+- `packages/mcp/src/server.ts` — NEW — `createConciergeMcpServer({ agent }: { agent: ConciergeAgent })` factory; returns `McpServer` with all `@concierge-mantle/tools` registered + `outputSchema` per tool
 - `packages/mcp/src/stdio.ts` — NEW — stdio bin: `new StdioServerTransport()` connected to `createConciergeMcpServer({ agent: bootstrapAgent() })`; reads `AI_MODEL`, `ANTHROPIC_API_KEY`, `CONCIERGE_RPC_URL` from env
 - `packages/mcp/src/streamable-http.ts` — NEW — `createStreamableHttpHandler({ agent })` for use by `apps/mcp/` Worker (story-133)
 - `packages/mcp/src/ui-resources/` — NEW directory; one HTML file per `ui://concierge/*` resource (deferred to story-137)
@@ -45,7 +45,7 @@ When `node -e "const p = require('./packages/mcp/package.json'); console.log(p.b
 Then output is "./dist/stdio.js"
 
 Given the package builds
-When `pnpm --filter @concierge/mcp build` runs
+When `pnpm --filter @concierge-mantle/mcp build` runs
 Then exit code is 0 AND `packages/mcp/dist/stdio.js` exists with a shebang `#!/usr/bin/env node` line
 
 Given the stdio bin is invoked
@@ -68,7 +68,7 @@ Then both exit 0
 ### Updated notes for the coding agent
 
 - **DO NOT scaffold `apps/mcp-server/` here.** That goes to story-133 (Worker wrapper).
-- **DO use `outputSchema` mandatorily** per tool. The tool comes from `@concierge/tools` which already requires it — just pass `t.outputSchema.shape` to `registerTool`.
+- **DO use `outputSchema` mandatorily** per tool. The tool comes from `@concierge-mantle/tools` which already requires it — just pass `t.outputSchema.shape` to `registerTool`.
 - **DO use bigint-safe stringify** when serializing tool results (on-chain reads return bigints).
 - **Stdio bin must NOT prompt or `console.log` to stdout** — stdio is reserved for MCP messages. All logs go to stderr.
 - **Wallet bootstrap** at stdio launch: if `CONCIERGE_SESSION_KEY` env var is unset, generate ephemeral session key + store at `~/.concierge/config.json` per the pokaldot pattern. (Real Mainnet session-key import flow is story-138 via Elicitation `mode: 'url'`.)
@@ -90,7 +90,7 @@ Then both exit 0
 
 ## File modification map
 
-- `apps/mcp-server/package.json` — NEW — workspace package; deps: `hono`, `@modelcontextprotocol/sdk` v2, `@concierge/sdk`, `@concierge/shared`
+- `apps/mcp-server/package.json` — NEW — workspace package; deps: `hono`, `@modelcontextprotocol/sdk` v2, `@concierge-mantle/sdk`, `@concierge-mantle/shared`
 - `apps/mcp-server/src/index.ts` — NEW — Hono app entrypoint; binds MCP transport handlers
 - `apps/mcp-server/src/server.ts` — NEW — `createConciergeMcpServer({ env })` factory returning the configured McpServer instance with tool registrations
 - `apps/mcp-server/src/transport.ts` — NEW — Hono adapter for `@modelcontextprotocol/sdk`'s StreamableHTTPServerTransport
@@ -105,11 +105,11 @@ Then both exit 0
 
 ```
 Given the package builds
-When `pnpm --filter @concierge/mcp-server run build` runs
+When `pnpm --filter @concierge-mantle/mcp-server run build` runs
 Then exit code is 0
 
 Given the local dev server runs
-When `pnpm --filter @concierge/mcp-server dev` runs
+When `pnpm --filter @concierge-mantle/mcp-server dev` runs
 Then it serves at http://localhost:8787 (Workers convention) AND POST /mcp with an `initialize` JSON-RPC returns the server's capability descriptor
 
 Given the server is initialized
@@ -125,7 +125,7 @@ When a malformed request is sent
 Then it returns a proper JSON-RPC 2.0 error response (NOT a generic 500)
 
 Given typecheck
-When `pnpm --filter @concierge/mcp-server run typecheck` runs
+When `pnpm --filter @concierge-mantle/mcp-server run typecheck` runs
 Then exit code is 0
 
 Given file size budget
@@ -148,7 +148,7 @@ test -f tsconfig.json
 
 cd ../..
 
-pnpm --filter @concierge/mcp-server run build
+pnpm --filter @concierge-mantle/mcp-server run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -160,7 +160,7 @@ node -e "
 "
 
 # Tests pass
-pnpm --filter @concierge/mcp-server run test 2>&1 | grep "server" | grep -q "PASS"
+pnpm --filter @concierge-mantle/mcp-server run test 2>&1 | grep "server" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

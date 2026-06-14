@@ -69,11 +69,11 @@ test -f src/writeAttestation.ts
 
 cd ../..
 
-pnpm --filter @concierge/attestation run build
+pnpm --filter @concierge-mantle/attestation run build
 test $? -eq 0
 
 # Integration test passes
-pnpm --filter @concierge/attestation run test 2>&1 | grep "writeAttestation" | grep -q "PASS"
+pnpm --filter @concierge-mantle/attestation run test 2>&1 | grep "writeAttestation" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

@@ -1,6 +1,6 @@
 // Integration tests for createEthenaSusdeProvider — verifies the provider composes
 // correctly and exposes the expected action surface for callers.
-import { ADDRESSES } from '@concierge/shared';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { createPublicClient, http } from 'viem';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEthenaSusdeProvider } from '../provider.ts';

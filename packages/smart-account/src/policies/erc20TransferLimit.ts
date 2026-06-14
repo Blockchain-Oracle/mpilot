@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { ParamCondition } from '@zerodev/permissions/policies';
 import type { Address, Hex } from 'viem';
 import { isAddress, pad, toHex } from 'viem';
@@ -46,25 +46,25 @@ export function createErc20TransferLimit(config: Erc20TransferLimitConfig): Call
   if (!isAddress(config.token)) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createErc20TransferLimit: InvalidPolicy: token is not a valid address: '${config.token}'`,
+      `[@concierge-mantle/smart-account] createErc20TransferLimit: InvalidPolicy: token is not a valid address: '${config.token}'`,
     );
   }
   if (config.token.toLowerCase() === '0x0000000000000000000000000000000000000000') {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/smart-account] createErc20TransferLimit: InvalidPolicy: token is the zero address — limit would silently never match a real ERC-20 transfer.',
+      '[@concierge-mantle/smart-account] createErc20TransferLimit: InvalidPolicy: token is the zero address — limit would silently never match a real ERC-20 transfer.',
     );
   }
   if (config.maxAmountPerTx <= 0n) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createErc20TransferLimit: InvalidPolicy: maxAmountPerTx must be > 0, got ${config.maxAmountPerTx}`,
+      `[@concierge-mantle/smart-account] createErc20TransferLimit: InvalidPolicy: maxAmountPerTx must be > 0, got ${config.maxAmountPerTx}`,
     );
   }
   if (config.maxAmountPerTx > UINT256_MAX) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createErc20TransferLimit: InvalidPolicy: maxAmountPerTx (${config.maxAmountPerTx}) exceeds uint256 max.`,
+      `[@concierge-mantle/smart-account] createErc20TransferLimit: InvalidPolicy: maxAmountPerTx (${config.maxAmountPerTx}) exceeds uint256 max.`,
     );
   }
   return {

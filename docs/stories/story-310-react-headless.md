@@ -1,4 +1,4 @@
-# Story — `@concierge/react` headless tool-part components + hooks
+# Story — `@concierge-mantle/react` headless tool-part components + hooks
 
 **ID:** story-310-react-headless
 **Epic:** Epic E14 — Composable UI (NEW, post-2026-06-09 rework)
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** developer building my own chat UI for Concierge
-**I want to** `pnpm add @concierge/react` and render headless components that handle ARIA + state machines + parse-then-render, but bring my own styling
+**I want to** `pnpm add @concierge-mantle/react` and render headless components that handle ARIA + state machines + parse-then-render, but bring my own styling
 **So that** I can use Concierge's logic without inheriting the brand styling, suitable for embedding in my dApp's own design system
 
 ---
 
 ## File modification map
 
-- `packages/react/package.json` — NEW — ESM-only per ADR-018, peer deps on `react ^18 || ^19`, `ai ^6`, `@ai-sdk/react ^3`, `zod`, runtime dep on `@concierge/tools`
+- `packages/react/package.json` — NEW — ESM-only per ADR-018, peer deps on `react ^18 || ^19`, `ai ^6`, `@ai-sdk/react ^3`, `zod`, runtime dep on `@concierge-mantle/tools`
 - `packages/react/src/ProposalPart.tsx` — NEW — headless component taking `part: ToolUIPart<{ proposeAction: { input, output } }>` prop; parses via `safeParseSerializableProposalCard`; renders ARIA-tagged regions; provides slots/render-props for visual layer
 - `packages/react/src/TickPart.tsx` — NEW — same shape for tick lifecycle
 - `packages/react/src/PortfolioPart.tsx` — NEW — same for portfolio
@@ -65,7 +65,7 @@ When any part renders
 Then all transition/animation hooks return `false` for "should animate"
 
 Given typecheck + build + tests
-When `pnpm --filter @concierge/react build && pnpm --filter @concierge/react test && pnpm typecheck` runs
+When `pnpm --filter @concierge-mantle/react build && pnpm --filter @concierge-mantle/react test && pnpm typecheck` runs
 Then all exit 0 with ≥ 16 RTL cases passing
 ```
 
@@ -95,15 +95,15 @@ node -e "
 ! grep -rE "style=\{\{" packages/react/src/
 
 # Anti-regression: NO direct DOM-level styling concerns. Only role / aria-* / data-*.
-pnpm --filter @concierge/react build
-pnpm --filter @concierge/react test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 16 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/react build
+pnpm --filter @concierge-mantle/react test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 16 {exit 0} {exit 1}'
 ```
 
 ---
 
 ## Notes for coding agent
 
-- **HEADLESS means: ZERO CSS, ZERO Tailwind, ZERO inline styles.** Only `role`, `aria-*`, `data-state` attributes for selectors. Visual layer is `@concierge/react-ui` (story-211) which composes these.
+- **HEADLESS means: ZERO CSS, ZERO Tailwind, ZERO inline styles.** Only `role`, `aria-*`, `data-state` attributes for selectors. Visual layer is `@concierge-mantle/react-ui` (story-211) which composes these.
 - **Parse-then-render gating:** every component calls `safeParseSerializableXxx(part.output)` before rendering content. On `success: false`, render an error region — never throw.
 - **Render-prop API** is the primary composition pattern:
   ```tsx

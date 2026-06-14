@@ -61,7 +61,7 @@ Three transports the SDK supports:
 | **SSE (legacy)**   | Older clients that don't speak Streamable HTTP. **Deprecated.**  | `SSEServerTransport` (legacy package)     |
 
 **Concierge ships both:**
-- **stdio** — for power users who want zero network latency and don't care about hosting. Distributed via `npm install -g @concierge/mcp` and invoked from the MCP host's config.
+- **stdio** — for power users who want zero network latency and don't care about hosting. Distributed via `npm install -g @concierge-mantle/mcp` and invoked from the MCP host's config.
 - **Streamable HTTP** — for the hosted moat. `https://mcp.concierge.app/mcp`. One-line install for any user.
 
 ### 3.1 Stateless Streamable HTTP (the easy mode)
@@ -240,7 +240,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "concierge": {
       "command": "npx",
-      "args": ["-y", "@concierge/mcp"]
+      "args": ["-y", "@concierge-mantle/mcp"]
     }
   }
 }

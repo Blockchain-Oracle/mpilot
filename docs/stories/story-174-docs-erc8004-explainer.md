@@ -61,7 +61,7 @@ Then a clear typed error message is shown (per CLAUDE.md no-silent-failures)
 
 Given all pages reference the canonical contract addresses
 When inspected
-Then they use the AddressTable component pulling from @concierge/shared/addresses
+Then they use the AddressTable component pulling from @concierge-mantle/shared/addresses
 
 Given file size budget per MDX file
 When inspected
@@ -80,7 +80,7 @@ done
 
 cd ../../../../../..
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # ADR-004 referenced
@@ -91,7 +91,7 @@ grep -q "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432" apps/web/content/docs/conce
   || grep -q "concierge/shared/addresses" apps/web/content/docs/concepts/erc8004/identity.mdx
 
 # Tests pass
-pnpm --filter @concierge/web run test 2>&1 | grep "AttestationVerifier" | grep -q "PASS"
+pnpm --filter @concierge-mantle/web run test 2>&1 | grep "AttestationVerifier" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

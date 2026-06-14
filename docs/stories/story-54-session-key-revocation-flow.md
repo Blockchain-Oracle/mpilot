@@ -74,10 +74,10 @@ test -f src/emergencyStop.ts
 
 cd ../..
 
-pnpm --filter @concierge/smart-account run build
+pnpm --filter @concierge-mantle/smart-account run build
 test $? -eq 0
 
-pnpm --filter @concierge/smart-account run test 2>&1 | grep "revoke" | grep -q "PASS"
+pnpm --filter @concierge-mantle/smart-account run test 2>&1 | grep "revoke" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

@@ -1,4 +1,4 @@
-// Barrel exports for @concierge/shared.
+// Barrel exports for @concierge-mantle/shared.
 
 export {
   ADDRESSES,

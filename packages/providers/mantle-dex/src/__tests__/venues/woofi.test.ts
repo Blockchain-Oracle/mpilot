@@ -1,6 +1,6 @@
 // Unit tests for createWooFiVenue — no fork required; publicClient is mocked.
 
-import type { Address } from '@concierge/shared';
+import type { Address } from '@concierge-mantle/shared';
 import { ContractFunctionExecutionError, ContractFunctionRevertedError } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { createWooFiVenue } from '../../venues/woofi.ts';

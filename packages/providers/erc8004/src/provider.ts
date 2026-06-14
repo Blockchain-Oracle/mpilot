@@ -1,4 +1,4 @@
-import { ADDRESSES, type Address, mantleMainnet, mantleSepolia } from '@concierge/shared';
+import { ADDRESSES, type Address, mantleMainnet, mantleSepolia } from '@concierge-mantle/shared';
 import { createPublicClient, http, type PublicClient, type WalletClient } from 'viem';
 import type { ActionContext } from './_context.ts';
 import { createAttestActionTool } from './actions/attestAction.ts';

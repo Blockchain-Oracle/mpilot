@@ -5,8 +5,8 @@
 // On Mantle, sUSDe is a LayerZero V2 OFT — there is NO 7-day cooldown (the cooldown is
 // L1-only). Unwrap is a plain DEX swap. The absence of a cooldown is verified by the
 // fact that the implementation makes no cooldown reads (confirmed by the unit mock test).
-import { ConciergeError } from '@concierge/sdk';
-import { ADDRESSES } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';

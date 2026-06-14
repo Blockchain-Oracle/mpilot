@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge/sdk';
-import { erc20Abi, ipoolAbi } from '@concierge/shared/abi';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { erc20Abi, ipoolAbi } from '@concierge-mantle/shared/abi';
+import { tool } from '@concierge-mantle/tools';
 import type { Hex } from 'viem';
 import { decodeEventLog, encodeEventTopics, maxUint256, parseAbi } from 'viem';
 import { z } from 'zod';
@@ -63,7 +63,7 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
       if (err instanceof ConciergeError) throw err;
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/aave-v3-mantle] repay: ERC-20 approve() submission for ${asset} failed. Check wallet connection and gas.`,
+        `[@concierge-mantle/aave-v3-mantle] repay: ERC-20 approve() submission for ${asset} failed. Check wallet connection and gas.`,
         err instanceof Error ? err : undefined,
         { asset, poolAddress },
       );
@@ -72,7 +72,7 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
     if (approveReceipt.status === 'reverted') {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/aave-v3-mantle] repay: ERC-20 approve() for ${asset} was mined but REVERTED. Some tokens (e.g. USDT) require zeroing the allowance first: call approve(${poolAddress}, 0) then retry.`,
+        `[@concierge-mantle/aave-v3-mantle] repay: ERC-20 approve() for ${asset} was mined but REVERTED. Some tokens (e.g. USDT) require zeroing the allowance first: call approve(${poolAddress}, 0) then retry.`,
         undefined,
         { asset, poolAddress },
       );
@@ -93,7 +93,7 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/aave-v3-mantle] repay: Pool.repay() failed. An allowance for ${poolAddress} may be live on ${asset}. Revoke with approve(${poolAddress}, 0) if needed.`,
+      `[@concierge-mantle/aave-v3-mantle] repay: Pool.repay() failed. An allowance for ${poolAddress} may be live on ${asset}. Revoke with approve(${poolAddress}, 0) if needed.`,
       err instanceof Error ? err : undefined,
       { asset, poolAddress },
     );
@@ -103,7 +103,7 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/aave-v3-mantle] repay: tx ${txHash} was mined but REVERTED. Verify the ${asset} allowance and debt balance are still valid.`,
+      `[@concierge-mantle/aave-v3-mantle] repay: tx ${txHash} was mined but REVERTED. Verify the ${asset} allowance and debt balance are still valid.`,
       undefined,
       { txHash, asset },
     );
@@ -122,7 +122,7 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
   if (!repayLog) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/aave-v3-mantle] repay: tx ${txHash} was mined but no Repay event found for asset ${asset}. The pool ABI may have changed.`,
+      `[@concierge-mantle/aave-v3-mantle] repay: tx ${txHash} was mined but no Repay event found for asset ${asset}. The pool ABI may have changed.`,
       undefined,
       { txHash, poolAddress, asset, logCount: receipt.logs.length },
     );
@@ -139,7 +139,7 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
   } catch (decodeErr) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/aave-v3-mantle] repay: failed to decode Repay event from tx ${txHash}. Pool ABI may have changed.`,
+      `[@concierge-mantle/aave-v3-mantle] repay: failed to decode Repay event from tx ${txHash}. Pool ABI may have changed.`,
       decodeErr instanceof Error ? decodeErr : undefined,
       { txHash, poolAddress },
     );

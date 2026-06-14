@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address } from '@concierge-mantle/shared';
 import { type PublicClient, parseAbi } from 'viem';
 
 const POOL_ABI = parseAbi([
@@ -19,7 +19,7 @@ export function computeRateFromSqrt(sqrtPriceX96: bigint): bigint {
   if (sqrtPriceX96 === 0n) {
     throw new ConciergeError(
       'RpcError',
-      '[@concierge/meth-staking] computeRateFromSqrt: sqrtPriceX96 is zero — pool may be uninitialized',
+      '[@concierge-mantle/meth-staking] computeRateFromSqrt: sqrtPriceX96 is zero — pool may be uninitialized',
     );
   }
   const Q192 = 2n ** 192n;
@@ -27,7 +27,7 @@ export function computeRateFromSqrt(sqrtPriceX96: bigint): bigint {
   if (rate === 0n) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/meth-staking] computeRateFromSqrt: sqrtPriceX96 (${sqrtPriceX96}) too small — rate not representable`,
+      `[@concierge-mantle/meth-staking] computeRateFromSqrt: sqrtPriceX96 (${sqrtPriceX96}) too small — rate not representable`,
     );
   }
   // Sanity: mETH should be between 0.5 and 10 WETH
@@ -36,7 +36,7 @@ export function computeRateFromSqrt(sqrtPriceX96: bigint): bigint {
   if (rate < MIN_RATE || rate > MAX_RATE) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/meth-staking] computeRateFromSqrt: computed rate ${rate} outside sanity bounds [0.5e18, 10e18]`,
+      `[@concierge-mantle/meth-staking] computeRateFromSqrt: computed rate ${rate} outside sanity bounds [0.5e18, 10e18]`,
     );
   }
   return rate;
@@ -52,7 +52,7 @@ function computeYieldBps(
   if (diff > MAX_SAFE || diff < -MAX_SAFE) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/meth-staking] computeYieldBps: tick cumulative diff (${diff}) outside safe integer range`,
+      `[@concierge-mantle/meth-staking] computeYieldBps: tick cumulative diff (${diff}) outside safe integer range`,
     );
   }
   const tickCumulativeDiff = Number(diff);
@@ -75,7 +75,7 @@ export async function fetchPoolState(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/meth-staking] ${tag}: failed to read mETH/WETH pool slot0`,
+        `[@concierge-mantle/meth-staking] ${tag}: failed to read mETH/WETH pool slot0`,
         err instanceof Error ? err : undefined,
       );
     });
@@ -101,8 +101,8 @@ export async function fetchYieldBps(
     throw new ConciergeError(
       isOldRevert ? 'InsufficientLiquidity' : 'RpcError',
       isOldRevert
-        ? `[@concierge/meth-staking] ${tag}: mETH/WETH pool has fewer than 7 days of observations — yield calculation unavailable`
-        : `[@concierge/meth-staking] ${tag}: failed to call observe() on mETH/WETH pool`,
+        ? `[@concierge-mantle/meth-staking] ${tag}: mETH/WETH pool has fewer than 7 days of observations — yield calculation unavailable`
+        : `[@concierge-mantle/meth-staking] ${tag}: failed to call observe() on mETH/WETH pool`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -112,20 +112,20 @@ export async function fetchYieldBps(
   if (t0 === undefined || t1 === undefined) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/meth-staking] ${tag}: observe() returned fewer tick cumulatives than expected`,
+      `[@concierge-mantle/meth-staking] ${tag}: observe() returned fewer tick cumulatives than expected`,
     );
   }
   const yieldBps = computeYieldBps(tick, t0, t1);
   if (yieldBps <= 0) {
     throw new ConciergeError(
       'InsufficientLiquidity',
-      `[@concierge/meth-staking] ${tag}: computed mETH yield <= 0 bps (${yieldBps}) — pool may be too new or price feed unreliable`,
+      `[@concierge-mantle/meth-staking] ${tag}: computed mETH yield <= 0 bps (${yieldBps}) — pool may be too new or price feed unreliable`,
     );
   }
   if (yieldBps > 10_000) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/meth-staking] ${tag}: computed yield ${yieldBps} bps exceeds sanity ceiling (10,000 bps / 100% APY)`,
+      `[@concierge-mantle/meth-staking] ${tag}: computed yield ${yieldBps} bps exceeds sanity ceiling (10,000 bps / 100% APY)`,
     );
   }
   return yieldBps;

@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { tool } from '@concierge-mantle/tools';
 import { type PublicClient, parseAbi } from 'viem';
 import { z } from 'zod';
 import { computeRateFromSqrt, fetchPoolState } from '../_agni.ts';
@@ -38,7 +38,7 @@ async function readBalance(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/meth-staking] getBalance: failed to read mETH balance for ${user}`,
+        `[@concierge-mantle/meth-staking] getBalance: failed to read mETH balance for ${user}`,
         err instanceof Error ? err : undefined,
       );
     });
@@ -54,7 +54,7 @@ export async function executeGetBalance(
     ctx.publicClient.getBlockNumber().catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        '[@concierge/meth-staking] getBalance: failed to fetch block number for attestation',
+        '[@concierge-mantle/meth-staking] getBalance: failed to fetch block number for attestation',
         err instanceof Error ? err : undefined,
       );
     }),
@@ -75,7 +75,7 @@ export async function executeGetBalance(
   } catch (err) {
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge/meth-staking] getBalance: attestation payload validation failed for user ${user} at block ${blockNumber}`,
+      `[@concierge-mantle/meth-staking] getBalance: attestation payload validation failed for user ${user} at block ${blockNumber}`,
       err instanceof Error ? err : undefined,
     );
   }

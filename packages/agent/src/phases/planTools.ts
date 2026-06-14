@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import type { ToolSet } from 'ai';
 
 /**
@@ -51,7 +51,7 @@ export function filterToPlanTools(tools: ToolSet): ToolSet {
   if (Object.keys(filtered).length === 0) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/runtime] filterToPlanTools: result is empty. Did you forget provider read-tool factories? Banned removed: ${banned.join(', ') || 'none'}.`,
+      `[@concierge-mantle/agent] filterToPlanTools: result is empty. Did you forget provider read-tool factories? Banned removed: ${banned.join(', ') || 'none'}.`,
     );
   }
   return filtered;

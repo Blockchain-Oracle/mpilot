@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import type { PinAttempt, PinFeedbackResult } from './pin.ts';
 
 /**
@@ -79,7 +79,7 @@ export async function recordPinReceipt(
     const msg = err instanceof Error ? err.message : String(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/attestation] recordPinReceipt: insert failed (cid=${row.cid}, agentId=${row.agentId}): ${msg.slice(0, 512)}`,
+      `[@concierge-mantle/attestation] recordPinReceipt: insert failed (cid=${row.cid}, agentId=${row.agentId}): ${msg.slice(0, 512)}`,
       err instanceof Error ? err : undefined,
       { cid: row.cid, agentId: row.agentId, hash: row.hash },
     );

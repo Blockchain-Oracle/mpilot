@@ -68,7 +68,7 @@ Per Ondo's docs:
 
 ## Integration pattern for Concierge
 
-### Package: `@concierge/ondo-usdy`
+### Package: `@concierge-mantle/ondo-usdy`
 Exports:
 - `actions.acquire({amountUSDC, slippageBps})` — DEX-swap USDC → USDY via mantle-dex provider.
 - `actions.divest({usdyAmount, slippageBps})` — DEX-swap USDY → USDC.
@@ -141,7 +141,7 @@ The locked wedge centers on sUSDe leverage. USDY exists as a **diversifier**: fo
 3. **Regulatory blacklist**: Ondo can blacklist addresses (under US sanctions). Probability low for end-user wallets but non-zero. Spec: warn user that custodial freeze risk applies.
 4. **Price feed staleness**: no Chainlink feed for USDY on Mantle (likely). Concierge falls back to DEX TWAP — vulnerable to short-term manipulation. Mitigate with 30-min TWAP, not spot price.
 5. **Off-chain yield publication lag**: Ondo publishes price daily, not block-by-block. APY display in Concierge may lag actual accrual by 1 day. Acceptable for the UX.
-6. **No Aave path**: future risk — if Aave lists USDY (likely given Mantle's push), Concierge will need a follow-up provider. Plan ahead by keeping the action provider interface uniform with `@concierge/ethena-susde`.
+6. **No Aave path**: future risk — if Aave lists USDY (likely given Mantle's push), Concierge will need a follow-up provider. Plan ahead by keeping the action provider interface uniform with `@concierge-mantle/ethena-susde`.
 
 ## Reference URLs
 - Ondo Finance docs: https://docs.ondo.finance

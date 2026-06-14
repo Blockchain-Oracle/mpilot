@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { tool } from '@concierge-mantle/tools';
 import { z } from 'zod';
 import { fetchBridgeStatus } from '../_api.ts';
 import type { ActionContext } from '../_context.ts';
@@ -57,13 +57,13 @@ export async function executeGetStatus(
   if (!destinationTxHash) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/lifi-bridge] getStatus: status DONE but toTx.txHash is absent — cannot build completed attestation for operation ${input.lifiOperationId}`,
+      `[@concierge-mantle/lifi-bridge] getStatus: status DONE but toTx.txHash is absent — cannot build completed attestation for operation ${input.lifiOperationId}`,
     );
   }
   if (!bridgeUsed) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/lifi-bridge] getStatus: status DONE but bridge name is absent — cannot build completed attestation for operation ${input.lifiOperationId}`,
+      `[@concierge-mantle/lifi-bridge] getStatus: status DONE but bridge name is absent — cannot build completed attestation for operation ${input.lifiOperationId}`,
     );
   }
 
@@ -80,7 +80,7 @@ export async function executeGetStatus(
   } catch (err) {
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge/lifi-bridge] getStatus: bridge DONE (destinationTxHash: ${destinationTxHash}) ` +
+      `[@concierge-mantle/lifi-bridge] getStatus: bridge DONE (destinationTxHash: ${destinationTxHash}) ` +
         'but completed attestation failed — record concierge.lifi.bridge.completed.v1 manually',
       err instanceof Error ? err : undefined,
     );

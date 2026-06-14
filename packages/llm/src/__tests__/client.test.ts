@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createLlmClient, mergeBetaHeader, PROMPT_CACHING_BETA } from '../client.ts';
 

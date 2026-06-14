@@ -26,7 +26,7 @@ function sortedJsonStringify(value: unknown): string {
   if (value === null) return 'null';
   if (value === undefined || typeof value === 'function' || typeof value === 'symbol') {
     throw new TypeError(
-      `[@concierge/erc8004] hashActionPayload: non-serializable value (${typeof value}) in payload`,
+      `[@concierge-mantle/erc8004] hashActionPayload: non-serializable value (${typeof value}) in payload`,
     );
   }
   if (typeof value === 'bigint') return `"${value.toString()}"`;
@@ -34,7 +34,7 @@ function sortedJsonStringify(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(sortedJsonStringify).join(',')}]`;
   if (Object.getPrototypeOf(value) !== Object.prototype) {
     throw new TypeError(
-      `[@concierge/erc8004] hashActionPayload: non-plain-object ${Object.prototype.toString.call(value)} in payload`,
+      `[@concierge-mantle/erc8004] hashActionPayload: non-plain-object ${Object.prototype.toString.call(value)} in payload`,
     );
   }
   const sorted = Object.keys(value as Record<string, unknown>)

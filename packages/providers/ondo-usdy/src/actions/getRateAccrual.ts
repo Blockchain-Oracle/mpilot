@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { tool } from '@concierge-mantle/tools';
 import { z } from 'zod';
 import { computePriceFromSqrt, fetchPoolState } from '../_agni.ts';
 import type { ActionContext } from '../_context.ts';
@@ -25,7 +25,7 @@ export async function executeGetRateAccrual(ctx: ActionContext) {
     ctx.publicClient.getBlockNumber().catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        '[@concierge/ondo-usdy] getRateAccrual: failed to fetch block number',
+        '[@concierge-mantle/ondo-usdy] getRateAccrual: failed to fetch block number',
         err instanceof Error ? err : undefined,
       );
     }),

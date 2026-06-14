@@ -1,5 +1,5 @@
-import { type DbClient, type EoaTx, eoaTxQueue } from '@concierge/db';
-import { ConciergeError } from '@concierge/sdk';
+import { type DbClient, type EoaTx, eoaTxQueue } from '@concierge-mantle/db';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { and, eq, inArray } from 'drizzle-orm';
 import type { Address, Hex } from 'viem';
 import { z } from 'zod';
@@ -18,7 +18,7 @@ function assertUuid(value: string, field: string): void {
   if (!uuidSchema.safeParse(value).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] queue: ${field} is not a valid UUID.`,
+      `[@concierge-mantle/smart-account] queue: ${field} is not a valid UUID.`,
     );
   }
 }
@@ -59,26 +59,26 @@ function assertEnqueueInput(input: EnqueueInput): void {
   if (!userIdSchema.safeParse(input.userId).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] enqueue: userId must be 1-256 chars.`,
+      `[@concierge-mantle/smart-account] enqueue: userId must be 1-256 chars.`,
     );
   }
   assertUuid(input.agentId, 'agentId');
   if (!addressSchema.safeParse(input.to).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] enqueue: to is not a valid address.`,
+      `[@concierge-mantle/smart-account] enqueue: to is not a valid address.`,
     );
   }
   if (!hexSchema.safeParse(input.data).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] enqueue: data is not byte-aligned 0x-prefixed hex.`,
+      `[@concierge-mantle/smart-account] enqueue: data is not byte-aligned 0x-prefixed hex.`,
     );
   }
   if (!valueSchema.safeParse(input.value).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] enqueue: value is not an unsigned-decimal-string wei ≤ 78 digits.`,
+      `[@concierge-mantle/smart-account] enqueue: value is not an unsigned-decimal-string wei ≤ 78 digits.`,
     );
   }
 }
@@ -103,7 +103,7 @@ export async function enqueue(
     // DB invariant violation, not a caller config bug.
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] enqueue: INSERT ... RETURNING returned no row (DB invariant violated).`,
+      `[@concierge-mantle/smart-account] enqueue: INSERT ... RETURNING returned no row (DB invariant violated).`,
     );
   }
   return row;
@@ -122,7 +122,7 @@ export async function getPending(
   if (!userIdSchema.safeParse(args.expectedUserId).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] getPending: expectedUserId must be 1-256 chars.`,
+      `[@concierge-mantle/smart-account] getPending: expectedUserId must be 1-256 chars.`,
     );
   }
   return db
@@ -213,7 +213,7 @@ export async function markFailed(
   if (!errorMsgSchema.safeParse(args.error).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] markFailed: error must be 1-2048 chars (silent-failure rule + DB CHECK).`,
+      `[@concierge-mantle/smart-account] markFailed: error must be 1-2048 chars (silent-failure rule + DB CHECK).`,
     );
   }
   const [row] = await db

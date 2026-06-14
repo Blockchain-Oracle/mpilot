@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import type { Address, Hex } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { proposeForUser } from '../proposer.ts';

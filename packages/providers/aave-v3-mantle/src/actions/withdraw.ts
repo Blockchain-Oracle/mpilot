@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge/sdk';
-import { erc20Abi, ipoolAbi } from '@concierge/shared/abi';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { erc20Abi, ipoolAbi } from '@concierge-mantle/shared/abi';
+import { tool } from '@concierge-mantle/tools';
 import { maxUint256, UserRejectedRequestError } from 'viem';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
@@ -37,7 +37,7 @@ export function assertHFAboveFloor(preState: UserAccountData, amount: bigint | '
     // Cannot pre-compute post-HF without an oracle call; refusing max-with-debt is the safe default.
     throw new ConciergeError(
       'InsufficientLiquidity',
-      `[@concierge/aave-v3-mantle] withdraw: cannot withdraw all collateral while debt is outstanding (totalDebtBase: ${preState.totalDebtBase}). Repay all debt first.`,
+      `[@concierge-mantle/aave-v3-mantle] withdraw: cannot withdraw all collateral while debt is outstanding (totalDebtBase: ${preState.totalDebtBase}). Repay all debt first.`,
       undefined,
       { totalDebtBase: preState.totalDebtBase.toString() },
     );
@@ -45,7 +45,7 @@ export function assertHFAboveFloor(preState: UserAccountData, amount: bigint | '
   if (preState.healthFactor < HF_FLOOR) {
     throw new ConciergeError(
       'InsufficientLiquidity',
-      `[@concierge/aave-v3-mantle] withdraw: current HF (${preState.healthFactor}) is below the 1.5 policy floor. Repay debt first.`,
+      `[@concierge-mantle/aave-v3-mantle] withdraw: current HF (${preState.healthFactor}) is below the 1.5 policy floor. Repay debt first.`,
       undefined,
       { currentHF: preState.healthFactor.toString(), floor: HF_FLOOR.toString() },
     );
@@ -91,13 +91,13 @@ async function executeWithdraw(ctx: ActionContext, args: z.infer<typeof Withdraw
     if (err instanceof UserRejectedRequestError) {
       throw new ConciergeError(
         'UserRejected',
-        '[@concierge/aave-v3-mantle] withdraw: transaction rejected by the user.',
+        '[@concierge-mantle/aave-v3-mantle] withdraw: transaction rejected by the user.',
         err,
       );
     }
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/aave-v3-mantle] withdraw: Pool.withdraw() failed. Verify the aToken balance for ${asset} is sufficient.`,
+      `[@concierge-mantle/aave-v3-mantle] withdraw: Pool.withdraw() failed. Verify the aToken balance for ${asset} is sufficient.`,
       err instanceof Error ? err : undefined,
       { asset, poolAddress },
     );
@@ -107,7 +107,7 @@ async function executeWithdraw(ctx: ActionContext, args: z.infer<typeof Withdraw
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/aave-v3-mantle] withdraw: tx ${txHash} was mined but REVERTED. Verify the aToken balance for ${asset}.`,
+      `[@concierge-mantle/aave-v3-mantle] withdraw: tx ${txHash} was mined but REVERTED. Verify the aToken balance for ${asset}.`,
       undefined,
       { txHash, asset },
     );

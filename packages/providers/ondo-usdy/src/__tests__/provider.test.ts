@@ -1,6 +1,6 @@
 // Integration tests for createOndoUsdyProvider — verifies the provider composes
 // correctly and exposes the expected action surface and selector.
-import { ADDRESSES } from '@concierge/shared';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { createPublicClient, http } from 'viem';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createOndoUsdyProvider } from '../provider.ts';

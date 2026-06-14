@@ -65,7 +65,7 @@ test -f components/landing/KlarnaDisambiguation.tsx
 
 cd ../..
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # Klarna explicitly mentioned
@@ -78,7 +78,7 @@ grep -qE "(not BNPL|isn't BNPL|not Buy.Now)" apps/web/components/landing/KlarnaD
 ! grep -qE "(lorem ipsum|placeholder|TODO)" apps/web/components/landing/KlarnaDisambiguation.tsx
 
 # RTL test passes
-pnpm --filter @concierge/web run test 2>&1 | grep "KlarnaDisambiguation" | grep -q "PASS"
+pnpm --filter @concierge-mantle/web run test 2>&1 | grep "KlarnaDisambiguation" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

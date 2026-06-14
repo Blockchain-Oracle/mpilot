@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ENTRYPOINT_V07_ADDRESS } from '../constants.ts';
 

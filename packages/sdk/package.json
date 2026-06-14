@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/sdk",
+  "name": "@concierge-mantle/sdk",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -32,9 +32,9 @@
     "@ai-sdk/google": "^3.0.80",
     "@ai-sdk/openai": "^3.0.69",
     "@ai-sdk/xai": "^3.0.93",
-    "@concierge/shared": "workspace:*",
-    "@concierge/tools": "workspace:*",
-    "@concierge/vercel-ai": "workspace:*"
+    "@concierge-mantle/shared": "workspace:*",
+    "@concierge-mantle/tools": "workspace:*",
+    "@concierge-mantle/vercel-ai": "workspace:*"
   },
   "peerDependencies": {
     "@ai-sdk/provider": "^3.0.0",

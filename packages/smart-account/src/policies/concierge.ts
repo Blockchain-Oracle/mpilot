@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import type { toCallPolicy, toTimestampPolicy } from '@zerodev/permissions/policies';
 import type { Address } from 'viem';
 import { type CallPermission, createCallPolicy } from './callPolicy.ts';
@@ -60,7 +60,7 @@ function mergePermissions(perms: readonly CallPermission[]): CallPermission[] {
         const which = existingHasRules && newHasRules ? 'both sides' : 'one side';
         throw new ConciergeError(
           'ConfigError',
-          `[@concierge/smart-account] createConciergePolicy: InvalidPolicy: conflicting permissions on (target=${target}, selector=${sel}) — ${which} carries rules; merging would silently drop a constraint.`,
+          `[@concierge-mantle/smart-account] createConciergePolicy: InvalidPolicy: conflicting permissions on (target=${target}, selector=${sel}) — ${which} carries rules; merging would silently drop a constraint.`,
         );
       }
       continue;
@@ -71,7 +71,7 @@ function mergePermissions(perms: readonly CallPermission[]): CallPermission[] {
     if (targetsWithSpecific.has(t)) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge/smart-account] createConciergePolicy: InvalidPolicy: target ${t} has both a wildcard permission (no selector) and a specific-selector permission — the wildcard would void the specific restriction. Either remove the wildcard or list specific selectors explicitly.`,
+        `[@concierge-mantle/smart-account] createConciergePolicy: InvalidPolicy: target ${t} has both a wildcard permission (no selector) and a specific-selector permission — the wildcard would void the specific restriction. Either remove the wildcard or list specific selectors explicitly.`,
       );
     }
   }
@@ -99,7 +99,7 @@ export function createConciergePolicy(config: CreateConciergePolicyConfig): read
   if (config.providers.length === 0) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/smart-account] createConciergePolicy: InvalidPolicy: at least one provider required — empty policy bundle would issue an unconstrained session key.',
+      '[@concierge-mantle/smart-account] createConciergePolicy: InvalidPolicy: at least one provider required — empty policy bundle would issue an unconstrained session key.',
     );
   }
   // Validate spending-limit token uniqueness up-front (clearer error than the
@@ -110,7 +110,7 @@ export function createConciergePolicy(config: CreateConciergePolicyConfig): read
     if (seenTokens.has(t)) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge/smart-account] createConciergePolicy: InvalidPolicy: duplicate spendingLimits entry for token ${limit.token} — multiple LTE rules on the same (token, transfer) permission are not supported.`,
+        `[@concierge-mantle/smart-account] createConciergePolicy: InvalidPolicy: duplicate spendingLimits entry for token ${limit.token} — multiple LTE rules on the same (token, transfer) permission are not supported.`,
       );
     }
     seenTokens.add(t);
@@ -122,7 +122,7 @@ export function createConciergePolicy(config: CreateConciergePolicyConfig): read
   if (merged.length === 0) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/smart-account] createConciergePolicy: InvalidPolicy: no permissions after merge — providers contributed an empty allow-list.',
+      '[@concierge-mantle/smart-account] createConciergePolicy: InvalidPolicy: no permissions after merge — providers contributed an empty allow-list.',
     );
   }
   const policies: Policy[] = [

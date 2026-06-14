@@ -100,7 +100,7 @@ describe('getStatus — DONE with missing settlement data (test_getStatus_DoneMi
         () => HttpResponse.json({ status: 'DONE', tool: 'stargate' }), // no toTx
       ),
     );
-    const { ConciergeError } = await import('@concierge/sdk');
+    const { ConciergeError } = await import('@concierge-mantle/sdk');
     await expect(
       executeGetStatus(ctx, {
         sourceTxHash: DEX_TX_HASH,
@@ -122,7 +122,7 @@ describe('getStatus — DONE with missing settlement data (test_getStatus_DoneMi
         HttpResponse.json({ status: 'DONE', toTx: { txHash: DEST_TX_HASH, chainId: 1 } }),
       ),
     );
-    const { ConciergeError } = await import('@concierge/sdk');
+    const { ConciergeError } = await import('@concierge-mantle/sdk');
     await expect(
       executeGetStatus(ctx, {
         sourceTxHash: DEX_TX_HASH,
@@ -165,7 +165,7 @@ describe('getStatus — bridgeUsed metadata fallback (test_getStatus_MetadataFal
 describe('getStatus — error paths', () => {
   it('throws ConciergeError(RpcError) on network failure', async () => {
     server.use(http.get(`${LIFI_API}/status`, () => HttpResponse.error()));
-    const { ConciergeError } = await import('@concierge/sdk');
+    const { ConciergeError } = await import('@concierge-mantle/sdk');
     await expect(
       executeGetStatus(ctx, {
         sourceTxHash: DEX_TX_HASH,
@@ -182,7 +182,7 @@ describe('getStatus — error paths', () => {
 
   it('throws ConciergeError(RpcError) on HTTP 503', async () => {
     server.use(http.get(`${LIFI_API}/status`, () => new HttpResponse(null, { status: 503 })));
-    const { ConciergeError } = await import('@concierge/sdk');
+    const { ConciergeError } = await import('@concierge-mantle/sdk');
     await expect(
       executeGetStatus(ctx, {
         sourceTxHash: DEX_TX_HASH,

@@ -1,4 +1,4 @@
-// Shared primitive types used across @concierge/* packages.
+// Shared primitive types used across @concierge-mantle/* packages.
 //
 // SOURCE OF TRUTH — downstream packages (story-22 SDK, story-42 ERC-8004 provider,
 // story-60 llm, story-62 runtime, story-300 tools) MUST import from here. Never
@@ -38,14 +38,14 @@ const UINT256_MAX = 2n ** 256n;
 export function agentId(raw: bigint): AgentId {
   if (typeof raw !== 'bigint') {
     throw new TypeError(
-      `[@concierge/shared] agentId: raw must be bigint, got ${typeof raw} (${JSON.stringify(String(raw))})`,
+      `[@concierge-mantle/shared] agentId: raw must be bigint, got ${typeof raw} (${JSON.stringify(String(raw))})`,
     );
   }
   if (raw < 0n) {
-    throw new RangeError(`[@concierge/shared] agentId: must be non-negative, got ${raw}`);
+    throw new RangeError(`[@concierge-mantle/shared] agentId: must be non-negative, got ${raw}`);
   }
   if (raw >= UINT256_MAX) {
-    throw new RangeError(`[@concierge/shared] agentId: exceeds uint256 range, got ${raw}`);
+    throw new RangeError(`[@concierge-mantle/shared] agentId: exceeds uint256 range, got ${raw}`);
   }
   return raw as AgentId;
 }
@@ -54,7 +54,7 @@ export function agentId(raw: bigint): AgentId {
 export function agentIdFromHex(hex: `0x${string}`): AgentId {
   if (typeof hex !== 'string' || !/^0x[0-9a-fA-F]+$/.test(hex)) {
     throw new TypeError(
-      `[@concierge/shared] agentIdFromHex: expected 0x-prefixed hex string, got ${typeof hex} (${JSON.stringify(String(hex))})`,
+      `[@concierge-mantle/shared] agentIdFromHex: expected 0x-prefixed hex string, got ${typeof hex} (${JSON.stringify(String(hex))})`,
     );
   }
   try {
@@ -62,7 +62,7 @@ export function agentIdFromHex(hex: `0x${string}`): AgentId {
   } catch (cause) {
     if (cause instanceof RangeError) throw cause;
     throw new TypeError(
-      `[@concierge/shared] agentIdFromHex: failed to parse ${JSON.stringify(hex)} as bigint`,
+      `[@concierge-mantle/shared] agentIdFromHex: failed to parse ${JSON.stringify(hex)} as bigint`,
       { cause },
     );
   }

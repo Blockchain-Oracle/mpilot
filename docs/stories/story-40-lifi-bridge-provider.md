@@ -1,4 +1,4 @@
-# Story — `@concierge/lifi-bridge` action provider
+# Story — `@concierge-mantle/lifi-bridge` action provider
 
 **ID:** story-40-lifi-bridge-provider
 **Epic:** Epic E3 — Action Providers
@@ -11,7 +11,7 @@
 ## User story
 
 **As a** Concierge agent runtime
-**I want to** an `@concierge/lifi-bridge` package exposes `quote`, `bridge`, `getStatus` actions that wrap the Li.Fi HTTP API for cross-chain bridging (Mantle ↔ Ethereum / Base / Arbitrum / Polygon / Optimism), with two-stage attestation (sent + completed) because bridges take minutes to settle
+**I want to** an `@concierge-mantle/lifi-bridge` package exposes `quote`, `bridge`, `getStatus` actions that wrap the Li.Fi HTTP API for cross-chain bridging (Mantle ↔ Ethereum / Base / Arbitrum / Polygon / Optimism), with two-stage attestation (sent + completed) because bridges take minutes to settle
 **So that** the agent can bridge user assets to/from Mantle without managing per-bridge integrations (Stargate, Across, Connext) and the on-chain audit trail captures both the source-chain tx AND the destination-chain settlement
 
 ---
@@ -33,7 +33,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge/lifi-bridge run build` runs
+When `pnpm --filter @concierge-mantle/lifi-bridge run build` runs
 Then exit code is 0
 
 Given the provider has 3 actions
@@ -92,7 +92,7 @@ test -f src/sessionKey.ts
 
 cd ../../..
 
-pnpm --filter @concierge/lifi-bridge run build
+pnpm --filter @concierge-mantle/lifi-bridge run build
 test $? -eq 0
 pnpm run typecheck
 

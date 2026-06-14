@@ -28,7 +28,7 @@
 | Job queue | **BullMQ** on **Redis (Upstash)** | Tick scheduler, in-flight locks, retry semantics |
 | Validation | **Zod** | Schema for tool inputs/outputs + env vars |
 | MCP server | **`@modelcontextprotocol/sdk`** + Next.js API + OAuth + Redis sessions | Mirrors Giza's MCP server shape (`mcp.gizatech.xyz/api/sse`) — proven pattern |
-| RealClaw skill packaging | Custom skill manifest + `npx skills add @concierge/mantle-agent` distribution | Pattern from `byreal-git/byreal-agent-skills` (TypeScript MIT) — Track 6 qualifier |
+| RealClaw skill packaging | Custom skill manifest + `npx skills add @concierge-mantle/mantle-agent` distribution | Pattern from `byreal-git/byreal-agent-skills` (TypeScript MIT) — Track 6 qualifier |
 | Testing | **Vitest** (unit + integration) + **Playwright** (e2e) + **Foundry forge fuzz/invariant** (contracts) | Standard, all TS-native |
 | Linting + formatting | **Biome** | Single tool (lint + format), 10× faster than ESLint+Prettier, `noExcessiveLinesPerFile: { maxLines: 400 }` rule for hygiene |
 | Observability | **Pino** for structured logs, **Sentry** for errors | Production-grade |
@@ -65,8 +65,8 @@ Plus auxiliary routes:
                 │                      │                          │
        ┌────────┴────────┐  ┌──────────┴──────────┐   ┌──────────┴──────────┐  ┌─────────┐
        │  Web app        │  │  npm SDK            │   │  MCP server         │  │ RealClaw│
-       │ concierge.xyz   │  │  @concierge/sdk     │   │ mcp.concierge.xyz   │  │  skill  │
-       │      /app       │  │  @concierge/<7>     │   │   /api/sse          │  │         │
+       │ concierge.xyz   │  │  @concierge-mantle/sdk     │   │ mcp.concierge.xyz   │  │  skill  │
+       │      /app       │  │  @concierge-mantle/<7>     │   │   /api/sse          │  │         │
        │                 │  │                     │   │                     │  │  npx    │
        │ Consumer        │  │ Mantle devs build   │   │ Claude Code /       │  │ skills  │
        │ users + judges  │  │ their own agents    │   │ Claude Desktop /    │  │  add    │
@@ -95,7 +95,7 @@ Plus auxiliary routes:
 
 **Status:** Accepted 2026-06-03.
 **Context:** Byreal Skills CLI is **Solana-only** (verified: byreal-git/byreal-agent-skills 44★ MIT TS, "CLMM DEX on Solana"). Byreal Perps CLI is **Hyperliquid-only**. Both are wrong-chain for our Mantle product.
-**Decision:** Satisfy Track 6 ("must use core capabilities of at least one of: Byreal Agent Skills / Byreal Perps CLI / RealClaw") via the **RealClaw** path. Package Concierge as a RealClaw-compatible TypeScript skill installable via `npx skills add @concierge/mantle-agent`. Pattern verified by byreal-agent-skills itself (TS, MIT, distributable) and Magicianhax/mantle-active-trader (Python RealClaw skill for Mantle DeFi).
+**Decision:** Satisfy Track 6 ("must use core capabilities of at least one of: Byreal Agent Skills / Byreal Perps CLI / RealClaw") via the **RealClaw** path. Package Concierge as a RealClaw-compatible TypeScript skill installable via `npx skills add @concierge-mantle/mantle-agent`. Pattern verified by byreal-agent-skills itself (TS, MIT, distributable) and Magicianhax/mantle-active-trader (Python RealClaw skill for Mantle DeFi).
 **Consequences:** Track 6 qualified without depending on wrong-chain CLIs. Strategic upgrade: we ship into Byreal's official distribution channel (`npx skills add`) which is the surface Byreal/Mantle judges actually use. See `06-realclaw-skill-pkg.md` for implementation details.
 
 ### ADR-004 — ERC-8004 attestation as verifiability (NOT zkML)
