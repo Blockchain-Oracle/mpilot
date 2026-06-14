@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address, Hex } from '@concierge/shared';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address, Hex } from '@concierge-mantle/shared';
+import { tool } from '@concierge-mantle/tools';
 import type { TransactionReceipt } from 'viem';
 import { decodeEventLog, encodeEventTopics, parseAbi } from 'viem';
 import { z } from 'zod';
@@ -60,7 +60,7 @@ function parseRewardsClaimed(receipt: TransactionReceipt): {
       // A log that passed the topic filter but failed to decode signals ABI drift — surface loudly.
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/aave-v3-mantle] claimRewards: failed to decode RewardsClaimed event. Pool ABI may have changed.`,
+        `[@concierge-mantle/aave-v3-mantle] claimRewards: failed to decode RewardsClaimed event. Pool ABI may have changed.`,
         decodeErr instanceof Error ? decodeErr : undefined,
       );
     }
@@ -74,7 +74,7 @@ async function executeClaimRewards(ctx: ActionContext, args: z.infer<typeof Clai
   if (!incentivesControllerAddress) {
     throw new ConciergeError(
       'NetworkUnsupported',
-      '[@concierge/aave-v3-mantle] claimRewards: incentives controller is not deployed on this chain. Use Mantle Mainnet or provide an incentivesController override.',
+      '[@concierge-mantle/aave-v3-mantle] claimRewards: incentives controller is not deployed on this chain. Use Mantle Mainnet or provide an incentivesController override.',
     );
   }
   const { walletClient, account } = await requireWallet(ctx, 'claimRewards');
@@ -99,7 +99,7 @@ async function executeClaimRewards(ctx: ActionContext, args: z.infer<typeof Clai
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/aave-v3-mantle] claimRewards: claimAllRewards() failed on controller ${incentivesControllerAddress}. Verify the assets array contains valid aToken/debtToken addresses.`,
+      `[@concierge-mantle/aave-v3-mantle] claimRewards: claimAllRewards() failed on controller ${incentivesControllerAddress}. Verify the assets array contains valid aToken/debtToken addresses.`,
       err instanceof Error ? err : undefined,
       { incentivesControllerAddress, assets },
     );
@@ -109,7 +109,7 @@ async function executeClaimRewards(ctx: ActionContext, args: z.infer<typeof Clai
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/aave-v3-mantle] claimRewards: tx ${txHash} was mined but REVERTED. Verify the assets array contains valid aToken/debtToken addresses with accrued rewards.`,
+      `[@concierge-mantle/aave-v3-mantle] claimRewards: tx ${txHash} was mined but REVERTED. Verify the assets array contains valid aToken/debtToken addresses with accrued rewards.`,
       undefined,
       { txHash },
     );

@@ -1,4 +1,4 @@
-# Story — `@concierge/meth-staking` action provider
+# Story — `@concierge-mantle/meth-staking` action provider
 
 **ID:** story-38-meth-staking-provider
 **Epic:** Epic E3 — Action Providers
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** Concierge agent runtime
-**I want to** an `@concierge/meth-staking` package exposes `getBalance`, `getExchangeRate`, `getYieldRate`, `unwrapToWETH` (DEX-routed) actions for the Mantle-bridged mETH token
+**I want to** an `@concierge-mantle/meth-staking` package exposes `getBalance`, `getExchangeRate`, `getYieldRate`, `unwrapToWETH` (DEX-routed) actions for the Mantle-bridged mETH token
 **So that** the agent can monitor user-held mETH positions, derive staking yield, and unwrap mETH → WETH via DEX swap (Mantle has NO native unstaking — the L1 stake pool is Ethereum-only)
 
 ---
 
 ## File modification map
 
-- `packages/providers/meth-staking/package.json` — NEW — peer deps + workspace deps + dependency on `@concierge/mantle-dex` (for the unwrap-via-swap action)
+- `packages/providers/meth-staking/package.json` — NEW — peer deps + workspace deps + dependency on `@concierge-mantle/mantle-dex` (for the unwrap-via-swap action)
 - `packages/providers/meth-staking/src/index.ts` — NEW — barrel exports
 - `packages/providers/meth-staking/src/provider.ts` — NEW — `createMethStakingProvider(opts, { dexProvider })` returns ProviderInterface. Requires dexProvider injection (fail-fast at construction if missing — same pattern as Ethena's Aave dependency).
 - `packages/providers/meth-staking/src/actions/getBalance.ts` — NEW — `getBalance({ user })` returns `{ raw: bigint; ethValue: bigint }` (rawMETH * exchangeRate / 1e18)
@@ -34,7 +34,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge/meth-staking run build` runs
+When `pnpm --filter @concierge-mantle/meth-staking run build` runs
 Then exit code is 0
 
 Given the provider has 4 actions
@@ -44,7 +44,7 @@ Then Object.keys(provider.actions).sort() === ['getBalance','getExchangeRate','g
 
 Given the provider is constructed without dexProvider
 When createMethStakingProvider({rpcUrl}) runs without the dex provider injection
-Then it throws `MissingDependency('@concierge/mantle-dex')` at construction
+Then it throws `MissingDependency('@concierge-mantle/mantle-dex')` at construction
 
 Given mETH address resolution
 When provider runs on Mantle Mainnet
@@ -89,7 +89,7 @@ done
 
 cd ../../..
 
-pnpm --filter @concierge/meth-staking run build
+pnpm --filter @concierge-mantle/meth-staking run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -134,5 +134,5 @@ bun scripts/check-file-loc.mjs
 - **Exchange rate source on Mantle** is a cross-chain feed (Redstone or Chainlink) per `research/concierge/03-providers/meth-staking.md` § Verified facts. NO L1 RPC calls — Mantle agent runs ONLY on Mantle.
 - **Yield derivation** mirrors the Ondo USDY approach: rate-of-change over 7-day rolling window. APY math same.
 - **Attestation includes both `dexTxHash` AND `expectedEthOut`** so future auditors can verify the unwrap was actually a DEX swap routed at a reasonable price, not a custom contract that drained the user's mETH.
-- **WETH on Mantle** is the wrapped MNT token (`WMNT`) per the architecture: address from `@concierge/shared`. mETH → WETH on Mantle routes via the dex provider; user can then bridge WETH back to L1 via `@concierge/lifi-bridge` if they want to land in actual ETH on Ethereum.
+- **WETH on Mantle** is the wrapped MNT token (`WMNT`) per the architecture: address from `@concierge-mantle/shared`. mETH → WETH on Mantle routes via the dex provider; user can then bridge WETH back to L1 via `@concierge-mantle/lifi-bridge` if they want to land in actual ETH on Ethereum.
 - Cross-ref: `research/concierge/03-providers/meth-staking.md` § Mantle is L2-only / no native unstake.

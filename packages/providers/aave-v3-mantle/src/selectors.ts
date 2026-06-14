@@ -1,7 +1,7 @@
 // Pure read helpers for Aave V3 on Mantle.
 // All HF values are 1e18-scaled bigints per getUserAccountData spec.
 
-import { ipoolAbi } from '@concierge/shared/abi';
+import { ipoolAbi } from '@concierge-mantle/shared/abi';
 import type { Address, PublicClient } from 'viem';
 import { parseAbi } from 'viem';
 

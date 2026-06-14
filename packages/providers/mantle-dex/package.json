@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/mantle-dex",
+  "name": "@concierge-mantle/mantle-dex",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,9 +28,9 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge/shared": "workspace:*",
-    "@concierge/sdk": "workspace:*",
-    "@concierge/tools": "workspace:*"
+    "@concierge-mantle/shared": "workspace:*",
+    "@concierge-mantle/sdk": "workspace:*",
+    "@concierge-mantle/tools": "workspace:*"
   },
   "peerDependencies": {
     "viem": "^2.52.0",

@@ -49,7 +49,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Zod-based manifest validator
-        run: pnpm --filter @concierge/skill-mantle-agent run validate-manifest
+        run: pnpm --filter @concierge-mantle/skill-mantle-agent run validate-manifest
 
       - name: Run manifest cross-check tests
-        run: pnpm --filter @concierge/skill-mantle-agent run test
+        run: pnpm --filter @concierge-mantle/skill-mantle-agent run test

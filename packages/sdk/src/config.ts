@@ -124,7 +124,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ConciergeConfi
     result = ConfigSchema.safeParse(env);
   } catch (err) {
     throw new ConfigError(
-      `[@concierge/sdk] loadConfig: schema validation threw unexpectedly — ${err instanceof Error ? err.message : String(err)}`,
+      `[@concierge-mantle/sdk] loadConfig: schema validation threw unexpectedly — ${err instanceof Error ? err.message : String(err)}`,
       undefined,
       err,
     );
@@ -134,7 +134,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ConciergeConfi
       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
       .join('; ');
     const metadata: ConfigErrorMetadata = { issues: result.error.issues };
-    throw new ConfigError(`[@concierge/sdk] loadConfig: ${summary}`, metadata);
+    throw new ConfigError(`[@concierge-mantle/sdk] loadConfig: ${summary}`, metadata);
   }
   return result.data;
 }

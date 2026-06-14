@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address, EvmChainId, Hex } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address, EvmChainId, Hex } from '@concierge-mantle/shared';
 import type { PublicClient, WalletClient } from 'viem';
 import type {
   Venue,
@@ -48,7 +48,7 @@ async function fetchLifiQuote(
     throw err;
   }
   if (!res.ok) {
-    console.warn(`[@concierge/mantle-dex] lifi: HTTP ${res.status} from Li.Fi quote API`);
+    console.warn(`[@concierge-mantle/mantle-dex] lifi: HTTP ${res.status} from Li.Fi quote API`);
     return null;
   }
   try {
@@ -56,7 +56,7 @@ async function fetchLifiQuote(
   } catch {
     // Malformed JSON (e.g. CDN returns HTML on 200) — treat as no-route, not a crash.
     console.warn(
-      `[@concierge/mantle-dex] lifi: malformed JSON in Li.Fi response (HTTP ${res.status})`,
+      `[@concierge-mantle/mantle-dex] lifi: malformed JSON in Li.Fi response (HTTP ${res.status})`,
     );
     return null;
   }
@@ -97,7 +97,7 @@ export function createLifiVenue(
     if (!walletClient) {
       throw new ConciergeError(
         'ConfigError',
-        '[@concierge/mantle-dex] lifi.swap: walletClient required',
+        '[@concierge-mantle/mantle-dex] lifi.swap: walletClient required',
       );
     }
     const { tokenIn, tokenOut, amountIn, account, slippageBps } = params;
@@ -107,7 +107,7 @@ export function createLifiVenue(
     if (!data?.transactionRequest) {
       throw new ConciergeError(
         'InsufficientLiquidity',
-        `[@concierge/mantle-dex] lifi.swap: no route from Li.Fi for ${tokenIn} → ${tokenOut}`,
+        `[@concierge-mantle/mantle-dex] lifi.swap: no route from Li.Fi for ${tokenIn} → ${tokenOut}`,
       );
     }
 
@@ -115,7 +115,7 @@ export function createLifiVenue(
     if (!req.to) {
       throw new ConciergeError(
         'RpcError',
-        '[@concierge/mantle-dex] lifi.swap: Li.Fi response missing transactionRequest.to',
+        '[@concierge-mantle/mantle-dex] lifi.swap: Li.Fi response missing transactionRequest.to',
       );
     }
 
@@ -131,13 +131,13 @@ export function createLifiVenue(
     if (receipt.status === 'reverted') {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/mantle-dex] lifi.swap: tx ${txHash} reverted`,
+        `[@concierge-mantle/mantle-dex] lifi.swap: tx ${txHash} reverted`,
       );
     }
     if (!data.estimate?.toAmount) {
       throw new ConciergeError(
         'RpcError',
-        '[@concierge/mantle-dex] lifi.swap: Li.Fi response missing estimate.toAmount — cannot record attestation',
+        '[@concierge-mantle/mantle-dex] lifi.swap: Li.Fi response missing estimate.toAmount — cannot record attestation',
       );
     }
     const amountOut = BigInt(data.estimate.toAmount);

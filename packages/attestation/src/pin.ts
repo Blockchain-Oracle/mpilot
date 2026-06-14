@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { computeFeedbackPair } from './hash.ts';
 import { type PinService, type PinServiceName, PinServiceNotConfigured } from './pinService.ts';
 import type { FeedbackEnvelope } from './schema.ts';
@@ -69,7 +69,7 @@ export async function pinFeedback(
   if (deps.primary === undefined && deps.fallback === undefined) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/attestation] pinFeedback: at least one of `primary` or `fallback` PinService must be configured.',
+      '[@concierge-mantle/attestation] pinFeedback: at least one of `primary` or `fallback` PinService must be configured.',
     );
   }
 
@@ -103,7 +103,7 @@ export async function pinFeedback(
     );
     throw new ConciergeError(
       'IPFSPinFailed',
-      `[@concierge/attestation] pinFeedback: BOTH services failed. primary=${primary.error} | fallback=${fallback.error}`,
+      `[@concierge-mantle/attestation] pinFeedback: BOTH services failed. primary=${primary.error} | fallback=${fallback.error}`,
       undefined,
       { hash, agentId: envelope.agentId, primary, fallback },
     );

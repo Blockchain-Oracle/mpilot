@@ -1,7 +1,7 @@
 // Pure-compute unit tests for the best-of-N venue aggregation logic.
 // No chain, no fork — exercises sorting + null-filtering in resolveRouteMap.
-import { ConciergeError } from '@concierge/sdk';
-import type { Address } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address } from '@concierge-mantle/shared';
 import { describe, expect, it } from 'vitest';
 import type { VenueQuoteResult } from '../_types.ts';
 import { type RouteMap, resolveRouteMap } from '../actions/quote.ts';

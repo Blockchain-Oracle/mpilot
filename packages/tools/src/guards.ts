@@ -33,7 +33,7 @@ export function isThenable(value: unknown): value is PromiseLike<unknown> {
  * Wrapped in try/catch symmetric to `isThenable`: a Proxy/getter that throws
  * during property access (MobX observables, RxJS proxies, malicious schemas)
  * yields `undefined` instead of aborting the registry build with a confusing
- * cross-library stack. The existing `[@concierge/tools] ... must be Zod`
+ * cross-library stack. The existing `[@concierge-mantle/tools] ... must be Zod`
  * error then fires at the call site.
  */
 function getZodDefType(value: unknown): string | undefined {

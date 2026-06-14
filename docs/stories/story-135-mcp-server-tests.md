@@ -31,7 +31,7 @@
 
 ```
 Given Vitest is configured for e2e
-When `pnpm --filter @concierge/mcp-server run test:e2e` runs
+When `pnpm --filter @concierge-mantle/mcp-server run test:e2e` runs
 Then exit code is 0 AND ≥ 8 e2e test cases pass
 
 Given test_e2e_ClientFlow
@@ -67,7 +67,7 @@ When a write tool succeeds
 Then a row exists in D1's audit_log with the correct userId, tool, agentId, timestamp
 
 Given coverage gate
-When `pnpm --filter @concierge/mcp-server run test --coverage` runs
+When `pnpm --filter @concierge-mantle/mcp-server run test --coverage` runs
 Then line coverage on `src/` ≥ 80%
 
 Given file size budget
@@ -81,18 +81,18 @@ Then every test file ≤ 400 LOC
 
 ```bash
 # Run e2e tests
-pnpm --filter @concierge/mcp-server run test:e2e --reporter=verbose
+pnpm --filter @concierge-mantle/mcp-server run test:e2e --reporter=verbose
 test $? -eq 0
 
-pnpm --filter @concierge/mcp-server run test:e2e --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 8 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/mcp-server run test:e2e --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 8 {exit 0} {exit 1}'
 
 # Critical load-bearing tests
 for tn in "OAuthFlow" "RateLimitEnforcement" "OwnershipEnforcement" "PublicReadsNoAuth" "AuditLog"; do
-  pnpm --filter @concierge/mcp-server run test:e2e --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
+  pnpm --filter @concierge-mantle/mcp-server run test:e2e --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
 done
 
 # Coverage ≥ 80%
-cov=$(pnpm --filter @concierge/mcp-server run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @concierge-mantle/mcp-server run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 80
 
 bun scripts/check-file-loc.mjs

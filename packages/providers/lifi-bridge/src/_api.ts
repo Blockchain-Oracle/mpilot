@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { LIFI_API } from './_context.ts';
 import {
   type LifiBridgeRoute,
@@ -20,7 +20,7 @@ async function doFetch(url: string, init: RequestInit, label: string): Promise<u
   } catch (err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/lifi-bridge] ${label}: network error`,
+      `[@concierge-mantle/lifi-bridge] ${label}: network error`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -36,7 +36,7 @@ async function doFetch(url: string, init: RequestInit, label: string): Promise<u
     }
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/lifi-bridge] ${label}: HTTP ${res.status}${detail}`,
+      `[@concierge-mantle/lifi-bridge] ${label}: HTTP ${res.status}${detail}`,
     );
   }
 
@@ -45,7 +45,7 @@ async function doFetch(url: string, init: RequestInit, label: string): Promise<u
   } catch (err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/lifi-bridge] ${label}: response is not valid JSON`,
+      `[@concierge-mantle/lifi-bridge] ${label}: response is not valid JSON`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -121,14 +121,14 @@ export async function fetchQuote(params: GetQuoteParams): Promise<LifiBridgeRout
   if (!parsed.success)
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/lifi-bridge] fetchQuote: unexpected response shape — ${parsed.error.message}`,
+      `[@concierge-mantle/lifi-bridge] fetchQuote: unexpected response shape — ${parsed.error.message}`,
     );
 
   const route = normalizeQuote(parsed.data, Date.now());
   if (!route)
     throw new ConciergeError(
       'RpcError',
-      '[@concierge/lifi-bridge] fetchQuote: Li.Fi returned a route missing required amount fields',
+      '[@concierge-mantle/lifi-bridge] fetchQuote: Li.Fi returned a route missing required amount fields',
     );
   return route;
 }
@@ -155,7 +155,7 @@ export async function fetchBridgeStatus(params: GetStatusParams): Promise<LifiSt
   if (!parsed.success)
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/lifi-bridge] fetchBridgeStatus: unexpected response shape — ${parsed.error.message}`,
+      `[@concierge-mantle/lifi-bridge] fetchBridgeStatus: unexpected response shape — ${parsed.error.message}`,
     );
   return parsed.data;
 }

@@ -1,6 +1,6 @@
 // Unit tests for executeSwap — no fork required; venues are mocked.
-import { ConciergeError } from '@concierge/sdk';
-import type { Address } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address } from '@concierge-mantle/shared';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';
 import type { Venue } from '../../_types.ts';

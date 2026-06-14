@@ -1,5 +1,5 @@
 import { randomFillSync } from 'node:crypto';
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import type { Hex } from 'viem';
 
 /**
@@ -32,7 +32,7 @@ export class SessionKeySecret {
     if (!pk.startsWith('0x') || pk.length !== 66) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge/smart-account] SessionKeySecret.fromHex: expected 0x-prefixed 64-char hex (32 bytes), got length ${pk.length}.`,
+        `[@concierge-mantle/smart-account] SessionKeySecret.fromHex: expected 0x-prefixed 64-char hex (32 bytes), got length ${pk.length}.`,
       );
     }
     const buf = Buffer.from(pk.slice(2), 'hex');
@@ -40,7 +40,7 @@ export class SessionKeySecret {
       randomFillSync(buf);
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge/smart-account] SessionKeySecret.fromHex: decoded buffer is not 32 bytes (got ${buf.length}).`,
+        `[@concierge-mantle/smart-account] SessionKeySecret.fromHex: decoded buffer is not 32 bytes (got ${buf.length}).`,
       );
     }
     return new SessionKeySecret(buf);
@@ -56,7 +56,7 @@ export class SessionKeySecret {
     if (!Buffer.isBuffer(buf) || buf.length !== 32) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge/smart-account] SessionKeySecret.fromBytes: expected 32-byte Buffer, got ${Buffer.isBuffer(buf) ? `${buf.length} bytes` : typeof buf}.`,
+        `[@concierge-mantle/smart-account] SessionKeySecret.fromBytes: expected 32-byte Buffer, got ${Buffer.isBuffer(buf) ? `${buf.length} bytes` : typeof buf}.`,
       );
     }
     const owned = Buffer.from(buf);
@@ -72,7 +72,7 @@ export class SessionKeySecret {
     if (this.#consumed || !this.#buffer) {
       throw new ConciergeError(
         'ConfigError',
-        '[@concierge/smart-account] SessionKeySecret: already consumed — secrets are single-use.',
+        '[@concierge-mantle/smart-account] SessionKeySecret: already consumed — secrets are single-use.',
       );
     }
     this.#consumed = true;

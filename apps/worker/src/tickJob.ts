@@ -1,4 +1,4 @@
-import { sanitizeError } from '@concierge/runtime';
+import { sanitizeError } from '@concierge-mantle/agent';
 import type { Job } from 'bullmq';
 import { assertAgentId } from './agentId.ts';
 import type { DeadLetterQueue } from './dlq.ts';
@@ -22,7 +22,7 @@ export interface TickJobLogger {
 }
 
 export interface MakeTickJobDeps {
-  /** Bound tick fn from @concierge/runtime; tests stub. */
+  /** Bound tick fn from @concierge-mantle/agent; tests stub. */
   readonly runTick: (agentId: string, signal: AbortSignal) => Promise<TickJobResult>;
   readonly dlq: DeadLetterQueue;
   readonly logger: TickJobLogger;

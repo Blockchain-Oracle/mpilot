@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { type GetOrFetchDeps, getOrFetchPayload, type PayloadError } from './ipfsCache.ts';
 import type { FeedbackEnvelope } from './schema.ts';
 
@@ -27,7 +27,7 @@ export type AgentHistoryEntry =
   | (AgentHistoryEntryBase & { readonly status: 'ok'; readonly payload: FeedbackEnvelope })
   | (AgentHistoryEntryBase & { readonly status: 'error'; readonly payloadError: PayloadError });
 
-/** Raw on-chain feedback entries — matches `@concierge/erc8004` FeedbackEntrySchema. */
+/** Raw on-chain feedback entries — matches `@concierge-mantle/erc8004` FeedbackEntrySchema. */
 export interface RawFeedbackEntry {
   readonly schema: string;
   readonly feedbackHash: `0x${string}`;
@@ -90,19 +90,19 @@ export async function loadAgentHistory(
   if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LIMIT) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/attestation] loadAgentHistory: limit must be 1..${MAX_LIMIT} (got ${limit}).`,
+      `[@concierge-mantle/attestation] loadAgentHistory: limit must be 1..${MAX_LIMIT} (got ${limit}).`,
     );
   }
   if (!Number.isInteger(offset) || offset < 0) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/attestation] loadAgentHistory: offset must be ≥ 0 (got ${offset}).`,
+      `[@concierge-mantle/attestation] loadAgentHistory: offset must be ≥ 0 (got ${offset}).`,
     );
   }
   if (inputs.agentId < 0n) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/attestation] loadAgentHistory: agentId must be ≥ 0.',
+      '[@concierge-mantle/attestation] loadAgentHistory: agentId must be ≥ 0.',
     );
   }
 

@@ -1,4 +1,4 @@
-# Story — `@concierge/ethena-susde` integration tests
+# Story — `@concierge-mantle/ethena-susde` integration tests
 
 **ID:** story-35-ethena-susde-tests
 **Epic:** Epic E3 — Action Providers
@@ -33,7 +33,7 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge/ethena-susde run test` runs
+When `pnpm --filter @concierge-mantle/ethena-susde run test` runs
 Then exit code is 0 AND ≥ 18 test cases pass
 
 Given test_wrap_HappyPath
@@ -70,14 +70,14 @@ Then carryBps === 29 (< 50) AND spreadFloorPassing === false
 
 Given test_provider_ComposesAaveSelectors
 When the provider is constructed without an Aave selector dependency injected
-Then it fails fast at construction with `MissingDependency('@concierge/aave-v3-mantle')` (NEVER silently returns undefined from getCarryVsAave at call time)
+Then it fails fast at construction with `MissingDependency('@concierge-mantle/aave-v3-mantle')` (NEVER silently returns undefined from getCarryVsAave at call time)
 
 Given file size budget
 When `pnpm scripts/check-file-loc.mjs` runs
 Then every file ≤ 400 LOC
 
 Given coverage
-When `pnpm --filter @concierge/ethena-susde run test --coverage` runs
+When `pnpm --filter @concierge-mantle/ethena-susde run test --coverage` runs
 Then line coverage on `src/` ≥ 85%
 ```
 
@@ -86,18 +86,18 @@ Then line coverage on `src/` ≥ 85%
 ## Shell verification
 
 ```bash
-pnpm --filter @concierge/ethena-susde run test --reporter=verbose
+pnpm --filter @concierge-mantle/ethena-susde run test --reporter=verbose
 test $? -eq 0
 
-pnpm --filter @concierge/ethena-susde run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 18 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/ethena-susde run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 18 {exit 0} {exit 1}'
 
 # Critical tests present
 for tn in "NoCooldownOnMantle" "InvertedCase" "BreachAgainstNonZeroFloor"; do
-  pnpm --filter @concierge/ethena-susde run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
+  pnpm --filter @concierge-mantle/ethena-susde run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
 done
 
 # Coverage ≥ 85%
-cov=$(pnpm --filter @concierge/ethena-susde run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @concierge-mantle/ethena-susde run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 85
 
 bun scripts/check-file-loc.mjs

@@ -53,7 +53,7 @@ When the tool runs
 Then it falls back to LLM-asked confirmation (returns a structured prompt to the LLM) — does NOT crash
 
 Given typecheck + build + tests
-When `pnpm --filter @concierge/mcp test && pnpm --filter @concierge/mcp build && pnpm typecheck` runs
+When `pnpm --filter @concierge-mantle/mcp test && pnpm --filter @concierge-mantle/mcp build && pnpm typecheck` runs
 Then ≥ 8 cases pass; all exit 0
 ```
 
@@ -71,7 +71,7 @@ grep -E "HIGH_VALUE_USD_THRESHOLD|CONCIERGE_CONFIRM_THRESHOLD" packages/mcp/src/
 # Anti-regression: NEVER bypass elicitation when host supports it
 ! grep -E "skipElicitation|bypassConfirm" packages/mcp/src/server.ts
 
-pnpm --filter @concierge/mcp test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 8 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/mcp test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 8 {exit 0} {exit 1}'
 ```
 
 ---

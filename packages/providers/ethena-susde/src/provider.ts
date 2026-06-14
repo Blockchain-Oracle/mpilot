@@ -1,11 +1,11 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import {
   addressesFor,
   type EvmChainId,
   mantleMainnet,
   mantleSepolia,
   ZERO_ADDRESS,
-} from '@concierge/shared';
+} from '@concierge-mantle/shared';
 import { type Chain, createPublicClient, http, type PublicClient, type WalletClient } from 'viem';
 import type { ActionContext, EthenaAddresses } from './_context.ts';
 import { createGetCarryVsAaveTool } from './actions/getCarryVsAave.ts';
@@ -41,7 +41,7 @@ function resolveChain(opts: EthenaSusdeProviderOpts): { viemChain: Chain; chainI
     if (!SUPPORTED_CHAIN_IDS.has(id)) {
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge/ethena-susde] expected Mantle Mainnet (5000) or Mantle Sepolia (5003), got chainId ${id}.`,
+        `[@concierge-mantle/ethena-susde] expected Mantle Mainnet (5000) or Mantle Sepolia (5003), got chainId ${id}.`,
         undefined,
         { chainId: id },
       );
@@ -55,7 +55,7 @@ function resolveChain(opts: EthenaSusdeProviderOpts): { viemChain: Chain; chainI
     if (!SUPPORTED_CHAIN_IDS.has(id)) {
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge/ethena-susde] expected Mantle Mainnet (5000) or Mantle Sepolia (5003), got chainId ${id}.`,
+        `[@concierge-mantle/ethena-susde] expected Mantle Mainnet (5000) or Mantle Sepolia (5003), got chainId ${id}.`,
         undefined,
         { chainId: id },
       );
@@ -78,7 +78,7 @@ export function createEthenaSusdeProvider(opts: EthenaSusdeProviderOpts = {}): E
     } catch (err) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge/ethena-susde] failed to load shared addresses for chainId ${chainId} — @concierge/shared may be out of sync`,
+        `[@concierge-mantle/ethena-susde] failed to load shared addresses for chainId ${chainId} — @concierge-mantle/shared may be out of sync`,
         err instanceof Error ? err : undefined,
       );
     }
@@ -99,7 +99,7 @@ export function createEthenaSusdeProvider(opts: EthenaSusdeProviderOpts = {}): E
     if (addresses[key] === ZERO_ADDRESS) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge/ethena-susde] address "${key}" is zero. Pass addresses: { ${key} } for custom chains.`,
+        `[@concierge-mantle/ethena-susde] address "${key}" is zero. Pass addresses: { ${key} } for custom chains.`,
       );
     }
   }

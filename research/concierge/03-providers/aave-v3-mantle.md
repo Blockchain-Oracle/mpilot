@@ -101,7 +101,7 @@ function setUserUseReserveAsCollateral(address asset, bool useAsCollateral);
 
 ## Integration pattern for Concierge
 
-### Package: `@concierge/aave-v3-mantle`
+### Package: `@concierge-mantle/aave-v3-mantle`
 Exports:
 - `actions.supply({asset, amount})`
 - `actions.borrow({asset, amount})`

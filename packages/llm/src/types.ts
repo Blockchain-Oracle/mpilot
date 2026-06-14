@@ -49,7 +49,7 @@ export function isModel(value: unknown): value is Model {
 export function assertModel(value: unknown): Model {
   if (!isModel(value)) {
     throw new Error(
-      `[@concierge/llm] assertModel: '${String(value)}' is not a known model. Expected one of: ${MODELS.join(', ')}.`,
+      `[@concierge-mantle/llm] assertModel: '${String(value)}' is not a known model. Expected one of: ${MODELS.join(', ')}.`,
     );
   }
   return value;

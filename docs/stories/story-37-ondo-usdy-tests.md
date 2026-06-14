@@ -1,4 +1,4 @@
-# Story — `@concierge/ondo-usdy` integration tests
+# Story — `@concierge-mantle/ondo-usdy` integration tests
 
 **ID:** story-37-ondo-usdy-tests
 **Epic:** Epic E3 — Action Providers
@@ -33,7 +33,7 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge/ondo-usdy run test` runs
+When `pnpm --filter @concierge-mantle/ondo-usdy run test` runs
 Then exit code is 0 AND ≥ 12 test cases pass
 
 Given test_provider_NoMutationActions
@@ -69,7 +69,7 @@ When `pnpm scripts/check-file-loc.mjs` runs
 Then every test file ≤ 400 LOC
 
 Given coverage
-When `pnpm --filter @concierge/ondo-usdy run test --coverage` runs
+When `pnpm --filter @concierge-mantle/ondo-usdy run test --coverage` runs
 Then line coverage on `src/` ≥ 80%
 ```
 
@@ -78,16 +78,16 @@ Then line coverage on `src/` ≥ 80%
 ## Shell verification
 
 ```bash
-pnpm --filter @concierge/ondo-usdy run test --reporter=verbose
+pnpm --filter @concierge-mantle/ondo-usdy run test --reporter=verbose
 test $? -eq 0
 
-pnpm --filter @concierge/ondo-usdy run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 12 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/ondo-usdy run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 12 {exit 0} {exit 1}'
 
 # Critical guard: no mutation actions
-pnpm --filter @concierge/ondo-usdy run test --reporter=verbose 2>&1 | grep "NoMutationActions" | grep -q "✓"
+pnpm --filter @concierge-mantle/ondo-usdy run test --reporter=verbose 2>&1 | grep "NoMutationActions" | grep -q "✓"
 
 # Coverage ≥ 80%
-cov=$(pnpm --filter @concierge/ondo-usdy run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @concierge-mantle/ondo-usdy run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 80
 
 bun scripts/check-file-loc.mjs

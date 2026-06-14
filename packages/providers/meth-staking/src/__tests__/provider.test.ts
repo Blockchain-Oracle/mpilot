@@ -1,7 +1,7 @@
 // Integration tests for createMethStakingProvider — verifies action surface,
 // MissingDependency fail-fast, mETH address, and no-L1-actions invariant.
-import { ConciergeError } from '@concierge/sdk';
-import { ADDRESSES } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { createPublicClient, http } from 'viem';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createMethStakingProvider } from '../provider.ts';
@@ -62,7 +62,7 @@ describe('createMethStakingProvider — MissingDependency fail-fast', () => {
     }
     expect(thrown instanceof ConciergeError).toBe(true);
     expect(String(thrown)).toContain('MissingDependency');
-    expect(String(thrown)).toContain('@concierge/mantle-dex');
+    expect(String(thrown)).toContain('@concierge-mantle/mantle-dex');
   });
 
   it('does NOT throw when dexProvider is provided', () => {

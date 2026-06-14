@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Address, Hex } from '@concierge/shared';
+import type { Address, Hex } from '@concierge-mantle/shared';
 import {
   type Abi,
   type Chain,

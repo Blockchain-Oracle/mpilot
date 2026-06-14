@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import type { GetOrFetchDeps, IpfsCacheRepo, IpfsGatewayFetcher } from '../ipfsCache.ts';
 import {

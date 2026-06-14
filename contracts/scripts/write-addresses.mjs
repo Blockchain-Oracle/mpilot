@@ -258,7 +258,10 @@ if (content === fullContent) {
   console.log(`Running pnpm typecheck + shared test (${PENDING_SLOTS_CONST} lockbox)…`);
   try {
     execSync('pnpm run typecheck', { cwd: REPO_ROOT, stdio: 'inherit' });
-    execSync('pnpm --filter @concierge/shared run test', { cwd: REPO_ROOT, stdio: 'inherit' });
+    execSync('pnpm --filter @concierge-mantle/shared run test', {
+      cwd: REPO_ROOT,
+      stdio: 'inherit',
+    });
     console.log('typecheck + test passed ✓');
   } catch (err) {
     console.error(

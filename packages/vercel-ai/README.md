@@ -1,6 +1,6 @@
-# @concierge/vercel-ai
+# @concierge-mantle/vercel-ai
 
-Vercel AI SDK v6 adapter for `@concierge/tools`. Converts the
+Vercel AI SDK v6 adapter for `@concierge-mantle/tools`. Converts the
 framework-agnostic Concierge registry into a `ToolSet` ready for
 `streamText({ tools })`, with `outputSchema` passed through so
 `InferUITools` and `tool-${name}` UI parts stay fully typed.
@@ -8,7 +8,7 @@ framework-agnostic Concierge registry into a `ToolSet` ready for
 ## Quickstart
 
 ```ts
-import { getVercelAITools } from '@concierge/vercel-ai';
+import { getVercelAITools } from '@concierge-mantle/vercel-ai';
 import { streamText } from 'ai';
 
 const result = streamText({

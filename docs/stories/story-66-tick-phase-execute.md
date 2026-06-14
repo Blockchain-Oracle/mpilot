@@ -75,7 +75,7 @@ test -f src/phases/executeFallback.ts
 
 cd ../..
 
-pnpm --filter @concierge/runtime run build
+pnpm --filter @concierge-mantle/agent run build
 test $? -eq 0
 
 # Session key + bundler usage present
@@ -83,7 +83,7 @@ grep -q "loadSessionKey" packages/runtime/src/phases/execute.ts
 grep -qE "(bundlerClient|sendUserOperation)" packages/runtime/src/phases/execute.ts
 
 # Tests pass
-pnpm --filter @concierge/runtime run test 2>&1 | grep "execute" | grep -q "PASS"
+pnpm --filter @concierge-mantle/agent run test 2>&1 | grep "execute" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

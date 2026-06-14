@@ -1,5 +1,5 @@
 // Unit tests for createFusionXVenue — publicClient is mocked, no fork required.
-import type { Address } from '@concierge/shared';
+import type { Address } from '@concierge-mantle/shared';
 import { ContractFunctionExecutionError, ContractFunctionRevertedError } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { createFusionXVenue } from '../../venues/fusionx.ts';

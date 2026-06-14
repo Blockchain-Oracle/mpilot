@@ -18,7 +18,7 @@ import {
   customActionProvider,
   type WalletProvider,
 } from '@coinbase/agentkit';
-import { type ConciergeAgentLike, tool } from '@concierge/tools';
+import { type ConciergeAgentLike, tool } from '@concierge-mantle/tools';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { getConciergeActionProvider, toAgentKitAction } from '../index.ts';

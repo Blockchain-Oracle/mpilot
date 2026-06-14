@@ -95,7 +95,7 @@ function silo() returns (address);                         // silo holding the c
 
 ## Integration pattern for Concierge
 
-### Package: `@concierge/ethena-susde`
+### Package: `@concierge-mantle/ethena-susde`
 Exports:
 - `actions.acquire({amountUSDC, slippageBps})` — DEX-swaps USDC → sUSDe via the mantle-dex provider (NOT a direct stake; sUSDe is bridged from Eth, not minted on Mantle).
 - `actions.divest({sharesAmount, slippageBps})` — DEX-swaps sUSDe → USDC.

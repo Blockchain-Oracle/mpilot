@@ -1,4 +1,4 @@
-# Story — `@concierge/react-assistant-ui` adapter
+# Story — `@concierge-mantle/react-assistant-ui` adapter
 
 **ID:** story-313-react-assistant-ui
 **Epic:** Epic E14 — Composable UI
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** developer using `@assistant-ui/react` for my chat UI
-**I want to** `pnpm add @concierge/react-assistant-ui` and call `getConciergeToolkit()` to register Concierge cards as `defineToolkit` backend tools
+**I want to** `pnpm add @concierge-mantle/react-assistant-ui` and call `getConciergeToolkit()` to register Concierge cards as `defineToolkit` backend tools
 **So that** my assistant-ui chat instantly renders Concierge proposal/tick/portfolio cards without me building any glue
 
 ---
 
 ## File modification map
 
-- `packages/react-assistant-ui/package.json` — NEW — ESM-only; peer deps on `@assistant-ui/react ^0.14`, `react`, `@concierge/react`
+- `packages/react-assistant-ui/package.json` — NEW — ESM-only; peer deps on `@assistant-ui/react ^0.14`, `react`, `@concierge-mantle/react`
 - `packages/react-assistant-ui/src/index.ts` — NEW — `getConciergeToolkit()` returns assistant-ui `Toolkit` registering each Concierge card via `defineToolkit({ proposeAction: { type: 'backend', render: ProposalPart }, ... })`
 - `packages/react-assistant-ui/src/__tests__/index.test.ts` — NEW — ≥ 5 cases
 - `packages/react-assistant-ui/README.md` — NEW — quickstart
@@ -41,7 +41,7 @@ When grep runs for `makeAssistantToolUI`
 Then NO match (that API was deprecated; we use `defineToolkit` per AUDIT §9)
 
 Given typecheck + build + tests
-When `pnpm --filter @concierge/react-assistant-ui build && pnpm --filter @concierge/react-assistant-ui test` runs
+When `pnpm --filter @concierge-mantle/react-assistant-ui build && pnpm --filter @concierge-mantle/react-assistant-ui test` runs
 Then ≥ 5 cases pass
 ```
 
@@ -59,8 +59,8 @@ node -e "
 # Anti-regression: deprecated API not used
 ! grep -rE "makeAssistantToolUI" packages/react-assistant-ui/src/
 
-pnpm --filter @concierge/react-assistant-ui build
-pnpm --filter @concierge/react-assistant-ui test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 5 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/react-assistant-ui build
+pnpm --filter @concierge-mantle/react-assistant-ui test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 5 {exit 0} {exit 1}'
 ```
 
 ---
@@ -71,7 +71,7 @@ Implementation:
 
 ```typescript
 import { defineToolkit } from '@assistant-ui/react';
-import { ProposalPart, TickPart, PortfolioPart, ReputationPart } from '@concierge/react';
+import { ProposalPart, TickPart, PortfolioPart, ReputationPart } from '@concierge-mantle/react';
 
 export function getConciergeToolkit() {
   return defineToolkit({

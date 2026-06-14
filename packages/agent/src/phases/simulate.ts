@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { sanitizeError, sanitizeMessage } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome, Plan, Sim } from '../types.ts';
 import { type ActionSimResult, computeDeltaState, type DeltaState } from './deltaState.ts';
@@ -175,7 +175,7 @@ export async function runSimulate(
     if (!IDENT_RE.test(call.provider) || !IDENT_RE.test(call.action)) {
       throw new ConciergeError(
         'InvariantViolation',
-        `[@concierge/runtime] runSimulate: provider/action must match ${IDENT_RE.source} at index ${i}.`,
+        `[@concierge-mantle/agent] runSimulate: provider/action must match ${IDENT_RE.source} at index ${i}.`,
       );
     }
     const safeProvider = sanitizeMessage(call.provider);
@@ -213,7 +213,7 @@ export async function runSimulate(
       }
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/runtime] runSimulate: simulator '${key}' threw: ${sanitizeError(err).message}`,
+        `[@concierge-mantle/agent] runSimulate: simulator '${key}' threw: ${sanitizeError(err).message}`,
         sanitizeError(err),
         { failedAtIndex: i, provider: safeProvider, action: safeAction },
       );
@@ -238,7 +238,7 @@ export async function runSimulate(
       if (result.reason.kind !== 'revert') {
         throw new ConciergeError(
           'InvariantViolation',
-          `[@concierge/runtime] runSimulate: unhandled failure kind '${result.reason.kind}'.`,
+          `[@concierge-mantle/agent] runSimulate: unhandled failure kind '${result.reason.kind}'.`,
         );
       }
       error = {

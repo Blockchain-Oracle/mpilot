@@ -1,7 +1,7 @@
 {
-  "name": "@concierge/mcp",
+  "name": "@concierge-mantle/mcp",
   "version": "0.0.0",
-  "description": "MCP server for Concierge — autonomous DeFi agent for Mantle. Stdio-first (`npx -y @concierge/mcp`) + optional hosted Worker.",
+  "description": "MCP server for Concierge — autonomous DeFi agent for Mantle. Stdio-first (`npx -y @concierge-mantle/mcp`) + optional hosted Worker.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -60,8 +60,8 @@
     "prepublishOnly": "node -e \"const fs=require('node:fs');const v=JSON.parse(fs.readFileSync('./package.json','utf8')).version;const stable=/^\\\\d+\\\\.\\\\d+\\\\.\\\\d+$/.test(v);const tag=process.env.npm_config_tag;if(!stable&&tag!=='next'){console.error('[concierge-mcp] FATAL: non-stable version '+v+' must be published with --tag next (got tag='+(tag||'latest')+'). Refusing to clobber the latest dist-tag.');process.exit(1)}\""
   },
   "dependencies": {
-    "@concierge/shared": "workspace:*",
-    "@concierge/tools": "workspace:*",
+    "@concierge-mantle/shared": "workspace:*",
+    "@concierge-mantle/tools": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.1.0"
   },

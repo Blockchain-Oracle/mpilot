@@ -1,7 +1,7 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address } from '@concierge/shared';
-import { ipoolAbi } from '@concierge/shared/abi';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address } from '@concierge-mantle/shared';
+import { ipoolAbi } from '@concierge-mantle/shared/abi';
+import { tool } from '@concierge-mantle/tools';
 import { UserRejectedRequestError } from 'viem';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
@@ -53,13 +53,13 @@ export function createSetUserEModeTool(ctx: ActionContext) {
         if (err instanceof UserRejectedRequestError) {
           throw new ConciergeError(
             'UserRejected',
-            '[@concierge/aave-v3-mantle] setUserEMode: transaction rejected by the user.',
+            '[@concierge-mantle/aave-v3-mantle] setUserEMode: transaction rejected by the user.',
             err,
           );
         }
         throw new ConciergeError(
           'RpcError',
-          `[@concierge/aave-v3-mantle] setUserEMode: Pool.setUserEMode(${categoryId}) failed. Existing borrows may be outside category ${categoryId}'s borrowable asset list.`,
+          `[@concierge-mantle/aave-v3-mantle] setUserEMode: Pool.setUserEMode(${categoryId}) failed. Existing borrows may be outside category ${categoryId}'s borrowable asset list.`,
           err instanceof Error ? err : undefined,
           { categoryId, poolAddress },
         );
@@ -69,7 +69,7 @@ export function createSetUserEModeTool(ctx: ActionContext) {
       if (receipt.status === 'reverted') {
         throw new ConciergeError(
           'RpcError',
-          `[@concierge/aave-v3-mantle] setUserEMode: tx ${txHash} was mined but REVERTED. Existing borrows are likely outside E-Mode category ${categoryId}'s borrowable asset list.`,
+          `[@concierge-mantle/aave-v3-mantle] setUserEMode: tx ${txHash} was mined but REVERTED. Existing borrows are likely outside E-Mode category ${categoryId}'s borrowable asset list.`,
           undefined,
           { txHash, categoryId },
         );

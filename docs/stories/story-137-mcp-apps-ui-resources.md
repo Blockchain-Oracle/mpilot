@@ -60,7 +60,7 @@ When checked for size
 Then each is < 50KB (Workers iframe perf budget)
 
 Given tests + build
-When `pnpm --filter @concierge/mcp test && pnpm --filter @concierge/mcp build` runs
+When `pnpm --filter @concierge-mantle/mcp test && pnpm --filter @concierge-mantle/mcp build` runs
 Then ≥ 6 cases pass; tarball includes ui-resources/*.html
 ```
 
@@ -90,7 +90,7 @@ grep -q "text/html; profile=mcp-app" packages/mcp/src/registerUIResources.ts
 # Anti-regression: NO postMessage origin '*' (must validate parent origin per SEP-1865)
 ! grep -rE "postMessage\([^,]+,\s*['\"]\\*['\"]" packages/mcp/src/ui-resources/
 
-pnpm --filter @concierge/mcp test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 6 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/mcp test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 6 {exit 0} {exit 1}'
 ```
 
 ---

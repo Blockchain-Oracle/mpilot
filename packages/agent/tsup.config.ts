@@ -8,5 +8,5 @@ export default defineConfig({
   clean: true,
   target: 'node22',
   tsconfig: 'tsconfig.build.json',
-  external: ['@concierge/llm', '@concierge/sdk', 'ai', 'ioredis', 'pino', 'zod'],
+  external: ['@concierge-mantle/llm', '@concierge-mantle/sdk', 'ai', 'ioredis', 'pino', 'zod'],
 });

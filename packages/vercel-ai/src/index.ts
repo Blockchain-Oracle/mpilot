@@ -1,4 +1,4 @@
-// Vercel AI SDK v6 adapter for the framework-agnostic @concierge/tools registry
+// Vercel AI SDK v6 adapter for the framework-agnostic @concierge-mantle/tools registry
 // (ADR-014). `outputSchema` passthrough is load-bearing: it powers InferUITools
 // typing on `tool-${name}` UI parts and MCP structuredContent (ADR-017).
 
@@ -7,7 +7,7 @@ import {
   type ConciergeTool,
   createConciergeTools,
   type ProviderToolFactory,
-} from '@concierge/tools';
+} from '@concierge-mantle/tools';
 import { tool as aiTool, type Tool, type ToolSet } from 'ai';
 import type { z } from 'zod';
 

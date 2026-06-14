@@ -1,4 +1,4 @@
-# Story — Skill install flow (`npx skills add @concierge/mantle-agent`)
+# Story — Skill install flow (`npx skills add @concierge-mantle/mantle-agent`)
 
 **ID:** story-152-skill-install-flow
 **Epic:** Epic E9 — RealClaw Skill
@@ -11,7 +11,7 @@
 ## User story
 
 **As a** new Concierge user with Claude Code installed
-**I want to** running `npx skills add @concierge/mantle-agent` installs the skill, runs the post-install configuration script, walks me through OAuth, and verifies the MCP connection works
+**I want to** running `npx skills add @concierge-mantle/mantle-agent` installs the skill, runs the post-install configuration script, walks me through OAuth, and verifies the MCP connection works
 **So that** the skill experience is one command, from "I want to try Concierge" to "the agent is wired into my Claude Code"
 
 ---
@@ -29,7 +29,7 @@
 ## Acceptance criteria (BDD)
 
 ```
-Given `npx skills add @concierge/mantle-agent` is run
+Given `npx skills add @concierge-mantle/mantle-agent` is run
 When the install script executes
 Then it: (1) detects Claude Code config location, (2) adds the MCP server entry, (3) opens browser for OAuth, (4) on callback stores token in keychain, (5) runs verify-mcp, (6) reports success
 
@@ -80,7 +80,7 @@ test -f scripts/lib/oauth-cli.ts
 cd ../..
 
 # Build install script
-pnpm --filter @concierge/skill-mantle-agent run build
+pnpm --filter @concierge-mantle/skill-mantle-agent run build
 test $? -eq 0
 
 # OS keychain used (not plaintext)
@@ -90,7 +90,7 @@ grep -qE "(keychain|keytar|credential-manager)" packages/skill-mantle-agent/scri
 grep -qE "(headless|CI|no.browser)" packages/skill-mantle-agent/scripts/install.ts
 
 # Tests pass
-pnpm --filter @concierge/skill-mantle-agent run test 2>&1 | grep "install" | grep -q "PASS"
+pnpm --filter @concierge-mantle/skill-mantle-agent run test 2>&1 | grep "install" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

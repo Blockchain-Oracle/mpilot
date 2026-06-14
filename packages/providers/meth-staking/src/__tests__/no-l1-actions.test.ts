@@ -1,4 +1,4 @@
-// L2-only scope invariant for @concierge/meth-staking.
+// L2-only scope invariant for @concierge-mantle/meth-staking.
 // mETH on Mantle is a bridged ERC-20 — no L1 staking functions exist on L2.
 // This guard prevents any future PR from accidentally exposing L1-only actions
 // (stake, nativeUnstake, unstake, claimEth) via the Concierge provider API.

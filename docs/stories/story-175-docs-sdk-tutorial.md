@@ -11,7 +11,7 @@
 ## User story
 
 **As a** developer who just landed on /docs and wants to try the SDK
-**I want to** a guided tutorial walks me through: `pnpm add @concierge/sdk` → register an agent → set up session keys → run a tick locally → verify an attestation — all with working code I can copy-paste
+**I want to** a guided tutorial walks me through: `pnpm add @concierge-mantle/sdk` → register an agent → set up session keys → run a tick locally → verify an attestation — all with working code I can copy-paste
 **So that** I go from zero to a working tick in 5-10 minutes WITHOUT needing the dashboard UI or any non-CLI tooling
 
 ---
@@ -33,7 +33,7 @@
 ```
 Given the quickstart page
 When followed verbatim in a fresh project
-Then a developer goes from `pnpm add @concierge/sdk` to a successful tick result in ≤ 5 minutes
+Then a developer goes from `pnpm add @concierge-mantle/sdk` to a successful tick result in ≤ 5 minutes
 
 Given each code block in the tutorials
 When extracted and type-checked
@@ -80,11 +80,11 @@ done
 
 cd ../../../../..
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # Code snippets typecheck (extracts + validates)
-pnpm --filter @concierge/web run test 2>&1 | grep "code-snippets" | grep -q "PASS"
+pnpm --filter @concierge-mantle/web run test 2>&1 | grep "code-snippets" | grep -q "PASS"
 
 # No Patron contamination
 ! grep -irE "(BNPL|Buy.Now.Pay.Later|Patron)" apps/web/content/docs/guides/

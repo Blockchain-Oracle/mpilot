@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address } from '@concierge-mantle/shared';
 import { type PublicClient, parseAbi } from 'viem';
 
 const BLOCKLIST_ABI = parseAbi(['function isBlocked(address account) view returns (bool)']);
@@ -26,14 +26,14 @@ export async function isUserEligible(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/ondo-usdy] isUserEligible: failed to query blocklist for ${user}`,
+        `[@concierge-mantle/ondo-usdy] isUserEligible: failed to query blocklist for ${user}`,
         err instanceof Error ? err : undefined,
       );
     });
   if (typeof blocked !== 'boolean') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/ondo-usdy] isUserEligible: blocklist contract at ${blocklistAddress} returned unexpected type (${typeof blocked}); check ABI`,
+      `[@concierge-mantle/ondo-usdy] isUserEligible: blocklist contract at ${blocklistAddress} returned unexpected type (${typeof blocked}); check ABI`,
     );
   }
   return !blocked;

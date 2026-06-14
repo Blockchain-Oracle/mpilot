@@ -1,6 +1,6 @@
-// Barrel surface of the @concierge/sdk META package (story-22 amended).
-// Re-exports cover @concierge/tools + @concierge/vercel-ai + the SDK's own
-// defaultModel / ConciergeRegistry / ConciergeError. The @concierge/agent
+// Barrel surface of the @concierge-mantle/sdk META package (story-22 amended).
+// Re-exports cover @concierge-mantle/tools + @concierge-mantle/vercel-ai + the SDK's own
+// defaultModel / ConciergeRegistry / ConciergeError. The @concierge-mantle/agent
 // re-exports (createConcierge, Concierge) land with Epic E5 — the agent
 // runtime package does not exist yet (see story-22 deferral addendum).
 
@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import * as sdk from '../index.ts';
 
-describe('@concierge/sdk barrel', () => {
+describe('@concierge-mantle/sdk barrel', () => {
   it('exports the SDK-owned surface: defaultModel, ConciergeRegistry, ConciergeError', () => {
     expect(typeof sdk.defaultModel).toBe('function');
     expect(typeof sdk.ConciergeRegistry.mainnet).toBe('function');
@@ -16,7 +16,7 @@ describe('@concierge/sdk barrel', () => {
     expect(new sdk.ConciergeError('RpcError', 'x')).toBeInstanceOf(Error);
   });
 
-  it('re-exports the @concierge/tools registry surface', () => {
+  it('re-exports the @concierge-mantle/tools registry surface', () => {
     expect(typeof sdk.tool).toBe('function');
     expect(typeof sdk.createConciergeTools).toBe('function');
     expect(typeof sdk.bigintSafeStringify).toBe('function');
@@ -56,7 +56,7 @@ describe('@concierge/sdk barrel', () => {
     expect(typeof sdk.isConciergeErrorType).toBe('function');
   });
 
-  it('re-exports the @concierge/vercel-ai adapter surface', () => {
+  it('re-exports the @concierge-mantle/vercel-ai adapter surface', () => {
     expect(typeof sdk.getVercelAITools).toBe('function');
     expect(typeof sdk.toVercelAITool).toBe('function');
   });

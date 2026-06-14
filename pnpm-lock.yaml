@@ -45,10 +45,10 @@ importers:
 
   apps/worker:
     dependencies:
-      '@concierge/runtime':
+      '@concierge-mantle/agent':
         specifier: workspace:*
-        version: link:../../packages/runtime
-      '@concierge/sdk':
+        version: link:../../packages/agent
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
       bullmq:
@@ -74,9 +74,46 @@ importers:
         specifier: 4.1.8
         version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@22.14.1)(esbuild@0.28.1)(jiti@2.6.1)(msw@2.14.6(@types/node@22.14.1)(typescript@5.9.3))(tsx@4.22.4)(yaml@2.9.0)
 
+  packages/agent:
+    dependencies:
+      '@concierge-mantle/llm':
+        specifier: workspace:*
+        version: link:../llm
+      '@concierge-mantle/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      ai:
+        specifier: 6.0.199
+        version: 6.0.199(zod@4.4.3)
+      ioredis:
+        specifier: 5.11.1
+        version: 5.11.1
+      pino:
+        specifier: 10.3.1
+        version: 10.3.1
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@ai-sdk/provider':
+        specifier: 3.0.10
+        version: 3.0.10
+      '@types/node':
+        specifier: 22.19.20
+        version: 22.19.20
+      tsup:
+        specifier: 8.5.0
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.9.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 4.1.8
+        version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@22.19.20)(esbuild@0.28.1)(jiti@2.6.1)(msw@2.14.6(@types/node@22.19.20)(typescript@6.0.3))(tsx@4.22.4)(yaml@2.9.0)
+
   packages/agentkit:
     dependencies:
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../tools
     devDependencies:
@@ -95,7 +132,7 @@ importers:
 
   packages/attestation:
     dependencies:
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../sdk
       viem:
@@ -148,7 +185,7 @@ importers:
 
   packages/langchain:
     dependencies:
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../tools
     devDependencies:
@@ -170,7 +207,7 @@ importers:
       '@anthropic-ai/sdk':
         specifier: 0.104.1
         version: 0.104.1(zod@4.4.3)
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../sdk
     devDependencies:
@@ -189,10 +226,10 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../tools
       '@modelcontextprotocol/sdk':
@@ -211,7 +248,7 @@ importers:
 
   packages/openai:
     dependencies:
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../tools
     devDependencies:
@@ -230,13 +267,13 @@ importers:
 
   packages/providers/aave-v3-mantle:
     dependencies:
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -252,13 +289,13 @@ importers:
 
   packages/providers/erc8004:
     dependencies:
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -277,13 +314,13 @@ importers:
 
   packages/providers/ethena-susde:
     dependencies:
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -302,13 +339,13 @@ importers:
 
   packages/providers/lifi-bridge:
     dependencies:
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -330,13 +367,13 @@ importers:
 
   packages/providers/mantle-dex:
     dependencies:
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -355,13 +392,13 @@ importers:
 
   packages/providers/meth-staking:
     dependencies:
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -380,13 +417,13 @@ importers:
 
   packages/providers/ondo-usdy:
     dependencies:
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -403,43 +440,6 @@ importers:
         specifier: 4.4.3
         version: 4.4.3
 
-  packages/runtime:
-    dependencies:
-      '@concierge/llm':
-        specifier: workspace:*
-        version: link:../llm
-      '@concierge/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-      ai:
-        specifier: 6.0.199
-        version: 6.0.199(zod@4.4.3)
-      ioredis:
-        specifier: 5.11.1
-        version: 5.11.1
-      pino:
-        specifier: 10.3.1
-        version: 10.3.1
-      zod:
-        specifier: 4.4.3
-        version: 4.4.3
-    devDependencies:
-      '@ai-sdk/provider':
-        specifier: 3.0.10
-        version: 3.0.10
-      '@types/node':
-        specifier: 22.19.20
-        version: 22.19.20
-      tsup:
-        specifier: 8.5.0
-        version: 8.5.0(jiti@2.6.1)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.9.0)
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: 4.1.8
-        version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@22.19.20)(esbuild@0.28.1)(jiti@2.6.1)(msw@2.14.6(@types/node@22.19.20)(typescript@6.0.3))(tsx@4.22.4)(yaml@2.9.0)
-
   packages/sdk:
     dependencies:
       '@ai-sdk/anthropic':
@@ -454,13 +454,13 @@ importers:
       '@ai-sdk/xai':
         specifier: ^3.0.93
         version: 3.0.93(zod@4.4.3)
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../shared
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../tools
-      '@concierge/vercel-ai':
+      '@concierge-mantle/vercel-ai':
         specifier: workspace:*
         version: link:../vercel-ai
     devDependencies:
@@ -503,13 +503,13 @@ importers:
 
   packages/smart-account:
     dependencies:
-      '@concierge/db':
+      '@concierge-mantle/db':
         specifier: workspace:*
         version: link:../db
-      '@concierge/sdk':
+      '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../shared
       '@zerodev/ecdsa-validator':
@@ -540,7 +540,7 @@ importers:
 
   packages/tools:
     dependencies:
-      '@concierge/shared':
+      '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:
@@ -553,7 +553,7 @@ importers:
 
   packages/vercel-ai:
     dependencies:
-      '@concierge/tools':
+      '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../tools
     devDependencies:

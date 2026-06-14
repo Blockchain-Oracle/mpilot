@@ -71,14 +71,14 @@ test -f src/phases/proposalSchema.ts
 
 cd ../..
 
-pnpm --filter @concierge/runtime run build
+pnpm --filter @concierge-mantle/agent run build
 test $? -eq 0
 
 # Auto-approval threshold check is present
 grep -qE "autoApprovalThresholdUSD|autoApproval" packages/runtime/src/phases/propose.ts
 
 # Tests pass
-pnpm --filter @concierge/runtime run test 2>&1 | grep "propose" | grep -q "PASS"
+pnpm --filter @concierge-mantle/agent run test 2>&1 | grep "propose" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

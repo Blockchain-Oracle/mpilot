@@ -8,11 +8,11 @@
 
 ## 1. TL;DR — patterns Concierge adopts verbatim
 
-1. **Provider abstraction = `LanguageModelV2` factory functions, NOT class wrappers.** Vercel AI SDK's pattern: `model: openai('gpt-5.1')` returns a `LanguageModelV2` instance; the `ai` core never depends on a specific provider. `@concierge/sdk` accepts `model: LanguageModelV2` directly. We do NOT wrap providers — users bring their own. (Audit confirmed v6 ships `LanguageModelV3` interface; spec uses `V2`-style ergonomics for now since v2/v3/v4 all share the factory-function shape — pin to whatever beta is active at story time.)
-2. **One core package + N provider/adapter packages, each independently versioned, all sharing a `peerDependency` on a thin contract package** (`@ai-sdk/provider` is Vercel's; ours is `@concierge/tools`). Provider packages have a real `dependency` on the contract; only the `zod` peer is shared across all packages.
+1. **Provider abstraction = `LanguageModelV2` factory functions, NOT class wrappers.** Vercel AI SDK's pattern: `model: openai('gpt-5.1')` returns a `LanguageModelV2` instance; the `ai` core never depends on a specific provider. `@concierge-mantle/sdk` accepts `model: LanguageModelV2` directly. We do NOT wrap providers — users bring their own. (Audit confirmed v6 ships `LanguageModelV3` interface; spec uses `V2`-style ergonomics for now since v2/v3/v4 all share the factory-function shape — pin to whatever beta is active at story time.)
+2. **One core package + N provider/adapter packages, each independently versioned, all sharing a `peerDependency` on a thin contract package** (`@ai-sdk/provider` is Vercel's; ours is `@concierge-mantle/tools`). Provider packages have a real `dependency` on the contract; only the `zod` peer is shared across all packages.
 3. **Pure ESM, Node ≥22, no CJS dual.** That's Vercel AI SDK v6's `"type": "module"` + ESM-only exports. Anthropic and OpenAI SDKs still ship CJS dual for legacy consumers — they're SDKs for a 10-year-old REST API. We are not. Pure ESM.
 4. **Env auto-detect is the canonical default; explicit config is the override.** Anthropic + OpenAI + Stripe (in modern v22+) all read `process.env['<VENDOR>_API_KEY']` lazily inside the client constructor. Concierge's `createConcierge({ model })` accepts `model` explicitly (it's the agent-level dial), but every provider package's factory (`openai()`, `anthropic()`) does env-auto-detect under the hood. The pokaldot/kwala `AI_MODEL="provider:model"` override is a *nice-to-have on top of env-auto-detect*, not a replacement.
-5. **`tool({ description, inputSchema, execute })` is the consensus tool shape across Vercel AI SDK, Strands, Mastra, LangChain, and (with `.invoke` instead of `execute`) AgentKit's `customActionProvider`.** Adopt this shape for `@concierge/tools` exactly. Add `outputSchema` (load-bearing — see AUDIT-2026-06-09 §2).
+5. **`tool({ description, inputSchema, execute })` is the consensus tool shape across Vercel AI SDK, Strands, Mastra, LangChain, and (with `.invoke` instead of `execute`) AgentKit's `customActionProvider`.** Adopt this shape for `@concierge-mantle/tools` exactly. Add `outputSchema` (load-bearing — see AUDIT-2026-06-09 §2).
 
 ---
 
@@ -37,7 +37,7 @@
 ### A. Model-agnostic configuration → accept `LanguageModelV2` directly
 
 ```ts
-// @concierge/sdk
+// @concierge-mantle/sdk
 import type { LanguageModelV2 } from '@ai-sdk/provider';
 
 export function createConcierge(opts: {
@@ -47,7 +47,7 @@ export function createConcierge(opts: {
 }): Concierge { /* ... */ }
 ```
 
-Cite: `LanguageModelV3` (and V4 on main) is the factory contract — `specificationVersion: 'v4' | 'V3'`, `provider: string`, `modelId: string`, `doGenerate(...)`, `doStream(...)`. Source: `packages/provider/src/language-model/v4/language-model-v4.ts` and `content/providers/03-community-providers/01-custom-providers.mdx`. Pin to whatever stable Vercel SDK ships at the time of `@concierge/sdk` v1 release; ride the `@ai-sdk/provider` peer dep, never reinvent.
+Cite: `LanguageModelV3` (and V4 on main) is the factory contract — `specificationVersion: 'v4' | 'V3'`, `provider: string`, `modelId: string`, `doGenerate(...)`, `doStream(...)`. Source: `packages/provider/src/language-model/v4/language-model-v4.ts` and `content/providers/03-community-providers/01-custom-providers.mdx`. Pin to whatever stable Vercel SDK ships at the time of `@concierge-mantle/sdk` v1 release; ride the `@ai-sdk/provider` peer dep, never reinvent.
 
 **Reject:** wrapping providers ourselves. Mastra tried this early then surrendered and just re-exports `openai()` / `anthropic()` from `@ai-sdk/openai` / `@ai-sdk/anthropic`. We do the same.
 
@@ -56,7 +56,7 @@ Cite: `LanguageModelV3` (and V4 on main) is the factory contract — `specificat
 Every leading SDK does env-auto-detect inside the constructor (Anthropic verbatim: `readEnv('ANTHROPIC_API_KEY')` at `client.ts:490-589`; OpenAI same; Vercel AI SDK same in each provider). Stripe is the outlier requiring explicit — but Stripe predates the `dotenv`+`process.env` ecosystem maturity.
 
 ```ts
-// @concierge/sdk  — for env-driven setup
+// @concierge-mantle/sdk  — for env-driven setup
 import { openai } from '@ai-sdk/openai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { google } from '@ai-sdk/google';
@@ -79,7 +79,7 @@ The `AI_MODEL="provider:model"` override is **a free win** — keeps the model d
 Vercel AI SDK's pattern: every `streamText` call accepts its own `model`. The agent doesn't need a "default model" — phases pass their own.
 
 ```ts
-// @concierge/sdk/lib/tick.ts
+// @concierge-mantle/sdk/lib/tick.ts
 const plan = await generateText({
   model: opts.models?.plan ?? defaultPlanModel,    // Opus
   prompt: '…plan…',
@@ -99,7 +99,7 @@ const record = await generateText({
 ### D. Package structure → 15 separate packages, ESM-only, shared `zod` peer
 
 Decisions:
-- **Separate packages, not subpath exports.** Vercel AI SDK, LangChain JS, and Mastra all chose separate packages even when they could've used subpath. Reason: independent version cadence + smaller install footprint when the user wants `@concierge/tools` + `@concierge/vercel-ai` without dragging in `@concierge/langchain`'s 600KB graph.
+- **Separate packages, not subpath exports.** Vercel AI SDK, LangChain JS, and Mastra all chose separate packages even when they could've used subpath. Reason: independent version cadence + smaller install footprint when the user wants `@concierge-mantle/tools` + `@concierge-mantle/vercel-ai` without dragging in `@concierge-mantle/langchain`'s 600KB graph.
 - **Peer dep on `zod` ^3.25 || ^4.1** (matches Vercel AI SDK v6, OpenAI SDK v6, audit-confirmed). NEVER bundle zod.
 - **Peer dep on the framework adapter targets** (`ai`, `@langchain/core`, `@coinbase/agentkit`, `@modelcontextprotocol/sdk`) — each adapter package's peer, NOT its runtime dep. This is the Vercel pattern: `@ai-sdk/anthropic` peer-deps `zod`, runtime-deps `@ai-sdk/provider`. Same shape.
 - **Pure ESM, no CJS dual, Node ≥22.** Vercel AI SDK's exact stance. Anyone who can't do ESM in 2026 is not our user.
@@ -109,7 +109,7 @@ Decisions:
 ```jsonc
 // packages/sdk/package.json (skeleton)
 {
-  "name": "@concierge/sdk",
+  "name": "@concierge-mantle/sdk",
   "type": "module",
   "sideEffects": false,
   "engines": { "node": ">=22" },
@@ -117,8 +117,8 @@ Decisions:
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
   },
   "dependencies": {
-    "@concierge/tools": "workspace:*",
-    "@concierge/shared": "workspace:*"
+    "@concierge-mantle/tools": "workspace:*",
+    "@concierge-mantle/shared": "workspace:*"
   },
   "peerDependencies": {
     "ai": "^6.0.0",
@@ -130,7 +130,7 @@ Decisions:
 ### E. Type design → `ConciergeTool<TInput, TOutput>` with inference defaults
 
 ```ts
-// @concierge/tools
+// @concierge-mantle/tools
 import type { z } from 'zod';
 
 export interface ConciergeTool<
@@ -156,7 +156,7 @@ This matches Vercel AI SDK's `tool()` helper signature exactly (which uses `z.Zo
 ### F. Error handling → typed errors with status-discriminator, like Stripe + Anthropic
 
 ```ts
-// @concierge/sdk/lib/errors.ts
+// @concierge-mantle/sdk/lib/errors.ts
 export class ConciergeError extends Error {
   constructor(public readonly type: ConciergeErrorType, message: string) { super(message); }
 }
@@ -176,7 +176,7 @@ Stripe's pattern: `err instanceof Stripe.errors.StripeError` then `switch (err.t
 ### G. Streaming → expose both `for await` AsyncIterable AND an event emitter, per the OpenAI+Anthropic pattern
 
 ```ts
-// @concierge/sdk
+// @concierge-mantle/sdk
 const tick = concierge.tick();  // returns ConciergeTickRunner
 
 // (1) AsyncIterable
@@ -199,9 +199,9 @@ Vercel AI SDK v6's `streamText` returns `{ textStream, fullStream, ... }` — pu
 The shape we already have in the audit is right:
 
 ```ts
-// @concierge/vercel-ai
+// @concierge-mantle/vercel-ai
 import { tool as aiTool } from 'ai';
-import { createConciergeTools } from '@concierge/tools';
+import { createConciergeTools } from '@concierge-mantle/tools';
 
 export function getVercelAITools(agent: ConciergeAgent) {
   return Object.fromEntries(
@@ -215,7 +215,7 @@ export function getVercelAITools(agent: ConciergeAgent) {
 ```
 
 ```ts
-// @concierge/langchain
+// @concierge-mantle/langchain
 import { tool as lcTool } from '@langchain/core/tools';
 export function getLangChainTools(agent: ConciergeAgent) {
   return createConciergeTools(agent).map(t =>
@@ -227,7 +227,7 @@ export function getLangChainTools(agent: ConciergeAgent) {
 ```
 
 ```ts
-// @concierge/agentkit  — escape hatch path, NOT the @CreateAction decorator path
+// @concierge-mantle/agentkit  — escape hatch path, NOT the @CreateAction decorator path
 import { customActionProvider } from '@coinbase/agentkit';
 export function getConciergeActionProvider(agent: ConciergeAgent) {
   return customActionProvider(createConciergeTools(agent).map(t => ({
@@ -244,8 +244,8 @@ export function getConciergeActionProvider(agent: ConciergeAgent) {
 ### I. Getting-started DX → 5 lines, env-driven default, model as the only required arg
 
 ```ts
-import { createConcierge, defaultModel } from '@concierge/sdk';
-import { ConciergeRegistry } from '@concierge/sdk/registry';
+import { createConcierge, defaultModel } from '@concierge-mantle/sdk';
+import { ConciergeRegistry } from '@concierge-mantle/sdk/registry';
 
 const concierge = createConcierge({
   model: defaultModel(),                  // env auto-detect: AI_MODEL || ANTHROPIC_API_KEY
@@ -273,11 +273,11 @@ Every modern TS SDK (Vercel AI SDK v6, Strands, Mastra, LangChain, AgentKit, Ant
 3. **Don't ship CJS dual.** Vercel AI SDK v6 doesn't. Modern Node-22-only ESM. Anthropic + OpenAI ship dual only because they have 5-year-old consumers; we don't.
 4. **Don't use `unknown` for tool inputs.** Strands tried, walked back to Zod-required. Make schemas mandatory.
 5. **Don't depend on stale adapter packages.** `@coinbase/agentkit-vercel-ai-sdk` (15 months stale), `@goat-sdk/adapter-vercel-ai` (15 months stale), `@openai/agents` (15 months stale) — all NPM-dead. Build our own ~30 LOC adapter against the core directly.
-6. **Don't reinvent `LanguageModelV2`.** Mastra tried; surrendered; now re-exports from Vercel. We re-export from `@ai-sdk/*` providers in `@concierge/sdk` defaults, but `model: LanguageModelV2` is the contract.
+6. **Don't reinvent `LanguageModelV2`.** Mastra tried; surrendered; now re-exports from Vercel. We re-export from `@ai-sdk/*` providers in `@concierge-mantle/sdk` defaults, but `model: LanguageModelV2` is the contract.
 7. **Don't use `Result<T, E>`.** No major SDK does. Throws are idiomatic.
 8. **Don't omit `outputSchema`.** Audit §2 makes this load-bearing. MCP `structuredContent`, Vercel `InferUITools`, and `@assistant-ui/tool-ui` all key off it.
 9. **Don't make `goal` required at construction.** `createConcierge({ model, registry })` then `agent.setGoal(...)` keeps the React `useConcierge()` happy path clean. (Constructor side-effects = test-hell, see Stripe's lazy approach.)
-10. **Don't subpath-export framework adapters from `@concierge/sdk`.** Keep them separate packages. Subpath looks tidy at first then explodes peer-dep matrices.
+10. **Don't subpath-export framework adapters from `@concierge-mantle/sdk`.** Keep them separate packages. Subpath looks tidy at first then explodes peer-dep matrices.
 
 ---
 

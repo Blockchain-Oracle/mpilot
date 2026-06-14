@@ -60,7 +60,7 @@ Then it documents: Diamond contract address, supported chain pairs for Concierge
 
 Given all address tables
 When inspected
-Then they use the AddressTable component pulling from @concierge/shared/addresses (single source of truth — no hardcoded addresses in MDX)
+Then they use the AddressTable component pulling from @concierge-mantle/shared/addresses (single source of truth — no hardcoded addresses in MDX)
 
 Given each page's gotchas section
 When the GotchaCallout is rendered
@@ -87,7 +87,7 @@ done
 
 cd ../../../../..
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # Aave E-Mode gotcha documented
@@ -110,7 +110,7 @@ bun scripts/check-file-loc.mjs
 ## Notes for coding agent
 
 - **Load-bearing gotchas FIRST**, then API surface. A dev reading the Aave page should see the E-Mode trap before they see the supply() signature. Visibility is the regression guard.
-- **No hardcoded addresses in MDX.** Use the AddressTable component that imports from `@concierge/shared/addresses`. When addresses change (e.g., new Sepolia mock deploy), all docs update automatically.
+- **No hardcoded addresses in MDX.** Use the AddressTable component that imports from `@concierge-mantle/shared/addresses`. When addresses change (e.g., new Sepolia mock deploy), all docs update automatically.
 - **Ondo USDY page is shorter** than others because there's intentionally less surface (read-only). Don't pad with filler — short and clear beats long and vague.
 - **mETH page explicitly states NO L1 stake actions** to prevent a future contributor from "fixing" the missing action by adding L1 stake logic (which would be incorrect — mETH on Mantle is the bridge image of the L1 staked ETH).
 - **ERC-8004 page references ADR-004** to anchor the architectural decision. Without this anchor, a future dev might propose "let's skip attestation when the gas price is high" without realizing it breaks the wedge.

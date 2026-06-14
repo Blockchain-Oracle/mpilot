@@ -81,7 +81,7 @@ export function parseFeedbackEnvelope(input: unknown): FeedbackEnvelope {
   } catch (err) {
     if (err instanceof ZodError) {
       throw new Error(
-        `[@concierge/attestation] parseFeedbackEnvelope: ${stripCtrl(err.message).slice(0, 2048)}`,
+        `[@concierge-mantle/attestation] parseFeedbackEnvelope: ${stripCtrl(err.message).slice(0, 2048)}`,
       );
     }
     throw err;

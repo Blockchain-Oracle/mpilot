@@ -1,4 +1,4 @@
-import { type ConciergeTool, tool } from '@concierge/tools';
+import { type ConciergeTool, tool } from '@concierge-mantle/tools';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { describe, expect, it, vi } from 'vitest';

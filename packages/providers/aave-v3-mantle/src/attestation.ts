@@ -1,7 +1,7 @@
 // ERC-8004 attestation payload builder for Aave V3 Mantle actions.
 // Returns the raw JSON payload; EIP-712 hash + on-chain write belong to story-67 (record phase).
 
-import type { Address, EvmChainId, Hex } from '@concierge/shared';
+import type { Address, EvmChainId, Hex } from '@concierge-mantle/shared';
 import { z } from 'zod';
 
 export type AaveAction =

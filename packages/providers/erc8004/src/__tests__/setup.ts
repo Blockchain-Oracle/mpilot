@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import type { Address } from '@concierge/shared';
+import type { Address } from '@concierge-mantle/shared';
 import {
   type Chain,
   createPublicClient,
@@ -154,7 +154,7 @@ export async function startAnvilFork(): Promise<AnvilFork> {
             setTimeout(() => proc.kill('SIGKILL'), 5_000);
             reject(
               new Error(
-                `[@concierge/erc8004] startAnvilFork: getBlockNumber() failed on port ${port}: ` +
+                `[@concierge-mantle/erc8004] startAnvilFork: getBlockNumber() failed on port ${port}: ` +
                   `${err instanceof Error ? err.message : String(err)}`,
               ),
             );

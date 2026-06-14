@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address } from '@concierge-mantle/shared';
 import type { PublicClient, WalletClient } from 'viem';
 import { BaseError, ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
@@ -50,7 +50,7 @@ export function createFusionXVenue(
     if (!walletClient) {
       throw new ConciergeError(
         'ConfigError',
-        '[@concierge/mantle-dex] fusionx.swap: walletClient required',
+        '[@concierge-mantle/mantle-dex] fusionx.swap: walletClient required',
       );
     }
     const { tokenIn, tokenOut, amountIn, amountOutMin, recipient, account, deadline } = params;
@@ -67,7 +67,7 @@ export function createFusionXVenue(
       if (ao === 0n) {
         throw new ConciergeError(
           'InsufficientLiquidity',
-          `[@concierge/mantle-dex] fusionx.swap: quoter returned zero for ${tokenIn} → ${tokenOut}`,
+          `[@concierge-mantle/mantle-dex] fusionx.swap: quoter returned zero for ${tokenIn} → ${tokenOut}`,
         );
       }
       freshAmountOut = ao;
@@ -76,7 +76,7 @@ export function createFusionXVenue(
       if (err instanceof BaseError && err.walk((e) => e instanceof ContractFunctionRevertedError)) {
         throw new ConciergeError(
           'InsufficientLiquidity',
-          `[@concierge/mantle-dex] fusionx.swap: no route for ${tokenIn} → ${tokenOut}`,
+          `[@concierge-mantle/mantle-dex] fusionx.swap: no route for ${tokenIn} → ${tokenOut}`,
         );
       }
       throw err;
@@ -112,7 +112,7 @@ export function createFusionXVenue(
     if (receipt.status === 'reverted') {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/mantle-dex] fusionx.swap: tx ${txHash} reverted`,
+        `[@concierge-mantle/mantle-dex] fusionx.swap: tx ${txHash} reverted`,
       );
     }
     return { txHash, amountOut: simulatedAmountOut, spender: swapRouter };

@@ -1,4 +1,4 @@
-import type { Address, Hex } from '@concierge/shared';
+import type { Address, Hex } from '@concierge-mantle/shared';
 
 export type VenueName = 'merchantMoe' | 'agni' | 'fusionx' | 'woofi' | 'lifi';
 

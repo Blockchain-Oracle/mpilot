@@ -20,11 +20,11 @@
 
 - `packages/create-concierge-app/package.json` — NEW — CLI bin entry `create-concierge-app`
 - `packages/create-concierge-app/src/cli.ts` — NEW — prompts via `@clack/prompts`; copies template directory + writes `package.json`
-- `packages/create-concierge-app/templates/starter/` — NEW — minimal Node + `@concierge/sdk` 5-line tick loop
-- `packages/create-concierge-app/templates/vercel-ai-agent/` — NEW — Next.js + Vercel AI SDK + `@concierge/vercel-ai` + `@concierge/react-ui` (the canonical chat app)
-- `packages/create-concierge-app/templates/langchain-agent/` — NEW — `@concierge/langchain` + LangChain agent executor
+- `packages/create-concierge-app/templates/starter/` — NEW — minimal Node + `@concierge-mantle/sdk` 5-line tick loop
+- `packages/create-concierge-app/templates/vercel-ai-agent/` — NEW — Next.js + Vercel AI SDK + `@concierge-mantle/vercel-ai` + `@concierge-mantle/react-ui` (the canonical chat app)
+- `packages/create-concierge-app/templates/langchain-agent/` — NEW — `@concierge-mantle/langchain` + LangChain agent executor
 - `packages/create-concierge-app/templates/mcp-only/` — NEW — Cloudflare Worker wrapping `packages/mcp` for hosted MCP
-- `packages/create-concierge-app/templates/react-embed/` — NEW — Drop-in React component example (consumes `@concierge/react-ui`)
+- `packages/create-concierge-app/templates/react-embed/` — NEW — Drop-in React component example (consumes `@concierge-mantle/react-ui`)
 - `packages/create-concierge-app/README.md` — NEW
 
 ---
@@ -78,9 +78,9 @@ node -e "
   if (!p.bin?.['create-concierge-app']) process.exit(1);
 "
 
-# Each template's package.json should reference concrete @concierge/* deps (proves cross-package linkage)
+# Each template's package.json should reference concrete @concierge-mantle/* deps (proves cross-package linkage)
 for t in starter vercel-ai-agent langchain-agent react-embed; do
-  grep -q '"@concierge/' packages/create-concierge-app/templates/${t}/package.json || { echo "template $t lacks @concierge/* dep"; exit 1; }
+  grep -q '"@concierge-mantle/' packages/create-concierge-app/templates/${t}/package.json || { echo "template $t lacks @concierge-mantle/* dep"; exit 1; }
 done
 
 pnpm --filter create-concierge-app build

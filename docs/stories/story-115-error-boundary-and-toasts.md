@@ -84,17 +84,17 @@ test -f lib/hooks/useApiError.ts
 
 cd ../..
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # Coverage of typed errors
-# Each typed error from @concierge/sdk has a mapping
+# Each typed error from @concierge-mantle/sdk has a mapping
 for errType in RpcError SessionKeyExpired SessionKeyPolicyRejected IPFSPinFailed OracleStale AttestationFailed; do
   grep -q "$errType" apps/web/lib/errors/mapErrorToToast.ts || { echo "missing mapping: $errType"; exit 1; }
 done
 
 # Tests pass
-pnpm --filter @concierge/web run test 2>&1 | grep "mapErrorToToast" | grep -q "PASS"
+pnpm --filter @concierge-mantle/web run test 2>&1 | grep "mapErrorToToast" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

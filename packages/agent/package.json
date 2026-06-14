@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/runtime",
+  "name": "@concierge-mantle/agent",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -29,8 +29,8 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge/llm": "workspace:*",
-    "@concierge/sdk": "workspace:*",
+    "@concierge-mantle/llm": "workspace:*",
+    "@concierge-mantle/sdk": "workspace:*",
     "ai": "6.0.199",
     "ioredis": "5.11.1",
     "pino": "10.3.1",

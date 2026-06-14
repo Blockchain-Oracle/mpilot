@@ -75,7 +75,7 @@ When the tick runs in production
 Then the autonomous loop is Anthropic-only (NOT model-agnostic) per ADR-016 — this is intentional, INTERNAL only
 
 Given typecheck and tests
-When `pnpm typecheck && pnpm --filter @concierge/sdk test` runs
+When `pnpm typecheck && pnpm --filter @concierge-mantle/sdk test` runs
 Then both exit 0 with ≥ 12 test cases passing
 ```
 
@@ -95,7 +95,7 @@ node -e "
   }
 "
 
-# Anti-regression: no hardcoded Anthropic in @concierge/sdk public surface
+# Anti-regression: no hardcoded Anthropic in @concierge-mantle/sdk public surface
 ! grep -E "import.*@anthropic-ai/(sdk|claude-agent-sdk)" packages/sdk/src/index.ts
 ! grep -E "import.*@anthropic-ai" packages/sdk/src/defaultModel.ts  # uses @ai-sdk/anthropic not raw SDK
 
@@ -104,7 +104,7 @@ grep -q "ANTHROPIC_API_KEY" packages/sdk/README.md
 grep -q "AI_MODEL" packages/sdk/README.md
 grep -q "provider:model" packages/sdk/README.md
 
-pnpm --filter @concierge/sdk test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 12 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/sdk test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 12 {exit 0} {exit 1}'
 pnpm typecheck
 ```
 

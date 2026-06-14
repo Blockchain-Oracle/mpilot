@@ -1,4 +1,4 @@
-import type { Address, EvmChainId } from '@concierge/shared';
+import type { Address, EvmChainId } from '@concierge-mantle/shared';
 import type { PublicClient } from 'viem';
 
 export interface OndoAddresses {

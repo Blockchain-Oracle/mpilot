@@ -1,4 +1,4 @@
-# Story — `@concierge/mantle-dex` action provider (Merchant Moe + Agni + FusionX + WOOFi aggregation)
+# Story — `@concierge-mantle/mantle-dex` action provider (Merchant Moe + Agni + FusionX + WOOFi aggregation)
 
 **ID:** story-32-mantle-dex-provider
 **Epic:** Epic E3 — Action Providers
@@ -11,23 +11,23 @@
 ## User story
 
 **As a** Concierge agent runtime
-**I want to** an `@concierge/mantle-dex` package exposes `swap` + `quote` actions that aggregate routes across Merchant Moe (Trader Joe V2.2 LB), Agni V3, FusionX V3, WOOFi V2, and Li.Fi (intra-Mantle path) and pick best execution
+**I want to** an `@concierge-mantle/mantle-dex` package exposes `swap` + `quote` actions that aggregate routes across Merchant Moe (Trader Joe V2.2 LB), Agni V3, FusionX V3, WOOFi V2, and Li.Fi (intra-Mantle path) and pick best execution
 **So that** every swap the agent executes goes through the best available price on Mantle without per-DEX branching in the runtime
 
 ---
 
 ## File modification map
 
-- `packages/providers/mantle-dex/package.json` — NEW — peer deps on `viem`, `zod`, `ai`, `@concierge/shared`, `@concierge/sdk`
+- `packages/providers/mantle-dex/package.json` — NEW — peer deps on `viem`, `zod`, `ai`, `@concierge-mantle/shared`, `@concierge-mantle/sdk`
 - `packages/providers/mantle-dex/src/index.ts` — NEW — barrel exports
 - `packages/providers/mantle-dex/src/provider.ts` — NEW — `createMantleDexProvider(opts)` returns ProviderInterface. Actions: `swap`, `quote`.
 - `packages/providers/mantle-dex/src/actions/quote.ts` — NEW — `quote({ tokenIn, tokenOut, amountIn, slippageBps })` queries all 5 venues in parallel via Promise.all, returns `{ bestRoute, allRoutes, bestAmountOut, executionPath }`. Pure compute / off-chain reads only.
 - `packages/providers/mantle-dex/src/actions/swap.ts` — NEW — `swap({ tokenIn, tokenOut, amountIn, slippageBps, recipient })`. Re-quotes inside execute (race against stale quotes), confirms `amountOutMin` against fresh route, submits via the winning venue's router.
-- `packages/providers/mantle-dex/src/venues/merchantMoe.ts` — NEW — LB Router quote + swap. Uses `LBRouter.getSwapOut` for quoting; `swapExactTokensForTokens` for execution. Address from `@concierge/shared` (`0x45A62B090DF48243F12A21897e7ed91863E2c86b`).
+- `packages/providers/mantle-dex/src/venues/merchantMoe.ts` — NEW — LB Router quote + swap. Uses `LBRouter.getSwapOut` for quoting; `swapExactTokensForTokens` for execution. Address from `@concierge-mantle/shared` (`0x45A62B090DF48243F12A21897e7ed91863E2c86b`).
 - `packages/providers/mantle-dex/src/venues/agni.ts` — NEW — Uniswap V3-style quoter via QuoterV2 + SwapRouter. Tries 100/500/3000/10000 bps fee tiers; picks best.
 - `packages/providers/mantle-dex/src/venues/fusionx.ts` — NEW — same V3 surface as Agni; different router address.
 - `packages/providers/mantle-dex/src/venues/woofi.ts` — NEW — WOOFi V2 `WooPPV2.querySwap` for quote, `WooRouterV2.swap` for execution.
-- `packages/providers/mantle-dex/src/venues/lifi.ts` — NEW — intra-Mantle Li.Fi quote (chain == chain → DEX aggregation through Li.Fi Diamond). Reuses the Li.Fi quote helper from story-40 (`@concierge/lifi-bridge`).
+- `packages/providers/mantle-dex/src/venues/lifi.ts` — NEW — intra-Mantle Li.Fi quote (chain == chain → DEX aggregation through Li.Fi Diamond). Reuses the Li.Fi quote helper from story-40 (`@concierge-mantle/lifi-bridge`).
 - `packages/providers/mantle-dex/src/attestation.ts` — NEW — schema name `concierge.mantle-dex.<venue>.swap.v1`. Payload: tokenIn, tokenOut, amountIn, amountOut, venue, txHash.
 
 ---
@@ -36,7 +36,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge/mantle-dex run build` runs
+When `pnpm --filter @concierge-mantle/mantle-dex run build` runs
 Then exit code is 0
 
 Given the provider has 2 actions
@@ -94,7 +94,7 @@ test -f src/attestation.ts
 cd ../../..
 
 # Package builds + typechecks
-pnpm --filter @concierge/mantle-dex run build
+pnpm --filter @concierge-mantle/mantle-dex run build
 test $? -eq 0
 pnpm run typecheck
 test $? -eq 0

@@ -33,7 +33,7 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge/runtime run test:e2e` runs
+When `pnpm --filter @concierge-mantle/agent run test:e2e` runs
 Then exit code is 0 AND ≥ 10 e2e test cases pass
 
 Given test_e2e_FullTick
@@ -61,7 +61,7 @@ When execute succeeds but attest fails (simulated by ReputationRegistry being pa
 Then executions.attestationUid is null after first tick AND a BullMQ retry job is queued AND on retry the attestation lands AND attestationUid is updated
 
 Given coverage gate
-When `pnpm --filter @concierge/runtime run test --coverage` runs
+When `pnpm --filter @concierge-mantle/agent run test --coverage` runs
 Then line coverage on `src/` ≥ 85%
 
 Given file size budget
@@ -75,18 +75,18 @@ Then every test file ≤ 400 LOC
 
 ```bash
 # Run e2e tests
-pnpm --filter @concierge/runtime run test:e2e --reporter=verbose
+pnpm --filter @concierge-mantle/agent run test:e2e --reporter=verbose
 test $? -eq 0
 
-pnpm --filter @concierge/runtime run test:e2e --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 10 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/agent run test:e2e --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 10 {exit 0} {exit 1}'
 
 # Critical load-bearing tests
 for tn in "FullTick" "NoOpTick" "ManualApprovalTick" "ConcurrentTickGuard" "AttestationFailureRetry"; do
-  pnpm --filter @concierge/runtime run test:e2e --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
+  pnpm --filter @concierge-mantle/agent run test:e2e --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
 done
 
 # Coverage ≥ 85%
-cov=$(pnpm --filter @concierge/runtime run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @concierge-mantle/agent run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 85
 
 bun scripts/check-file-loc.mjs

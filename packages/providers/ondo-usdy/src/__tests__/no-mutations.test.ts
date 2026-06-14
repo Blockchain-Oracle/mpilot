@@ -1,4 +1,4 @@
-// Read-only scope invariant for @concierge/ondo-usdy v1.
+// Read-only scope invariant for @concierge-mantle/ondo-usdy v1.
 // This file is a deliberately brittle guard. If any future PR adds 'mint', 'redeem',
 // 'transfer', 'burn', or 'approve' to the provider actions — bypassing USDY KYC — it
 // will fail loudly here before reaching code review.

@@ -1,4 +1,4 @@
-// Public surface for @concierge/tools — framework-agnostic tool registry per ADR-014.
+// Public surface for @concierge-mantle/tools — framework-agnostic tool registry per ADR-014.
 
 export { bigintSafeStringify, type JsonSerializable } from './bigintSafeStringify.ts';
 export { createConciergeTools } from './createConciergeTools.ts';

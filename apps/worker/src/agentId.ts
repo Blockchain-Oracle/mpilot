@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 
 /**
  * Per-agent identifier shape. Bounded length + no `:` `*` whitespace `\n`
@@ -12,7 +12,7 @@ export function assertAgentId(id: unknown, where: string): asserts id is string 
   if (typeof id !== 'string' || !AGENT_ID_RE.test(id)) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/worker] ${where}: agentId must match ${AGENT_ID_RE.source}.`,
+      `[@concierge-mantle/worker] ${where}: agentId must match ${AGENT_ID_RE.source}.`,
     );
   }
 }

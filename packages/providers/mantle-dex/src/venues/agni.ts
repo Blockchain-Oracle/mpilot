@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address } from '@concierge-mantle/shared';
 import type { PublicClient, WalletClient } from 'viem';
 import { BaseError, ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
@@ -88,7 +88,7 @@ export function createAgniVenue(
     if (!walletClient) {
       throw new ConciergeError(
         'ConfigError',
-        '[@concierge/mantle-dex] agni.swap: walletClient required',
+        '[@concierge-mantle/mantle-dex] agni.swap: walletClient required',
       );
     }
     const { tokenIn, tokenOut, amountIn, amountOutMin, recipient, account, deadline } = params;
@@ -109,7 +109,7 @@ export function createAgniVenue(
     if (!best) {
       throw new ConciergeError(
         'InsufficientLiquidity',
-        `[@concierge/mantle-dex] agni.swap: no route for ${tokenIn} → ${tokenOut}`,
+        `[@concierge-mantle/mantle-dex] agni.swap: no route for ${tokenIn} → ${tokenOut}`,
       );
     }
 
@@ -143,7 +143,7 @@ export function createAgniVenue(
     if (receipt.status === 'reverted') {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/mantle-dex] agni.swap: tx ${txHash} reverted`,
+        `[@concierge-mantle/mantle-dex] agni.swap: tx ${txHash} reverted`,
       );
     }
     return { txHash, amountOut: simulatedAmountOut, spender: swapRouter };

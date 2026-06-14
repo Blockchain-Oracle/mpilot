@@ -1,4 +1,4 @@
-import { mantleMainnet, mantleSepolia } from '@concierge/shared';
+import { mantleMainnet, mantleSepolia } from '@concierge-mantle/shared';
 
 export { mantleMainnet as MANTLE_MAINNET, mantleSepolia as MANTLE_SEPOLIA };
 

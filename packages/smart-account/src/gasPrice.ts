@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { CHAIN_CONFIGS } from './constants.ts';
 import { redactApiKey, sanitizeCause } from './internal.ts';
 import type { SupportedChain } from './types.ts';
@@ -36,26 +36,26 @@ function parseTier(
   if (data.error) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: Pimlico RPC error ${data.error.code}: ${redactApiKey(data.error.message, apiKey).slice(0, 200)} (chain: '${chain}')`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico RPC error ${data.error.code}: ${redactApiKey(data.error.message, apiKey).slice(0, 200)} (chain: '${chain}')`,
     );
   }
   if (!data.result?.standard) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: unexpected response shape from pimlico_getUserOperationGasPrice (chain: '${chain}')`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: unexpected response shape from pimlico_getUserOperationGasPrice (chain: '${chain}')`,
     );
   }
   const { maxFeePerGas: rawMax, maxPriorityFeePerGas: rawPriority } = data.result.standard;
   if (typeof rawMax !== 'string' || typeof rawPriority !== 'string') {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: unexpected field types — expected hex strings, got maxFeePerGas=${typeof rawMax} maxPriorityFeePerGas=${typeof rawPriority}`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: unexpected field types — expected hex strings, got maxFeePerGas=${typeof rawMax} maxPriorityFeePerGas=${typeof rawPriority}`,
     );
   }
   if (!rawMax.startsWith('0x') || !rawPriority.startsWith('0x')) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: expected 0x-prefixed hex strings — maxFeePerGas="${rawMax.slice(0, 80)}" maxPriorityFeePerGas="${rawPriority.slice(0, 80)}" (chain: '${chain}')`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: expected 0x-prefixed hex strings — maxFeePerGas="${rawMax.slice(0, 80)}" maxPriorityFeePerGas="${rawPriority.slice(0, 80)}" (chain: '${chain}')`,
     );
   }
   let maxFeePerGas: bigint;
@@ -66,20 +66,20 @@ function parseTier(
   } catch (_err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: BigInt conversion failed — maxFeePerGas="${rawMax.slice(0, 80)}" maxPriorityFeePerGas="${rawPriority.slice(0, 80)}" (chain: '${chain}')`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: BigInt conversion failed — maxFeePerGas="${rawMax.slice(0, 80)}" maxPriorityFeePerGas="${rawPriority.slice(0, 80)}" (chain: '${chain}')`,
       sanitizeCause(_err, apiKey),
     );
   }
   if (maxFeePerGas <= 0n || maxPriorityFeePerGas <= 0n) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: zero or negative gas price — maxFeePerGas=${maxFeePerGas} maxPriorityFeePerGas=${maxPriorityFeePerGas}`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: zero or negative gas price — maxFeePerGas=${maxFeePerGas} maxPriorityFeePerGas=${maxPriorityFeePerGas}`,
     );
   }
   if (maxPriorityFeePerGas > maxFeePerGas) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: EIP-1559 invariant violated — maxPriorityFeePerGas (${maxPriorityFeePerGas}) > maxFeePerGas (${maxFeePerGas})`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: EIP-1559 invariant violated — maxPriorityFeePerGas (${maxPriorityFeePerGas}) > maxFeePerGas (${maxFeePerGas})`,
     );
   }
   return { maxFeePerGas, maxPriorityFeePerGas };
@@ -107,7 +107,7 @@ async function readAndParseBody(
   } catch (_err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: failed to read response body from Pimlico (chain: '${chain}')`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: failed to read response body from Pimlico (chain: '${chain}')`,
       sanitizeCause(_err, apiKey),
     );
   }
@@ -118,20 +118,20 @@ async function readAndParseBody(
   } catch (_err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
       sanitizeCause(_err, apiKey),
     );
   }
   if (typeof parsed !== 'object' || parsed === null) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
     );
   }
   if (!('result' in parsed) && !('error' in parsed)) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
     );
   }
   return parsed as unknown as PimlicoRpcResponse;
@@ -147,14 +147,14 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      "[@concierge/smart-account] getUserOpGasPrice: MissingEnvVar('PIMLICO_API_KEY') — set this env var before querying gas price.",
+      "[@concierge-mantle/smart-account] getUserOpGasPrice: MissingEnvVar('PIMLICO_API_KEY') — set this env var before querying gas price.",
     );
   }
   const chainConfig = CHAIN_CONFIGS[config.chain];
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] getUserOpGasPrice: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   const url = `${chainConfig.bundlerBaseUrl}?apikey=${encodeURIComponent(apiKey)}`;
@@ -173,7 +173,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
   } catch (fetchErr) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: network error reaching Pimlico (chain: '${config.chain}')`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: network error reaching Pimlico (chain: '${config.chain}')`,
       sanitizeCause(fetchErr, apiKey),
     );
   }
@@ -182,7 +182,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
     const safeBody = redactApiKey(body, apiKey);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] getUserOpGasPrice: BundlerError({ status: ${res.status}, chain: '${config.chain}' })${safeBody ? ` — ${safeBody.slice(0, 200)}` : ''}`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: BundlerError({ status: ${res.status}, chain: '${config.chain}' })${safeBody ? ` — ${safeBody.slice(0, 200)}` : ''}`,
       sanitizeCause(cause, apiKey),
     );
   }

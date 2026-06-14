@@ -1,4 +1,4 @@
-# Story — `@concierge/tools` framework-agnostic tool registry
+# Story — `@concierge-mantle/tools` framework-agnostic tool registry
 
 **ID:** story-300-tools-registry
 **Epic:** Epic E13 — Composable Primitive (NEW, post-2026-06-09 rework)
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** Mantle developer or AI agent author
-**I want to** import `createConciergeTools(agent)` from `@concierge/tools` and receive a framework-agnostic array of `ConciergeTool` objects
+**I want to** import `createConciergeTools(agent)` from `@concierge-mantle/tools` and receive a framework-agnostic array of `ConciergeTool` objects
 **So that** my Vercel AI SDK / OpenAI / LangChain / AgentKit / MCP server / React UI consumer can all use the SAME source of truth for Concierge actions, with one schema definition feeding every surface
 
 ---
 
 ## File modification map
 
-- `packages/tools/package.json` — NEW — `"type": "module"`, `"sideEffects": false`, `"engines.node": ">=22"`, deps on `@concierge/shared` + `@concierge/agent` + 7 provider packages (`workspace:*`), peer dep on `zod ^3.25 || ^4.1`. `tsup` build script. Exports: `.` (main) + `./serializable` (subpath for the per-card schemas).
+- `packages/tools/package.json` — NEW — `"type": "module"`, `"sideEffects": false`, `"engines.node": ">=22"`, deps on `@concierge-mantle/shared` + `@concierge-mantle/agent` + 7 provider packages (`workspace:*`), peer dep on `zod ^3.25 || ^4.1`. `tsup` build script. Exports: `.` (main) + `./serializable` (subpath for the per-card schemas).
 - `packages/tools/src/types.ts` — NEW — `ConciergeTool<TInputSchema, TOutputSchema>` interface (verbatim from architecture.md ADR-014), `TickPhase` union type, `UICardId` union type
 - `packages/tools/src/tool.ts` — NEW — `tool<TIn, TOut>(def)` helper that returns the input unchanged (type-narrowing identity function, matches Vercel AI SDK's `tool()` shape per SDK-DX-STUDY §J)
 - `packages/tools/src/createConciergeTools.ts` — NEW — `createConciergeTools(agent: ConciergeAgent): ConciergeTool[]` that flat-maps each provider's exported `tools()` function
@@ -76,15 +76,15 @@ When `tool.supportsNetwork?.(5003)` runs
 Then result is false (tool is Mainnet-only)
 
 Given tests run
-When `pnpm --filter @concierge/tools test --reporter=verbose` runs
+When `pnpm --filter @concierge-mantle/tools test --reporter=verbose` runs
 Then ≥ 20 test cases pass
 
 Given typecheck + LOC + lint
-When `pnpm typecheck && pnpm check-file-loc && pnpm lint --filter @concierge/tools` runs
+When `pnpm typecheck && pnpm check-file-loc && pnpm lint --filter @concierge-mantle/tools` runs
 Then all exit 0
 
 Given `tsup` produces dist
-When `pnpm --filter @concierge/tools build` runs
+When `pnpm --filter @concierge-mantle/tools build` runs
 Then `packages/tools/dist/index.js`, `packages/tools/dist/index.d.ts`, AND `packages/tools/dist/serializable/index.js` all exist
 ```
 
@@ -117,12 +117,12 @@ node -e "
 "
 
 # Build produces dist + types
-pnpm --filter @concierge/tools build
+pnpm --filter @concierge-mantle/tools build
 test -f packages/tools/dist/index.js
 test -f packages/tools/dist/index.d.ts
 
 # Tests pass with ≥ 20 cases
-pnpm --filter @concierge/tools test --reporter=verbose 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 20 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/tools test --reporter=verbose 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 20 {exit 0} {exit 1}'
 
 # Anti-regression: no `unknown` in tool inputs
 ! grep -rE "invoke\([^)]*: unknown" packages/tools/src/
@@ -136,7 +136,7 @@ pnpm --filter @concierge/tools test --reporter=verbose 2>&1 | grep -cE "(✓|PAS
 # LOC budget
 pnpm check-file-loc
 pnpm typecheck
-pnpm lint --filter @concierge/tools
+pnpm lint --filter @concierge-mantle/tools
 ```
 
 ---
@@ -170,7 +170,7 @@ export function tool<TIn extends z.ZodTypeAny, TOut extends z.ZodTypeAny>(
 
 ### Schema files
 
-Each `SerializableXxxSchema` is **the canonical contract**: the tool's `outputSchema` includes it as a subset (or matches it exactly when the tool's job IS to produce that card's data). `@concierge/mcp` registers tools with this `outputSchema`, the resulting `structuredContent` feeds `<ProposalCard part={p} />` parse-then-render in `@concierge/react-ui`.
+Each `SerializableXxxSchema` is **the canonical contract**: the tool's `outputSchema` includes it as a subset (or matches it exactly when the tool's job IS to produce that card's data). `@concierge-mantle/mcp` registers tools with this `outputSchema`, the resulting `structuredContent` feeds `<ProposalCard part={p} />` parse-then-render in `@concierge-mantle/react-ui`.
 
 ```typescript
 // Example: serializable/proposal.ts
@@ -199,8 +199,8 @@ export function safeParseSerializableProposalCard(data: unknown) {
 Aggregates tools from each provider package. Each provider exports a `tools(agent: ConciergeAgent): ConciergeTool[]` function. This story scaffolds the aggregation; provider packages register against this interface in follow-on stories.
 
 ```typescript
-import { tools as aaveTools } from '@concierge/aave-v3-mantle';
-import { tools as dexTools } from '@concierge/mantle-dex';
+import { tools as aaveTools } from '@concierge-mantle/aave-v3-mantle';
+import { tools as dexTools } from '@concierge-mantle/mantle-dex';
 // ... etc for 7 providers
 
 export function createConciergeTools(agent: ConciergeAgent): ConciergeTool[] {
