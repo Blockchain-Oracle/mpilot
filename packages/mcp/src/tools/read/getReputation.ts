@@ -2,6 +2,7 @@ import { loadAgentHistory } from '@concierge-mantle/attestation';
 import { type ConciergeTool, tool } from '@concierge-mantle/tools';
 import type { CreateReadToolsDeps } from './factoryDeps.ts';
 import { toEntry } from './getAgentState.ts';
+import { safeBigInt } from './safeBigInt.ts';
 import {
   GetReputationInputSchema,
   type GetReputationOutput,
@@ -24,7 +25,7 @@ export function createGetReputationTool(deps: CreateReadToolsDeps): ConciergeToo
     outputSchema: GetReputationOutputSchema,
     invoke: async ({ agentId, limit, offset }): Promise<GetReputationOutput> => {
       const result = await loadAgentHistory(
-        { agentId: BigInt(agentId), limit, offset },
+        { agentId: safeBigInt(agentId, 'agentId'), limit, offset },
         { readFeedback: deps.readFeedback, ipfs: deps.ipfs },
       );
       return {

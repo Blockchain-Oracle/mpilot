@@ -1,6 +1,7 @@
 import { type AgentHistoryEntry, loadAgentHistory } from '@concierge-mantle/attestation';
 import { type ConciergeTool, tool } from '@concierge-mantle/tools';
 import type { CreateReadToolsDeps } from './factoryDeps.ts';
+import { safeBigInt } from './safeBigInt.ts';
 import {
   GetAgentStateInputSchema,
   type GetAgentStateOutput,
@@ -24,7 +25,7 @@ export function createGetAgentStateTool(deps: CreateReadToolsDeps): ConciergeToo
     inputSchema: GetAgentStateInputSchema,
     outputSchema: GetAgentStateOutputSchema,
     invoke: async ({ agentId }): Promise<GetAgentStateOutput> => {
-      const id = BigInt(agentId);
+      const id = safeBigInt(agentId, 'agentId');
       const [owner, history] = await Promise.all([
         deps.identityRegistry.getOwner(id),
         loadAgentHistory(
@@ -47,14 +48,19 @@ export function createGetAgentStateTool(deps: CreateReadToolsDeps): ConciergeToo
  *  Stringifies bigints — JSON Schema has no bigint, so the wire form is
  *  decimal-string. */
 export function toEntry(e: AgentHistoryEntry) {
+  // Defensive guards: the AgentHistoryEntry type guarantees these are
+  // bigint at compile time, but an upstream partial-decode failure (malformed
+  // event log, RPC anomaly) could land us with undefined at runtime. `?? 0n`
+  // ensures we ship a valid wire string instead of crashing with
+  // "Cannot read properties of undefined (reading 'toString')".
   const base = {
     feedbackHash: e.feedbackHash,
     feedbackURI: e.feedbackURI,
-    feedbackIndex: e.feedbackIndex.toString(),
+    feedbackIndex: (e.feedbackIndex ?? 0n).toString(),
     schema: e.schema,
     clientAddress: e.clientAddress,
     txHash: e.txHash,
-    blockNumber: e.blockNumber.toString(),
+    blockNumber: (e.blockNumber ?? 0n).toString(),
     revoked: e.revoked,
     status: e.status,
   } as const;

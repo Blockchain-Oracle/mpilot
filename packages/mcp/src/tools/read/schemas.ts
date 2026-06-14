@@ -11,16 +11,26 @@ const Hash32 = z.string().regex(/^0x[0-9a-fA-F]{64}$/, 'must be a 0x-prefixed 64
  * outputSchema to JSON Schema; bigint has no JSON Schema representation,
  * so all 256-bit values cross the wire as decimal strings. Tools parse to
  * bigint internally and stringify on the way out.
+ *
+ * Length cap: 78 chars = uint256 max (2^256 ≈ 1.16 * 10^77). Prevents
+ * pathological inputs from reaching BigInt() and minimizes regex backtracking.
  */
-const BigIntString = z.string().regex(/^\d+$/, 'must be a non-negative decimal integer string');
+const BigIntString = z
+  .string()
+  .min(1)
+  .max(78)
+  .regex(/^\d+$/, 'must be a non-negative decimal integer string ≤ 78 chars (uint256 max)');
 
 /** Agent NFT identifier (ERC-8004 IdentityRegistry token id). */
 export const AgentIdSchema = BigIntString.describe(
   'Agent NFT token id from ERC-8004 IdentityRegistry, as decimal string',
 );
 
-/** Common metadata shape for any attestation entry — input/output reuse. */
-export const AttestationEntrySchema = z.object({
+/**
+ * Per-entry shared fields. NOT exported on its own — re-used by the two
+ * arms of the discriminated AttestationEntrySchema below.
+ */
+const AttestationEntryBase = z.object({
   feedbackHash: Hash32.describe('Payload commitment on-chain'),
   feedbackURI: z.string().describe('Off-chain pointer, typically ipfs://<cid>'),
   feedbackIndex: BigIntString.describe(
@@ -31,15 +41,24 @@ export const AttestationEntrySchema = z.object({
   txHash: Hash32.describe('Transaction hash'),
   blockNumber: BigIntString.describe('Block number of NewFeedback event (decimal string)'),
   revoked: z.boolean().describe('Whether this feedback has been revoked'),
-  status: z
-    .enum(['ok', 'error'])
-    .describe('IPFS payload status — ok means payload below is the parsed envelope'),
-  payload: z.unknown().optional().describe('Decoded FeedbackEnvelope (present when status=ok)'),
-  payloadError: z
-    .string()
-    .optional()
-    .describe('Typed PayloadError tag (present when status=error)'),
 });
+
+/**
+ * Discriminated union: `status: 'ok'` arm guarantees `payload`,
+ * `status: 'error'` arm guarantees `payloadError`. Removes the illegal-state
+ * `{status: 'ok', payloadError: '...'}` shape the previous optional-fields
+ * version permitted. TS narrows automatically on switch.
+ */
+export const AttestationEntrySchema = z.discriminatedUnion('status', [
+  AttestationEntryBase.extend({
+    status: z.literal('ok'),
+    payload: z.unknown().describe('Decoded FeedbackEnvelope (parsed from IPFS)'),
+  }),
+  AttestationEntryBase.extend({
+    status: z.literal('error'),
+    payloadError: z.string().describe('Typed PayloadError tag (NOT_FOUND / DECODE_FAIL / ...)'),
+  }),
+]);
 
 export const GetAgentStateInputSchema = z
   .object({
