@@ -18,13 +18,35 @@ interface RenderOnlyCardSpec {
   readonly renderBody: string;
 }
 
+/**
+ * HTML-escape strings that get interpolated into the static HTML at build
+ * time (code-reviewer IMPORTANT #2). Today only safe constants are passed
+ * but the helper is exported; defense-in-depth keeps a future caller from
+ * silently breaking the document if they pass a value containing `</title>`
+ * or quotes.
+ */
+function escAttr(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => {
+    const m: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    };
+    return m[c] ?? c;
+  });
+}
+
 export function buildReadOnlyCardHtml(spec: RenderOnlyCardSpec): string {
+  const safeTitle = escAttr(spec.defaultTitle);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${spec.defaultTitle}</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;" />
+<title>${safeTitle}</title>
 <style>
   :root { color-scheme: light dark; --bg: #fff; --fg: #111; --muted: #555; --accent: #2563eb; --border: #e5e7eb; --good: #16a34a; --bad: #dc2626; }
   @media (prefers-color-scheme: dark) { :root { --bg: #0a0a0a; --fg: #f5f5f5; --muted: #9ca3af; --accent: #60a5fa; --border: #262626; --good: #4ade80; --bad: #f87171; } }
@@ -46,8 +68,8 @@ export function buildReadOnlyCardHtml(spec: RenderOnlyCardSpec): string {
 </style>
 </head>
 <body>
-<main class="card" role="region" aria-label="${spec.defaultTitle}">
-  <h1 id="title">${spec.defaultTitle}</h1>
+<main class="card" role="region" aria-label="${safeTitle}">
+  <h1 id="title">${safeTitle}</h1>
   <div id="body" class="empty">No data received yet.</div>
 </main>
 <script>
@@ -75,6 +97,10 @@ export function buildReadOnlyCardHtml(spec: RenderOnlyCardSpec): string {
   }
 
   window.addEventListener('message', function (ev) {
+    // SEP-1865 origin discipline (post-review CRITICAL #1): require structural
+    // identity with window.parent + first-message origin lock. See proposalCard
+    // for the full rationale.
+    if (ev.source !== window.parent) return;
     if (!parentOrigin) parentOrigin = ev.origin;
     if (ev.origin !== parentOrigin) return;
     var msg = ev.data;

@@ -73,6 +73,7 @@
   },
   "devDependencies": {
     "@types/node": "22.19.20",
+    "happy-dom": "^20.10.3",
     "tsup": "8.5.0"
   }
 }

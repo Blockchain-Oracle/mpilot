@@ -19,6 +19,7 @@ const PROPOSAL_CARD_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;" />
 <title>Concierge Proposal</title>
 <style>
   :root { color-scheme: light dark; --bg: #fff; --fg: #111; --muted: #555; --accent: #2563eb; --danger: #dc2626; --border: #e5e7eb; }
@@ -93,18 +94,40 @@ const PROPOSAL_CARD_HTML = `<!DOCTYPE html>
     window.parent.postMessage({ type: type, payload: { proposalId: currentProposal.proposalId } }, parentOrigin);
   }
 
+  function renderNullOriginError() {
+    // silent-failure CRITICAL #2 (post-review): a sandboxed iframe without
+    // allow-same-origin reports event.origin as the STRING 'null'. send()
+    // refuses to postMessage there (no recoverable target), so the buttons
+    // would silently no-op forever. Show a visible disabled state + a
+    // remediation hint instead of letting the user click into nothing.
+    actionsEl.hidden = false;
+    approveBtn.disabled = true;
+    rejectBtn.disabled = true;
+    bodyEl.innerHTML += '<div class="empty" role="status">This host does not support inline approval (sandboxed iframe without allow-same-origin). Approve from the chat surface instead.</div>';
+    try { console.warn('[concierge] proposal-card: host origin is "null" — approve/reject disabled.'); } catch (_e) {}
+  }
+
   approveBtn.addEventListener('click', function () { send('concierge.approve'); });
   rejectBtn.addEventListener('click', function () { send('concierge.reject'); });
 
   window.addEventListener('message', function (ev) {
-    // SEP-1865 origin-validation discipline: capture the FIRST host origin and
-    // reject any subsequent messages from a different origin (defends against
-    // a sandboxed iframe being re-parented mid-session by a hostile script).
+    // SEP-1865 origin-validation discipline (post-review CRITICAL #1):
+    //   1. REQUIRE ev.source === window.parent — rejects sibling iframes,
+    //      child popups, and any other window object that isn't the MCP
+    //      host. This is the structural gate; origin alone is not enough.
+    //   2. Capture the host's origin from the FIRST trusted message and
+    //      reject subsequent messages from a different origin.
+    //   3. Refuse to ever postMessage back if origin is 'null' (sandbox
+    //      with no allow-same-origin).
+    if (ev.source !== window.parent) return;
     if (!parentOrigin) parentOrigin = ev.origin;
     if (ev.origin !== parentOrigin) return;
     var msg = ev.data;
     if (!msg || typeof msg !== 'object') return;
-    if (msg.type === 'concierge.data') render(msg.payload);
+    if (msg.type === 'concierge.data') {
+      render(msg.payload);
+      if (parentOrigin === 'null') renderNullOriginError();
+    }
   });
 })();
 </script>

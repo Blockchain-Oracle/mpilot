@@ -21,25 +21,29 @@ import { tickCard } from './ui-resources/tickCard.ts';
 export const UI_RESOURCES = [proposalCard, tickCard, portfolioSnapshot, reputationReceipt] as const;
 
 /**
- * Map a tool's `uiCardId` (declared in its provider package via the
- * `tool()` factory) to the canonical `ui://concierge/*` resource URI.
- * Returns `undefined` for tools with no `uiCardId` — those render via
- * the structuredContent text channel only.
+ * Map a tool's `uiCardId` to the canonical `ui://concierge/*` resource URI.
+ * Derived from `UI_RESOURCES` per simplification review (round 2) so there
+ * is a single source of truth for the URI strings — no parallel manual
+ * mapping that could silently drift. The `satisfies` clause keeps the
+ * `UICardId` exhaustiveness check (missing or extra keys → compile error).
  */
-const CARD_ID_TO_URI: Readonly<Record<UICardId, `ui://concierge/${string}`>> = {
+const CARD_ID_TO_URI = {
   proposal: proposalCard.uri,
   tick: tickCard.uri,
   portfolio: portfolioSnapshot.uri,
   reputation: reputationReceipt.uri,
-};
+} as const satisfies Record<UICardId, (typeof UI_RESOURCES)[number]['uri']>;
 
 export function uiResourceUriForCardId(cardId: UICardId | undefined): string | undefined {
   return cardId !== undefined ? CARD_ID_TO_URI[cardId] : undefined;
 }
 
 /**
- * Register all four ui:// resources on the given McpServer. Idempotent in
- * practice — calling twice triggers the SDK's "already registered" guard.
+ * Register all four ui:// resources on the given McpServer.
+ *
+ * NOT idempotent — SDK 1.29's `registerResource` THROWS on duplicate URI
+ * (silent-failure review round 2). Callers must invoke this exactly once
+ * per McpServer instance.
  */
 export function registerUIResources(server: McpServer): void {
   for (const r of UI_RESOURCES) {
@@ -47,8 +51,12 @@ export function registerUIResources(server: McpServer): void {
       r.name,
       r.uri,
       { title: r.title, description: r.description, mimeType: MCP_APP_MIME },
-      async () => ({
-        contents: [{ uri: r.uri, mimeType: MCP_APP_MIME, text: r.html }],
+      // code-reviewer IMPORTANT #3: accept the SDK's `uri` argument and
+      // echo `String(uri)` into the response so a future templated route
+      // (`ui://concierge/{name}`) keeps working, and any host-side
+      // normalization is preserved in the response.
+      async (uri) => ({
+        contents: [{ uri: String(uri), mimeType: MCP_APP_MIME, text: r.html }],
       }),
     );
   }
