@@ -880,6 +880,24 @@ stories:
     pr_url: "https://github.com/Blockchain-Oracle/concierge/pull/125"
     merged_at: "2026-06-13"
 
+  # Epic E14 — Composable UI (brand tokens scaffold for designer handoff)
+  - id: story-099-brand-tokens
+    epic: "Epic E14 — Composable UI"
+    status: PENDING
+    depends_on: [story-00-monorepo-scaffold, story-01-biome-and-loc-enforcement, story-02-typescript-config]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
+  # Epic E9 — RealClaw Skill (generic skill framework: SKILL.md generator + output contract validator)
+  - id: story-156-skill-framework
+    epic: "Epic E9 — RealClaw Skill"
+    status: PENDING
+    depends_on: [story-22-sdk-skeleton, story-300-tools-registry]
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+
   # Epic E14 — Composable UI (react headless + styled + adapters)
   - id: story-310-react-headless
     epic: "Epic E14 — Composable UI"
