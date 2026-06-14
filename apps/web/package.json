@@ -15,9 +15,14 @@
   },
   "dependencies": {
     "@concierge-mantle/ui": "workspace:*",
+    "@privy-io/react-auth": "^3.30.0",
+    "@privy-io/wagmi": "^4.0.12",
+    "@tanstack/react-query": "^5.101.0",
     "next": "15.1.4",
     "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "react-dom": "19.2.7",
+    "viem": "2.52.2",
+    "wagmi": "^2.19.5"
   },
   "devDependencies": {
     "@types/node": "22.19.20",

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { PrivyProviders } from './_lib/PrivyProviders';
 import { ThemeProvider } from './_lib/ThemeProvider';
 import './globals.css';
 
@@ -13,7 +14,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <PrivyProviders>{children}</PrivyProviders>
+        </ThemeProvider>
       </body>
     </html>
   );
