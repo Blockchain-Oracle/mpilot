@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ENTRYPOINT_V07_ADDRESS } from '../constants.ts';
 
 const TEST_PIMLICO_KEY = 'test-pimlico-api-key';
-
 function deterministicAddress(owner: `0x${string}`): `0x${string}` {
   return `0x${owner.slice(2, 42).padStart(40, '0')}` as `0x${string}`;
 }
@@ -145,10 +144,19 @@ describe('createConciergeAccount — ZeroDev parameters', () => {
     vi.unstubAllEnvs();
   });
 
-  it('calls getEntryPoint with "0.7"', async () => {
-    const { getEntryPoint } = await import('@zerodev/sdk/constants');
+  it('passes the v0.7 entry point to signerToEcdsaValidator', async () => {
+    // Context7 audit L2: ENTRY_POINT is now a module const (hoisted to
+    // eliminate three duplicate call sites). Assertion shifted from
+    // "called with '0.7'" to "the resulting entry point flows through"
+    // — same invariant, lower call-count noise after vi.clearAllMocks.
+    const { signerToEcdsaValidator } = await import('@zerodev/ecdsa-validator');
     await createConciergeAccount({ owner: MOCK_OWNER, chain: 'mantle-sepolia' });
-    expect(getEntryPoint).toHaveBeenCalledWith('0.7');
+    expect(signerToEcdsaValidator).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        entryPoint: expect.objectContaining({ version: '0.7' }),
+      }),
+    );
   });
 
   it('createKernelAccount is called with KERNEL_V3_1', async () => {

@@ -2,23 +2,35 @@ import { ConciergeError } from '@concierge-mantle/sdk';
 import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator';
 import { createKernelAccount, createKernelAccountClient } from '@zerodev/sdk';
 import { getEntryPoint, KERNEL_V3_1 } from '@zerodev/sdk/constants';
+import { getUserOperationGasPrice } from 'permissionless/actions/pimlico';
 import type { Address, LocalAccount } from 'viem';
 import { createPublicClient, http, isAddress } from 'viem';
 import type { CHAIN_CONFIGS } from './constants.ts';
-import { resolveChainConfig, rpcCatch, sanitizeCause } from './internal.ts';
+import { validatePimlicoStandardTier } from './gasPrice.ts';
+import {
+  type PaymasterMode,
+  resolveChainConfig,
+  rpcCatch,
+  sanitizeCause,
+  shouldUsePaymaster,
+} from './internal.ts';
 import { createPaymasterClient } from './paymaster.ts';
 import type { ConciergeAccount, KernelClientStub, SupportedChain } from './types.ts';
+
+/** EntryPoint v0.7 — hoisted module const per Context7 audit L2. */
+const ENTRY_POINT = getEntryPoint('0.7');
 
 export interface ConnectConciergeAccountConfig {
   address: Address;
   owner: LocalAccount;
   chain: SupportedChain;
   /**
-   * Paymaster strategy. Defaults to 'pimlico' (sponsored) on mantle-sepolia
-   * and 'none' (user pays MNT) on mantle-mainnet — mirrors createConciergeAccount.
-   * Note: PIMLICO_API_KEY (or apiKey) is required regardless.
+   * Paymaster strategy. Defaults per `shouldUsePaymaster`:
+   *   - mantle-sepolia → 'pimlico'
+   *   - mantle-mainnet → 'none' (user pays MNT)
+   * PIMLICO_API_KEY (or apiKey) is required regardless.
    */
-  paymaster?: 'pimlico' | 'none';
+  paymaster?: PaymasterMode;
   /** Pimlico API key. Defaults to `process.env.PIMLICO_API_KEY`. */
   apiKey?: string;
 }
@@ -59,18 +71,18 @@ export async function connectToConciergeAccount(
     chain: chainConfig.chain,
     transport: http(chainConfig.chain.rpcUrls.default.http[0]),
   });
-  const entryPoint = getEntryPoint('0.7');
+
+  // Context7 audit M1: drop `as any` on signer; single pinned viem version.
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
-    // biome-ignore lint/suspicious/noExplicitAny: Signer union from @zerodev/sdk accepts LocalAccount; cast avoids peer dep version skew
-    signer: config.owner as any,
-    entryPoint,
+    signer: config.owner,
+    entryPoint: ENTRY_POINT,
     kernelVersion: KERNEL_V3_1,
   }).catch(
     rpcCatch('connectToConciergeAccount: ECDSA validator init failed', config.chain, apiKey),
   );
   const kernelAccount = await createKernelAccount(publicClient, {
     plugins: { sudo: ecdsaValidator },
-    entryPoint,
+    entryPoint: ENTRY_POINT,
     kernelVersion: KERNEL_V3_1,
     address: config.address,
   }).catch(rpcCatch('connectToConciergeAccount: kernel account init failed', config.chain, apiKey));
@@ -87,27 +99,33 @@ export async function connectToConciergeAccount(
     );
   }
   const smartAccountAddress = kernelAccount.address;
-  const paymasterStrategy =
-    config.paymaster ?? (config.chain === 'mantle-sepolia' ? 'pimlico' : 'none');
+
+  // Context7 audit H3: single source-of-truth for paymaster decision.
+  const usePaymaster = shouldUsePaymaster(config.chain, config.paymaster);
   const paymasterClient = createPaymasterClient(
-    paymasterStrategy === 'pimlico'
+    usePaymaster
       ? { chain: config.chain, sponsorshipPolicy: 'always', apiKey }
       : { chain: config.chain, sponsorshipPolicy: 'never' },
   );
+
   let kernelClient: KernelClientStub & object;
   try {
     kernelClient = createKernelAccountClient({
       account: kernelAccount,
       chain: chainConfig.chain,
       bundlerTransport: http(bundlerUrl),
-      // biome-ignore lint/suspicious/noExplicitAny: publicClient type variance between viem peer dep versions
-      client: publicClient as any,
-      ...(paymasterClient && {
-        paymaster: {
-          getPaymasterData: paymasterClient.getPaymasterData,
-          getPaymasterStubData: paymasterClient.getPaymasterStubData,
+      client: publicClient,
+      // Context7 audit C1+H1: REQUIRED in ZeroDev 5.4+. Use Pimlico's typed
+      // gas-price oracle and pick `standard` (safe default for tick workers).
+      userOperation: {
+        estimateFeesPerGas: async ({ bundlerClient }) => {
+          // silent-failure C-NEW-5 (round 2): shared invariant check.
+          const gasPrice = await getUserOperationGasPrice(bundlerClient);
+          return validatePimlicoStandardTier(gasPrice, config.chain);
         },
-      }),
+      },
+      // Context7 audit M5: direct paymaster client, no unbinding.
+      ...(paymasterClient && { paymaster: paymasterClient }),
     }) as unknown as KernelClientStub & object;
   } catch (err) {
     throw new ConciergeError(

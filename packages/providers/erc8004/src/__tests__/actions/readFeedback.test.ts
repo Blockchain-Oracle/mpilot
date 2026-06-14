@@ -1,10 +1,37 @@
+import { canonicalize } from '@concierge-mantle/attestation';
 import { ConciergeError } from '@concierge-mantle/sdk';
+import { keccak256, toBytes } from 'viem';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';
 import { executeAttestAction } from '../../actions/attestAction.ts';
 import { executeReadFeedback } from '../../actions/readFeedback.ts';
 import { executeRegisterAgent } from '../../actions/registerAgent.ts';
-import { hashActionPayload } from '../../eip712.ts';
+
+const FIXED_CREATED_AT = '2026-06-14T12:00:00Z';
+
+// Context7 audit C2 (post-review fix): mirrors `attestAction.ts` canonicalize+
+// keccak over the FeedbackEnvelope shape (direct canonicalize so tests can
+// use schemas outside attestation's closed SchemaId discriminator).
+function expectedFeedbackHash(
+  payload: { schema: string } & Record<string, unknown>,
+  agentId: bigint,
+  chainId: 5000 | 5003 = 5003,
+  createdAt: string = FIXED_CREATED_AT,
+): `0x${string}` {
+  return keccak256(
+    toBytes(
+      canonicalize({
+        v: 1,
+        schema: payload.schema,
+        agentId: agentId.toString(),
+        chainId,
+        payload: { ...payload, schema: payload.schema },
+        createdAt,
+      }),
+    ),
+  );
+}
+
 import {
   type AnvilFork,
   IDENTITY_REGISTRY_SEPOLIA,
@@ -267,13 +294,14 @@ describe('readFeedback — fork: live Sepolia', () => {
       'concierge.mantle-dex.agni.swap.v1',
     ] as const;
     const payloads = schemas.map((s) => ({ schema: s, amount: '500' }));
-    const expectedHashes = payloads.map((p) => hashActionPayload(p, agentId, 5003));
+    const expectedHashes = payloads.map((p) => expectedFeedbackHash(p, agentId));
 
     for (const [i, s] of schemas.entries()) {
       await executeAttestAction(makeClientCtx(), {
         agentId,
         providerSchema: s,
         actionPayload: payloads[i] ?? { schema: s, amount: '500' },
+        createdAt: FIXED_CREATED_AT,
       });
     }
 

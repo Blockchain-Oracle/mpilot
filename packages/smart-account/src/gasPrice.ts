@@ -1,6 +1,9 @@
 import { ConciergeError } from '@concierge-mantle/sdk';
+import { getUserOperationGasPrice } from 'permissionless/actions/pimlico';
+import { http } from 'viem';
+import { createBundlerClient } from 'viem/account-abstraction';
 import { CHAIN_CONFIGS } from './constants.ts';
-import { redactApiKey, sanitizeCause } from './internal.ts';
+import { sanitizeCause } from './internal.ts';
 import type { SupportedChain } from './types.ts';
 
 export interface UserOpGasPrice {
@@ -16,130 +19,17 @@ export interface GetUserOpGasPriceConfig {
   apiKey?: string;
 }
 
-type PimlicoGasPriceTier = { maxFeePerGas: string; maxPriorityFeePerGas: string };
-type PimlicoRpcResponse =
-  | {
-      result: {
-        slow: PimlicoGasPriceTier;
-        standard: PimlicoGasPriceTier;
-        fast: PimlicoGasPriceTier;
-      };
-      error?: undefined;
-    }
-  | { result?: undefined; error: { code: number; message: string } };
-
-function parseTier(
-  data: PimlicoRpcResponse,
-  chain: SupportedChain,
-  apiKey: string,
-): { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint } {
-  if (data.error) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico RPC error ${data.error.code}: ${redactApiKey(data.error.message, apiKey).slice(0, 200)} (chain: '${chain}')`,
-    );
-  }
-  if (!data.result?.standard) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: unexpected response shape from pimlico_getUserOperationGasPrice (chain: '${chain}')`,
-    );
-  }
-  const { maxFeePerGas: rawMax, maxPriorityFeePerGas: rawPriority } = data.result.standard;
-  if (typeof rawMax !== 'string' || typeof rawPriority !== 'string') {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: unexpected field types — expected hex strings, got maxFeePerGas=${typeof rawMax} maxPriorityFeePerGas=${typeof rawPriority}`,
-    );
-  }
-  if (!rawMax.startsWith('0x') || !rawPriority.startsWith('0x')) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: expected 0x-prefixed hex strings — maxFeePerGas="${rawMax.slice(0, 80)}" maxPriorityFeePerGas="${rawPriority.slice(0, 80)}" (chain: '${chain}')`,
-    );
-  }
-  let maxFeePerGas: bigint;
-  let maxPriorityFeePerGas: bigint;
-  try {
-    maxFeePerGas = BigInt(rawMax);
-    maxPriorityFeePerGas = BigInt(rawPriority);
-  } catch (_err) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: BigInt conversion failed — maxFeePerGas="${rawMax.slice(0, 80)}" maxPriorityFeePerGas="${rawPriority.slice(0, 80)}" (chain: '${chain}')`,
-      sanitizeCause(_err, apiKey),
-    );
-  }
-  if (maxFeePerGas <= 0n || maxPriorityFeePerGas <= 0n) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: zero or negative gas price — maxFeePerGas=${maxFeePerGas} maxPriorityFeePerGas=${maxPriorityFeePerGas}`,
-    );
-  }
-  if (maxPriorityFeePerGas > maxFeePerGas) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: EIP-1559 invariant violated — maxPriorityFeePerGas (${maxPriorityFeePerGas}) > maxFeePerGas (${maxFeePerGas})`,
-    );
-  }
-  return { maxFeePerGas, maxPriorityFeePerGas };
-}
-
-async function readErrorBody(res: Response): Promise<{ text: string; cause: unknown }> {
-  try {
-    return { text: await res.text(), cause: undefined };
-  } catch (err) {
-    return {
-      text: `[body unreadable: ${err instanceof Error ? err.message : String(err)}]`,
-      cause: err,
-    };
-  }
-}
-
-async function readAndParseBody(
-  res: Response,
-  chain: SupportedChain,
-  apiKey: string,
-): Promise<PimlicoRpcResponse> {
-  let rawBody: string;
-  try {
-    rawBody = await res.text();
-  } catch (_err) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: failed to read response body from Pimlico (chain: '${chain}')`,
-      sanitizeCause(_err, apiKey),
-    );
-  }
-  const safeRawBody = redactApiKey(rawBody, apiKey);
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(rawBody);
-  } catch (_err) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: failed to parse JSON response from Pimlico (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
-      sanitizeCause(_err, apiKey),
-    );
-  }
-  if (typeof parsed !== 'object' || parsed === null) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
-    );
-  }
-  if (!('result' in parsed) && !('error' in parsed)) {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico response is not a JSON-RPC envelope (chain: '${chain}') — body: ${safeRawBody.slice(0, 200)}`,
-    );
-  }
-  return parsed as unknown as PimlicoRpcResponse;
-}
-
 /**
- * Queries Pimlico's gas price oracle for current UserOp gas prices.
+ * Queries Pimlico's gas-price oracle for current UserOp gas prices.
  * Must be called fresh per UserOp — gas prices change block-to-block.
+ *
+ * Per Context7 audit 2026-06-14 (CRITICAL C1+H1): previously ~193 LOC of
+ * hand-rolled `fetch` + hex parsing + 6 throw paths. Now uses
+ * `permissionless/actions/pimlico`'s typed `getUserOperationGasPrice` —
+ * the canonical Pimlico pattern (per ZeroDev migration docs 5.3→5.4).
+ *
+ * Returns the `standard` tier — `slow` risks UserOp staying out of mempool,
+ * `fast` overpays. Standard is the safe default for autonomous tick workers.
  */
 export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promise<UserOpGasPrice> {
   // biome-ignore lint/complexity/useLiteralKeys: noPropertyAccessFromIndexSignature requires bracket notation
@@ -157,36 +47,77 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
       `[@concierge-mantle/smart-account] getUserOpGasPrice: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
-  const url = `${chainConfig.bundlerBaseUrl}?apikey=${encodeURIComponent(apiKey)}`;
-  let res: Response;
+  const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${encodeURIComponent(apiKey)}`;
+  const bundlerClient = createBundlerClient({
+    chain: chainConfig.chain,
+    transport: http(bundlerUrl),
+  });
+  // silent-failure H1: narrow the broad catch to the network call ONLY. The
+  // shape-contract validation below (standard tier present, bigints, EIP-1559
+  // invariant) must throw the specific RpcError it constructed, not be
+  // re-wrapped as a generic "RPC failed" — operators chasing intermittent
+  // gas-price drift need to distinguish Pimlico response-shape change from
+  // Pimlico network outage.
+  let gasPrice: Awaited<ReturnType<typeof getUserOperationGasPrice>>;
   try {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'pimlico_getUserOperationGasPrice',
-        params: [],
-      }),
-    });
-  } catch (fetchErr) {
+    gasPrice = await getUserOperationGasPrice(bundlerClient);
+  } catch (err) {
+    if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: network error reaching Pimlico (chain: '${config.chain}')`,
-      sanitizeCause(fetchErr, apiKey),
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico bundler RPC failed (chain: '${config.chain}')`,
+      sanitizeCause(err, apiKey),
     );
   }
-  if (!res.ok) {
-    const { text: body, cause } = await readErrorBody(res);
-    const safeBody = redactApiKey(body, apiKey);
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: BundlerError({ status: ${res.status}, chain: '${config.chain}' })${safeBody ? ` — ${safeBody.slice(0, 200)}` : ''}`,
-      sanitizeCause(cause, apiKey),
-    );
-  }
-  const data = await readAndParseBody(res, config.chain, apiKey);
-  const { maxFeePerGas, maxPriorityFeePerGas } = parseTier(data, config.chain, apiKey);
+  const { maxFeePerGas, maxPriorityFeePerGas } = validatePimlicoStandardTier(
+    gasPrice,
+    config.chain,
+  );
   return { maxFeePerGas, maxPriorityFeePerGas, fetchedAt: Date.now() };
+}
+
+/**
+ * silent-failure C-NEW-5 (round 2): shared invariant check for Pimlico's
+ * `getUserOperationGasPrice` `.standard` tier. Used by `getUserOpGasPrice`
+ * AND by the `estimateFeesPerGas` callback wired into
+ * `createKernelAccountClient` in createAccount/connectAccount — without this,
+ * those callbacks bypassed the shape/EIP-1559 guards entirely and a malformed
+ * Pimlico response would silently send underpriced UserOps that never mine.
+ *
+ * Validates:
+ *  - `.standard` present
+ *  - `maxFeePerGas` / `maxPriorityFeePerGas` are bigints (catches future
+ *    permissionless regression returning hex strings)
+ *  - both positive (silent-fail #3: zero fee → UserOp stuck in mempool)
+ *  - EIP-1559 invariant: `maxPriorityFeePerGas <= maxFeePerGas`
+ */
+export function validatePimlicoStandardTier(
+  gasPrice: Awaited<ReturnType<typeof getUserOperationGasPrice>>,
+  chain: SupportedChain,
+): { readonly maxFeePerGas: bigint; readonly maxPriorityFeePerGas: bigint } {
+  const standard = gasPrice?.standard;
+  if (
+    !standard ||
+    typeof standard.maxFeePerGas !== 'bigint' ||
+    typeof standard.maxPriorityFeePerGas !== 'bigint'
+  ) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico response missing or malformed 'standard' tier (chain: '${chain}'). Expected { standard: { maxFeePerGas: bigint, maxPriorityFeePerGas: bigint } }.`,
+    );
+  }
+  const { maxFeePerGas, maxPriorityFeePerGas } = standard;
+  if (maxFeePerGas <= 0n || maxPriorityFeePerGas <= 0n) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: zero or negative gas price from Pimlico — maxFeePerGas=${maxFeePerGas} maxPriorityFeePerGas=${maxPriorityFeePerGas}`,
+    );
+  }
+  if (maxPriorityFeePerGas > maxFeePerGas) {
+    throw new ConciergeError(
+      'RpcError',
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: EIP-1559 invariant violated — maxPriorityFeePerGas (${maxPriorityFeePerGas}) > maxFeePerGas (${maxFeePerGas})`,
+    );
+  }
+  return { maxFeePerGas, maxPriorityFeePerGas };
 }

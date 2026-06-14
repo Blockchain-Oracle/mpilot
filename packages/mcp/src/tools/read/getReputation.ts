@@ -19,10 +19,12 @@ import {
 export function createGetReputationTool(deps: CreateReadToolsDeps): ConciergeTool {
   return tool({
     name: 'get_reputation',
+    title: 'Get agent reputation history',
     description:
       "Paginated read of an agent's ERC-8004 attestation history. Default page size 50, max 200. Returns each entry with the IPFS payload (or typed payloadError) attached.",
     inputSchema: GetReputationInputSchema,
     outputSchema: GetReputationOutputSchema,
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
     invoke: async ({ agentId, limit, offset }): Promise<GetReputationOutput> => {
       const result = await loadAgentHistory(
         { agentId: safeBigInt(agentId, 'agentId'), limit, offset },

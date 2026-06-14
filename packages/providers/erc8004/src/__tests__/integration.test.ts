@@ -1,10 +1,38 @@
+import { canonicalize } from '@concierge-mantle/attestation';
+import { keccak256, toBytes } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ActionContext } from '../_context.ts';
 import { executeAttestAction } from '../actions/attestAction.ts';
 import { executeReadFeedback } from '../actions/readFeedback.ts';
 import { executeReadReputation } from '../actions/readReputation.ts';
 import { executeRegisterAgent } from '../actions/registerAgent.ts';
-import { hashActionPayload } from '../eip712.ts';
+
+const FIXED_CREATED_AT = '2026-06-14T12:00:00Z';
+
+// Context7 audit C2 (post-review fix): mirrors `attestAction.ts` canonicalize+
+// keccak over the FeedbackEnvelope shape. Direct canonicalize (not
+// computeFeedbackPair) so tests can use schemas outside attestation's
+// closed SchemaId discriminator.
+function expectedFeedbackHash(
+  payload: { schema: string } & Record<string, unknown>,
+  agentId: bigint,
+  chainId: 5000 | 5003 = 5003,
+  createdAt: string = FIXED_CREATED_AT,
+): `0x${string}` {
+  return keccak256(
+    toBytes(
+      canonicalize({
+        v: 1,
+        schema: payload.schema,
+        agentId: agentId.toString(),
+        chainId,
+        payload: { ...payload, schema: payload.schema },
+        createdAt,
+      }),
+    ),
+  );
+}
+
 import {
   type AnvilFork,
   IDENTITY_REGISTRY_SEPOLIA,
@@ -66,6 +94,7 @@ describe('ERC-8004 end-to-end integration — live Sepolia fork', () => {
         agentId,
         providerSchema: schema,
         actionPayload: payload,
+        createdAt: FIXED_CREATED_AT,
       });
       attestResults.push(r);
     }
@@ -89,7 +118,7 @@ describe('ERC-8004 end-to-end integration — live Sepolia fork', () => {
   it('each attest feedbackHash matches local EIP-712 computation', () => {
     for (const [i, r] of attestResults.entries()) {
       const payload = PAYLOADS[i] ?? { schema: SCHEMAS[0], amount: '0' };
-      expect(r.feedbackHash).toBe(hashActionPayload(payload, agentId, 5003));
+      expect(r.feedbackHash).toBe(expectedFeedbackHash(payload, agentId));
     }
   });
 
@@ -122,7 +151,7 @@ describe('ERC-8004 end-to-end integration — live Sepolia fork', () => {
     for (const [i, entry] of entries.entries()) {
       expect(entry.schema).toBe(SCHEMAS[i]);
       const payload = PAYLOADS[i] ?? { schema: SCHEMAS[0], amount: '0' };
-      expect(entry.feedbackHash).toBe(hashActionPayload(payload, agentId, 5003));
+      expect(entry.feedbackHash).toBe(expectedFeedbackHash(payload, agentId));
       expect(entry.revoked).toBe(false);
     }
   });

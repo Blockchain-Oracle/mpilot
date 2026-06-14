@@ -28,6 +28,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
+    "@concierge-mantle/attestation": "workspace:*",
     "@concierge-mantle/shared": "workspace:*",
     "@concierge-mantle/sdk": "workspace:*",
     "@concierge-mantle/tools": "workspace:*"

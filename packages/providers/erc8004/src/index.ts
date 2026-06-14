@@ -1,5 +1,7 @@
 export type { ActionContext } from './_context.ts';
-export { hashActionPayload } from './eip712.ts';
+// Context7 audit C2 (2026-06-14): `hashActionPayload` (EIP-712 typed-data)
+// removed. Production attestation hash is keccak256(canonicalize(envelope))
+// per ADR-004 — see `attestAction.ts` and `@concierge-mantle/attestation`.
 export type {
   Erc8004Chain,
   Erc8004Provider,

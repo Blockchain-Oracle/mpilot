@@ -12,16 +12,44 @@ export type { TickLoopPhase as TickPhase } from '@concierge-mantle/shared';
 /** UI card identifiers; each id MUST have a matching SerializableXxxCardSchema (caught by CARD_SCHEMAS' `satisfies` in serializable.ts). */
 export type UICardId = 'proposal' | 'tick' | 'portfolio' | 'reputation';
 
+/**
+ * MCP tool annotations per MCP spec 2025-06-18 (`registerTool` `annotations`).
+ * These are hints to MCP clients about safety/behaviour; non-MCP adapters ignore.
+ * Context7 audit M3 (2026-06-14): surfaced through the ConciergeTool primitive
+ * so providers declare semantics once and every adapter that cares (MCP) reads
+ * them — instead of MCP having to special-case per-tool annotation tables.
+ */
+export interface ConciergeToolAnnotations {
+  /** True when the tool performs only read operations (no side effects). */
+  readonly readOnlyHint?: boolean;
+  /** True when repeating the call with the same args yields the same result. */
+  readonly idempotentHint?: boolean;
+  /** True when the tool reaches outside the local process (RPC, HTTP, on-chain). */
+  readonly openWorldHint?: boolean;
+  /**
+   * Whether the tool's effect is destructive (mutates or removes state) when
+   * `readOnlyHint` is not set. Per MCP spec 2025-06-18 the default is `true`
+   * — write tools should set this explicitly (`true` for irreversible
+   * effects like `giveFeedback`, `false` for idempotent / reversible writes)
+   * so MCP clients render the right confirmation UX.
+   */
+  readonly destructiveHint?: boolean;
+}
+
 export interface ConciergeTool<
   TInputSchema extends z.ZodTypeAny = z.ZodTypeAny,
   // biome-ignore lint/suspicious/noExplicitAny: ZodObject's shape param defaults to z.ZodRawShape; using any here lets adapters compose without specifying the shape generic at every callsite.
   TOutputSchema extends z.ZodObject<any> = z.ZodObject<z.ZodRawShape>,
 > {
   name: string;
+  /** Human-readable display title (MCP `registerTool` `title`). Optional; defaults to `name`. */
+  title?: string;
   description: string;
   inputSchema: TInputSchema;
   outputSchema: TOutputSchema;
   uiCardId?: UICardId;
+  /** Optional MCP-spec annotations forwarded by `@concierge-mantle/mcp`. */
+  annotations?: ConciergeToolAnnotations;
   invoke(args: z.infer<TInputSchema>): Promise<z.infer<TOutputSchema>>;
   supportsNetwork?(chainId: EvmChainId): boolean;
 }

@@ -1,3 +1,4 @@
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { type ConciergeTool, tool } from '@concierge-mantle/tools';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
@@ -251,5 +252,87 @@ describe('createConciergeMcpServer', () => {
     const onEmptyToolset = vi.fn();
     createConciergeMcpServer({ tools: [fakeTool('a')], onEmptyToolset });
     expect(onEmptyToolset).not.toHaveBeenCalled();
+  });
+
+  it('Context7 audit M3: forwards title + annotations through registerTool to tools/list', async () => {
+    const annotatedTool: ConciergeTool = tool({
+      name: 'read_thing',
+      title: 'Read a thing',
+      description: 'reads',
+      inputSchema: z.object({}),
+      outputSchema: z.object({ ok: z.boolean() }),
+      annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      invoke: async () => ({ ok: true }),
+    }) as ConciergeTool;
+    const { client } = await connect([annotatedTool]);
+    const list = await client.listTools();
+    const entry = list.tools.find((t) => t.name === 'read_thing');
+    expect(entry).toBeDefined();
+    expect(entry?.title).toBe('Read a thing');
+    expect(entry?.annotations).toEqual({
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    });
+  });
+
+  it('Context7 audit M3: tools without title/annotations register cleanly (no stray undefined fields)', async () => {
+    const { client } = await connect([fakeTool('plain')]);
+    const list = await client.listTools();
+    const entry = list.tools.find((t) => t.name === 'plain');
+    expect(entry?.title).toBeUndefined();
+    expect(entry?.annotations).toBeUndefined();
+  });
+
+  it('Context7 audit M4: ConciergeError type surfaces as _meta.code on the error envelope', async () => {
+    const throwTool: ConciergeTool = tool({
+      name: 'throws_config',
+      description: 'throws',
+      inputSchema: z.object({}),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => {
+        throw new ConciergeError('ConfigError', 'bad config');
+      },
+    }) as ConciergeTool;
+    const { client } = await connect([throwTool], () => {});
+    const res = await client.callTool({ name: 'throws_config', arguments: {} });
+    expect(res.isError).toBe(true);
+    expect((res._meta as { code?: string } | undefined)?.code).toBe('ConfigError');
+  });
+
+  it('silent-failure C4: non-Concierge errors fall back to err.name and always emit _meta.code', async () => {
+    const throwTool: ConciergeTool = tool({
+      name: 'throws_plain',
+      description: 'throws',
+      inputSchema: z.object({}),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => {
+        throw new TypeError('boom');
+      },
+    }) as ConciergeTool;
+    const { client } = await connect([throwTool], () => {});
+    const res = await client.callTool({ name: 'throws_plain', arguments: {} });
+    expect(res.isError).toBe(true);
+    expect((res._meta as { code?: string } | undefined)?.code).toBe('TypeError');
+  });
+
+  it('security #1: extractErrorCode sanitizes CRLF/ANSI out of attacker-controlled .type', async () => {
+    const throwTool: ConciergeTool = tool({
+      name: 'throws_evil',
+      description: 'throws',
+      inputSchema: z.object({}),
+      outputSchema: z.object({ ok: z.boolean() }),
+      invoke: async () => {
+        const err = new Error('boom') as Error & { type?: string };
+        err.type = 'ConfigError\r\n[31mFAKE';
+        throw err;
+      },
+    }) as ConciergeTool;
+    const { client } = await connect([throwTool], () => {});
+    const res = await client.callTool({ name: 'throws_evil', arguments: {} });
+    const code = (res._meta as { code?: string } | undefined)?.code ?? '';
+    expect(code).toBe('ConfigError31mFAKE');
+    expect(code.includes('\r')).toBe(false);
+    expect(code.includes('\n')).toBe(false);
   });
 });

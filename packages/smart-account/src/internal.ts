@@ -277,6 +277,28 @@ export function rpcCatchNoRedact(op: string, chain: SupportedChain) {
 }
 
 /** Validates chain + apiKey and returns the resolved config bundle. */
+/**
+ * Single source of truth for paymaster vs user-pays decision (Context7 audit
+ * 2026-06-14 H3). Prior to this helper, `createBundlerClient` hardcoded
+ * chain-based decision and `createConciergeAccount` honored `config.paymaster`
+ * — they could disagree. Use this helper from BOTH entry points.
+ *
+ * Rule (per project memory `feedback_locked_wedge.md`):
+ *   - mantle-sepolia → paymaster (judges click-through with zero capital)
+ *   - mantle-mainnet → user pays MNT (no Concierge subsidy at scale)
+ *   - explicit override via `config.paymaster: 'pimlico' | 'none'`
+ */
+export type PaymasterMode = 'pimlico' | 'none';
+
+export function shouldUsePaymaster(
+  chain: SupportedChain,
+  paymaster: PaymasterMode | undefined,
+): boolean {
+  if (paymaster === 'pimlico') return true;
+  if (paymaster === 'none') return false;
+  return chain === 'mantle-sepolia';
+}
+
 export function resolveChainConfig(
   callerName: string,
   chain: SupportedChain,
