@@ -50,8 +50,12 @@ export async function startAnvilFork(forkBlock?: number): Promise<AnvilFork> {
       lastErr = err;
       const msg = err instanceof Error ? err.message : String(err);
       if (!PORT_RACE_RX.test(msg) || attempt === MAX_ATTEMPTS) throw err;
+      // Stable error ID lets ops grep `ANVIL_PORT_RACE_RETRY` in CI logs and
+      // alert on leak regressions (per PR #142 silent-failure review). A
+      // single retry per run is the documented TOCTOU race; sustained >1
+      // retry/run indicates an Anvil-leak bug, NOT the port-race window.
       process.stderr.write(
-        `[setup] Anvil port race on attempt ${attempt}/${MAX_ATTEMPTS}; retrying with fresh port. (${msg.slice(0, 80)})\n`,
+        `[setup] ANVIL_PORT_RACE_RETRY attempt=${attempt}/${MAX_ATTEMPTS} reason="${msg.slice(0, 80)}"\n`,
       );
     }
   }
