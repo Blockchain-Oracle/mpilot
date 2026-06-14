@@ -6,7 +6,11 @@ Autonomous AI agent for Mantle DeFi, shipped as a **composable primitive** — a
 
 1. **Quality > deadline.** AI coding ships the *right thing*, not corners cut. **No mocks in the hot path. No half-built features.** Per Abu 2026-06-03.
 2. **Research before building.** Library APIs drift; specs can be wrong. Verify before implementing:
-   - **Context7 MCP first** for any SDK/library. Faster than guessing.
+   - **Context7 MCP FIRST for ANY SDK/library — before the first line of code.** Per `feedback_context7_before_library_code.md` — burned this on story-61 chat handler (shipped `abortSignal` + `consumeSseStream` missing because I went from memory, not docs). Concrete pre-story checklist (PASTE INTO PR DESCRIPTION so it's auditable):
+     - [ ] Ran `mcp__plugin_context7_context7__resolve-library-id` for each library the story touches
+     - [ ] Ran `query-docs` for the canonical pattern of the API surface I'm about to write
+     - [ ] Inspected actual exports in the pinned version via `node --input-type=module -e "import * as lib from '...'; for (const k of [...]) console.log(k, typeof lib[k])"`
+     - [ ] Noted any deprecations / version skew in the PR description
    - **`cast call` against `https://rpc.mantle.xyz`** before trusting an on-chain claim.
    - **`gh api` + WebFetch** for fresh GitHub state, official docs, library source.
    - When you discover a contradiction between an older spec and `AUDIT-2026-06-09.md` / `SDK-DX-STUDY-2026-06-09.md` — **trust the audit; the audit supersedes.** Patch `research/concierge/AUDIT-<date>.md` when you learn something the next story will hit.
