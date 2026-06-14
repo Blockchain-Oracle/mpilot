@@ -69,6 +69,32 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
       sanitizeCause(err, apiKey),
     );
   }
+  const { maxFeePerGas, maxPriorityFeePerGas } = validatePimlicoStandardTier(
+    gasPrice,
+    config.chain,
+  );
+  return { maxFeePerGas, maxPriorityFeePerGas, fetchedAt: Date.now() };
+}
+
+/**
+ * silent-failure C-NEW-5 (round 2): shared invariant check for Pimlico's
+ * `getUserOperationGasPrice` `.standard` tier. Used by `getUserOpGasPrice`
+ * AND by the `estimateFeesPerGas` callback wired into
+ * `createKernelAccountClient` in createAccount/connectAccount — without this,
+ * those callbacks bypassed the shape/EIP-1559 guards entirely and a malformed
+ * Pimlico response would silently send underpriced UserOps that never mine.
+ *
+ * Validates:
+ *  - `.standard` present
+ *  - `maxFeePerGas` / `maxPriorityFeePerGas` are bigints (catches future
+ *    permissionless regression returning hex strings)
+ *  - both positive (silent-fail #3: zero fee → UserOp stuck in mempool)
+ *  - EIP-1559 invariant: `maxPriorityFeePerGas <= maxFeePerGas`
+ */
+export function validatePimlicoStandardTier(
+  gasPrice: Awaited<ReturnType<typeof getUserOperationGasPrice>>,
+  chain: SupportedChain,
+): { readonly maxFeePerGas: bigint; readonly maxPriorityFeePerGas: bigint } {
   const standard = gasPrice?.standard;
   if (
     !standard ||
@@ -77,7 +103,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
   ) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico response missing or malformed 'standard' tier (chain: '${config.chain}'). Expected { standard: { maxFeePerGas: bigint, maxPriorityFeePerGas: bigint } }.`,
+      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico response missing or malformed 'standard' tier (chain: '${chain}'). Expected { standard: { maxFeePerGas: bigint, maxPriorityFeePerGas: bigint } }.`,
     );
   }
   const { maxFeePerGas, maxPriorityFeePerGas } = standard;
@@ -93,5 +119,5 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
       `[@concierge-mantle/smart-account] getUserOpGasPrice: EIP-1559 invariant violated — maxPriorityFeePerGas (${maxPriorityFeePerGas}) > maxFeePerGas (${maxFeePerGas})`,
     );
   }
-  return { maxFeePerGas, maxPriorityFeePerGas, fetchedAt: Date.now() };
+  return { maxFeePerGas, maxPriorityFeePerGas };
 }

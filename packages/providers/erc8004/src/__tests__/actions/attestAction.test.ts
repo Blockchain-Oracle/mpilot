@@ -228,6 +228,23 @@ describe('attestAction — input validation errors', () => {
       }),
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
   });
+
+  it('silent-failure C2: wraps canonicalize TypeError as ConfigError when payload contains BigInt', async () => {
+    const ctx = makeCtx();
+    await expect(
+      executeAttestAction(ctx, {
+        agentId: AGENT_ID,
+        providerSchema: SCHEMA,
+        actionPayload: { schema: SCHEMA, amount: 1_000_000n } as never,
+        createdAt: FIXED_CREATED_AT,
+      }),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof ConciergeError &&
+        e.type === 'ConfigError' &&
+        /non-JSON-serialisable/.test(e.message),
+    );
+  });
 });
 
 describe('attestAction — transaction errors', () => {

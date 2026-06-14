@@ -26,9 +26,14 @@ export interface ConciergeToolAnnotations {
   readonly idempotentHint?: boolean;
   /** True when the tool reaches outside the local process (RPC, HTTP, on-chain). */
   readonly openWorldHint?: boolean;
-  // `destructiveHint` (MCP spec) intentionally omitted until the first write
-  // tool needs it — its MCP-spec default is `true`, which is the safe behaviour
-  // for any tool that omits annotations entirely. Add the field when needed.
+  /**
+   * Whether the tool's effect is destructive (mutates or removes state) when
+   * `readOnlyHint` is not set. Per MCP spec 2025-06-18 the default is `true`
+   * — write tools should set this explicitly (`true` for irreversible
+   * effects like `giveFeedback`, `false` for idempotent / reversible writes)
+   * so MCP clients render the right confirmation UX.
+   */
+  readonly destructiveHint?: boolean;
 }
 
 export interface ConciergeTool<

@@ -6,6 +6,7 @@ import { getUserOperationGasPrice } from 'permissionless/actions/pimlico';
 import type { LocalAccount } from 'viem';
 import { createPublicClient, http } from 'viem';
 import type { CHAIN_CONFIGS } from './constants.ts';
+import { validatePimlicoStandardTier } from './gasPrice.ts';
 import {
   type PaymasterMode,
   resolveChainConfig,
@@ -98,8 +99,12 @@ export async function createConciergeAccount(
       // and pick `standard` (safe default for autonomous tick workers).
       userOperation: {
         estimateFeesPerGas: async ({ bundlerClient }) => {
+          // silent-failure C-NEW-5 (round 2): apply the SAME shape +
+          // EIP-1559 invariant checks `getUserOpGasPrice` enforces, so
+          // a malformed Pimlico response can't silently send underpriced
+          // UserOps that never mine. Single source of truth in gasPrice.ts.
           const gasPrice = await getUserOperationGasPrice(bundlerClient);
-          return gasPrice.standard;
+          return validatePimlicoStandardTier(gasPrice, config.chain);
         },
       },
       // Context7 audit M5: pass the paymaster client directly. Previously

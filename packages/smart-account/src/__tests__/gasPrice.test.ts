@@ -98,4 +98,27 @@ describe('getUserOpGasPrice', () => {
     expect(err).toBeInstanceOf(ConciergeError);
     expect((err as ConciergeError).type).toBe('RpcError');
   });
+
+  it('silent-failure C-NEW-5: throws RpcError when standard tier is absent (Pimlico contract change)', async () => {
+    mockGetUserOperationGasPrice.mockResolvedValueOnce({
+      slow: FAKE_TIERED_PRICE.slow,
+      fast: FAKE_TIERED_PRICE.fast,
+    } as never);
+    await expect(getUserOpGasPrice({ chain: 'mantle-sepolia' })).rejects.toMatchObject({
+      type: 'RpcError',
+      message: expect.stringContaining('missing or malformed'),
+    });
+  });
+
+  it('silent-failure C-NEW-5: throws RpcError when standard fields are non-bigint (regressed permissionless returns hex strings)', async () => {
+    mockGetUserOperationGasPrice.mockResolvedValueOnce({
+      slow: FAKE_TIERED_PRICE.slow,
+      standard: { maxFeePerGas: '0x1' as never, maxPriorityFeePerGas: '0x1' as never },
+      fast: FAKE_TIERED_PRICE.fast,
+    });
+    await expect(getUserOpGasPrice({ chain: 'mantle-sepolia' })).rejects.toMatchObject({
+      type: 'RpcError',
+      message: expect.stringContaining('missing or malformed'),
+    });
+  });
 });

@@ -6,6 +6,7 @@ import { getUserOperationGasPrice } from 'permissionless/actions/pimlico';
 import type { Address, LocalAccount } from 'viem';
 import { createPublicClient, http, isAddress } from 'viem';
 import type { CHAIN_CONFIGS } from './constants.ts';
+import { validatePimlicoStandardTier } from './gasPrice.ts';
 import {
   type PaymasterMode,
   resolveChainConfig,
@@ -118,8 +119,9 @@ export async function connectToConciergeAccount(
       // gas-price oracle and pick `standard` (safe default for tick workers).
       userOperation: {
         estimateFeesPerGas: async ({ bundlerClient }) => {
+          // silent-failure C-NEW-5 (round 2): shared invariant check.
           const gasPrice = await getUserOperationGasPrice(bundlerClient);
-          return gasPrice.standard;
+          return validatePimlicoStandardTier(gasPrice, config.chain);
         },
       },
       // Context7 audit M5: direct paymaster client, no unbinding.
