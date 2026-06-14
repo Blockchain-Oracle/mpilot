@@ -67,14 +67,14 @@ test -f src/__tests__/hash.test.ts
 
 cd ../..
 
-pnpm --filter @concierge/attestation run build
+pnpm --filter @concierge-mantle/attestation run build
 test $? -eq 0
 
 # Tests pass including the cross-process determinism case
-pnpm --filter @concierge/attestation run test --reporter=verbose 2>&1 | grep "Cross.*Process.*Determinism" | grep -q "✓"
+pnpm --filter @concierge-mantle/attestation run test --reporter=verbose 2>&1 | grep "Cross.*Process.*Determinism" | grep -q "✓"
 
 # Known vector test
-pnpm --filter @concierge/attestation run test --reporter=verbose 2>&1 | grep "Known.*Vector" | grep -q "✓"
+pnpm --filter @concierge-mantle/attestation run test --reporter=verbose 2>&1 | grep "Known.*Vector" | grep -q "✓"
 
 bun scripts/check-file-loc.mjs
 ```

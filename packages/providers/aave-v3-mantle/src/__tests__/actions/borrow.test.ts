@@ -2,7 +2,7 @@
 // See: research/concierge/03-providers/aave-v3-mantle.md § Load-bearing gotchas
 // The Aave pool silently returns 0 when sUSDe LTV=0 (no E-Mode). We detect it client-side.
 
-import type { Address } from '@concierge/shared';
+import type { Address } from '@concierge-mantle/shared';
 import { createWalletClient, http, parseAbi } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAaveV3MantleProvider } from '../../provider.ts';
@@ -46,7 +46,7 @@ afterAll(async () => {
 
 describe('borrow — E-Mode silent-fail trap', () => {
   it('throws EModeNotEnabled BEFORE submitting tx when user has aSUSDe but no E-Mode', async () => {
-    const { ConciergeError } = await import('@concierge/sdk');
+    const { ConciergeError } = await import('@concierge-mantle/sdk');
 
     // Directly mint aSUSDe to TEST_ACCOUNT to simulate having supplied sUSDe.
     // aSUSDe balance > 0 triggers the preflight guard in borrow.ts.
@@ -161,7 +161,7 @@ describe('borrow — happy path with E-Mode', () => {
   });
 
   it('throws RpcError when borrow exceeds available collateral', async () => {
-    const { ConciergeError } = await import('@concierge/sdk');
+    const { ConciergeError } = await import('@concierge-mantle/sdk');
     // Use Anvil account #2 — no aSUsde balance, so EModeNotEnabled guard won't fire.
     // Supply a small amount of USDC, then attempt an impossibly large borrow → RpcError.
     const addr = ANVIL_ACCOUNTS[1] as Address;

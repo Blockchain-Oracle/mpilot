@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { toTimestampPolicy } from '@zerodev/permissions/policies';
 
 const SEVEN_DAYS_SECONDS = 7 * 24 * 60 * 60;
@@ -32,7 +32,7 @@ function assertUnixSeconds(name: string, value: number): void {
   if (!Number.isInteger(value) || value < 0 || value > UINT48_MAX) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createTimeFramePolicy: InvalidPolicy: ${name} (${value}) must be an integer in [0, 2^48-1] Unix SECONDS. (Did you pass milliseconds?)`,
+      `[@concierge-mantle/smart-account] createTimeFramePolicy: InvalidPolicy: ${name} (${value}) must be an integer in [0, 2^48-1] Unix SECONDS. (Did you pass milliseconds?)`,
     );
   }
 }
@@ -56,7 +56,7 @@ export function createTimeFramePolicy(
   ) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createTimeFramePolicy: InvalidPolicy: validAfter (${validAfter}) is more than 1 year in the future and validUntil is unspecified. (Did you pass milliseconds? expected Unix SECONDS.) Pass validUntil explicitly to confirm long-lived intent.`,
+      `[@concierge-mantle/smart-account] createTimeFramePolicy: InvalidPolicy: validAfter (${validAfter}) is more than 1 year in the future and validUntil is unspecified. (Did you pass milliseconds? expected Unix SECONDS.) Pass validUntil explicitly to confirm long-lived intent.`,
     );
   }
   // When validUntil is unset but the caller pinned validAfter in the near future,
@@ -68,13 +68,13 @@ export function createTimeFramePolicy(
   if (validUntil === 0) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/smart-account] createTimeFramePolicy: InvalidPolicy: validUntil=0 means "no expiry" — session keys must have a finite lifetime.',
+      '[@concierge-mantle/smart-account] createTimeFramePolicy: InvalidPolicy: validUntil=0 means "no expiry" — session keys must have a finite lifetime.',
     );
   }
   if (validUntil <= validAfter) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] createTimeFramePolicy: InvalidPolicy: validUntil (${validUntil}) must be > validAfter (${validAfter}).`,
+      `[@concierge-mantle/smart-account] createTimeFramePolicy: InvalidPolicy: validUntil (${validUntil}) must be > validAfter (${validAfter}).`,
     );
   }
   return toTimestampPolicy({ validAfter, validUntil });

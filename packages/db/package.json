@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/db",
+  "name": "@concierge-mantle/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -46,5 +46,8 @@
     "tsup": "8.5.0",
     "typescript": "6.0.3",
     "vitest": "4.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

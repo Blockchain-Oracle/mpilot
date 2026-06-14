@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { sanitizeError, sanitizeMessage } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome } from '../types.ts';
 import { isHash32 } from './hash.ts';
@@ -148,7 +148,7 @@ function validatePayload(p: AttestationPayload): AttestationPayload {
   if (!parsed.success) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runRecord: provider attestation payload malformed: ${sanitizeMessage(parsed.error.message)}`,
+      `[@concierge-mantle/agent] runRecord: provider attestation payload malformed: ${sanitizeMessage(parsed.error.message)}`,
     );
   }
   return parsed.data;
@@ -171,7 +171,7 @@ export async function runRecord(
   if (!isHash32(inputs.exec.txHash)) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge/runtime] runRecord: exec.txHash must be a 32-byte hex.`,
+      `[@concierge-mantle/agent] runRecord: exec.txHash must be a 32-byte hex.`,
     );
   }
   const signal = deps.abortSignal ?? NEVER_ABORT;
@@ -194,7 +194,7 @@ export async function runRecord(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runRecord: getAttestation failed (executionId=${inputs.exec.executionId}): ${safe.message}`,
+      `[@concierge-mantle/agent] runRecord: getAttestation failed (executionId=${inputs.exec.executionId}): ${safe.message}`,
       safe,
       { executionId: inputs.exec.executionId, agentId: inputs.state.agentId },
     );
@@ -218,7 +218,7 @@ export async function runRecord(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runRecord: buildAttestationPayload failed: ${safe.message}`,
+      `[@concierge-mantle/agent] runRecord: buildAttestationPayload failed: ${safe.message}`,
       safe,
       { executionId: inputs.exec.executionId, agentId: inputs.state.agentId },
     );
@@ -253,7 +253,7 @@ export async function runRecord(
       });
       throw new ConciergeError(
         'InvariantViolation',
-        `[@concierge/runtime] runRecord: ERC-8004 returned malformed uid/txHash; raw uid=${rawUidSafe} raw txHash=${rawTxSafe}.`,
+        `[@concierge-mantle/agent] runRecord: ERC-8004 returned malformed uid/txHash; raw uid=${rawUidSafe} raw txHash=${rawTxSafe}.`,
       );
     }
     // Normalize uid + txHash to lowercase BEFORE persist/return. EAS uids
@@ -271,7 +271,7 @@ export async function runRecord(
       throw new PostAttestInfraError(
         new ConciergeError(
           'RpcError',
-          `[@concierge/runtime] runRecord: attachAttestation failed (uid=${attestationUid.toLowerCase()}): ${safe.message}`,
+          `[@concierge-mantle/agent] runRecord: attachAttestation failed (uid=${attestationUid.toLowerCase()}): ${safe.message}`,
           safe,
           {
             executionId: inputs.exec.executionId,
@@ -314,7 +314,7 @@ export async function runRecord(
       const safe = sanitizeError(queueErr);
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/runtime] runRecord: retry queue enqueue failed after attestAction error; manual reconcile required (executionId=${inputs.exec.executionId} proposalId=${inputs.exec.proposalId}): ${safe.message}; original attest cause: ${attestErr.message}`,
+        `[@concierge-mantle/agent] runRecord: retry queue enqueue failed after attestAction error; manual reconcile required (executionId=${inputs.exec.executionId} proposalId=${inputs.exec.proposalId}): ${safe.message}; original attest cause: ${attestErr.message}`,
         safe,
         {
           executionId: inputs.exec.executionId,

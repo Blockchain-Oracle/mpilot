@@ -94,7 +94,7 @@ test -f components/onboarding/GoalInput.tsx
 
 cd ../..
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -105,7 +105,7 @@ grep -qE "(return.*401|Response.*401)" apps/web/app/api/onboarding/activate/rout
 grep -qE "(I understand|consent)" apps/web/components/onboarding/PolicyForm.tsx
 
 # Tests pass
-pnpm --filter @concierge/web run test 2>&1 | grep -E "(Stepper|PolicyForm)" | grep -q "PASS"
+pnpm --filter @concierge-mantle/web run test 2>&1 | grep -E "(Stepper|PolicyForm)" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

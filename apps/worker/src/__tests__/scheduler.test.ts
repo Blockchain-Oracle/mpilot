@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import type { Queue } from 'bullmq';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { scheduleAgentTicks, unscheduleAgentTicks } from '../scheduler.ts';

@@ -3,8 +3,8 @@ import {
   type AddressPath,
   MAINNET_PENDING_ADDRESS_SLOTS,
   SEPOLIA_PENDING_ADDRESS_SLOTS,
-} from '@concierge/shared';
-import { type ConciergeAgentLike, createConciergeTools } from '@concierge/tools';
+} from '@concierge-mantle/shared';
+import { type ConciergeAgentLike, createConciergeTools } from '@concierge-mantle/tools';
 import { describe, expect, it } from 'vitest';
 import { ConciergeError } from '../errors.ts';
 import { ConciergeRegistry } from '../registry.ts';
@@ -16,7 +16,7 @@ describe('ConciergeRegistry bundled-address factories', () => {
   it('mainnet() targets chain 5000 with the FROZEN shared mainnet addresses (same reference)', () => {
     const registry = ConciergeRegistry.mainnet();
     expect(registry.chainId).toBe(5000);
-    // Identity, not deep-equality: @concierge/shared is the one source of
+    // Identity, not deep-equality: @concierge-mantle/shared is the one source of
     // truth for addresses; a copy could drift from it.
     expect(registry.addresses).toBe(ADDRESSES.mantleMainnet);
   });
@@ -118,7 +118,9 @@ describe('ConciergeRegistry.requireAddress (zero-address enforcement)', () => {
     const mainnet = ConciergeRegistry.mainnet();
     expect(() => mainnet.requireAddress(asPath('aave.poool'))).toThrow(TypeError);
     expect(() => mainnet.requireAddress(asPath('aave.poool'))).toThrow(/aave\.poool/);
-    expect(() => mainnet.requireAddress(asPath('aave.poool'))).toThrow(/\[@concierge\/sdk\]/);
+    expect(() => mainnet.requireAddress(asPath('aave.poool'))).toThrow(
+      /\[@concierge-mantle\/sdk\]/,
+    );
     expect(() => mainnet.requireAddress(asPath('aave.poool'))).toThrow(/chain 5000/);
     expect(() => mainnet.requireAddress(asPath('aave'))).toThrow(TypeError); // branch node, not a leaf
   });

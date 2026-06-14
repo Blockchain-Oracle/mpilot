@@ -71,11 +71,11 @@ test -f src/phases/deltaState.ts
 
 cd ../..
 
-pnpm --filter @concierge/runtime run build
+pnpm --filter @concierge-mantle/agent run build
 test $? -eq 0
 
 # Tests pass
-pnpm --filter @concierge/runtime run test 2>&1 | grep "simulate" | grep -q "PASS"
+pnpm --filter @concierge-mantle/agent run test 2>&1 | grep "simulate" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

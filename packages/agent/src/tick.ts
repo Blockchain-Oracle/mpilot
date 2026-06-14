@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { sanitizeError as defaultSanitize } from './sanitize.ts';
 import type {
   OrchestratedPhase,
@@ -30,14 +30,14 @@ function assertConfigShape(config: TickConfig): void {
   if (!AGENT_ID_RE.test(config.agentId)) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/runtime] tick: agentId must match ${AGENT_ID_RE.source}.`,
+      `[@concierge-mantle/agent] tick: agentId must match ${AGENT_ID_RE.source}.`,
     );
   }
   const ttl = config.lockTtlMs ?? DEFAULT_LOCK_TTL_MS;
   if (ttl <= ABORT_MARGIN_MS) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/runtime] tick: lockTtlMs (${ttl}) MUST exceed ABORT_MARGIN_MS (${ABORT_MARGIN_MS}) or phases abort before they run.`,
+      `[@concierge-mantle/agent] tick: lockTtlMs (${ttl}) MUST exceed ABORT_MARGIN_MS (${ABORT_MARGIN_MS}) or phases abort before they run.`,
     );
   }
   // Defensive shape check at the JS boundary — MCP / AgentKit / LangChain
@@ -46,14 +46,14 @@ function assertConfigShape(config: TickConfig): void {
     if (typeof config[field] !== 'function') {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge/runtime] tick: required config field '${field}' is missing or not a function.`,
+        `[@concierge-mantle/agent] tick: required config field '${field}' is missing or not a function.`,
       );
     }
   }
   if (!config.lock || typeof config.lock.acquire !== 'function') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/runtime] tick: required config field 'lock' is missing or malformed.`,
+      `[@concierge-mantle/agent] tick: required config field 'lock' is missing or malformed.`,
     );
   }
 }
@@ -83,7 +83,7 @@ export async function tick(config: TickConfig): Promise<TickResult> {
     log.error({ agentId: config.agentId, tickId, lockKey, err: sErr }, 'tick.lock_acquire_failed');
     throw new ConciergeError(
       'LockError',
-      `[@concierge/runtime] tick: lock acquire failed for agent '${config.agentId}'.`,
+      `[@concierge-mantle/agent] tick: lock acquire failed for agent '${config.agentId}'.`,
       sErr,
     );
   }

@@ -1,4 +1,4 @@
-import { sanitizeError } from '@concierge/runtime';
+import { sanitizeError } from '@concierge-mantle/agent';
 
 export interface ShutdownTarget {
   close(): Promise<void>;

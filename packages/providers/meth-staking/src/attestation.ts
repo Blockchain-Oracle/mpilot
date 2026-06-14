@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address, EvmChainId } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address, EvmChainId } from '@concierge-mantle/shared';
 import { z } from 'zod';
 import { NON_NEG_INT_STR, NON_ZERO_ADDRESS, POSITIVE_INT_STR } from './_validators.ts';
 
@@ -42,13 +42,13 @@ export function buildReadAttestationPayload(ctx: ReadAttestationContext): ReadAt
   if (ctx.balance < 0n) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/meth-staking] attestation: balance must be non-negative',
+      '[@concierge-mantle/meth-staking] attestation: balance must be non-negative',
     );
   }
   if (ctx.exchangeRate <= 0n) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/meth-staking] attestation: exchangeRate must be positive',
+      '[@concierge-mantle/meth-staking] attestation: exchangeRate must be positive',
     );
   }
   const raw = {
@@ -65,7 +65,7 @@ export function buildReadAttestationPayload(ctx: ReadAttestationContext): ReadAt
   } catch (err) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/meth-staking] attestation: payload validation failed — ${err instanceof Error ? err.message : String(err)}`,
+      `[@concierge-mantle/meth-staking] attestation: payload validation failed — ${err instanceof Error ? err.message : String(err)}`,
       err instanceof Error ? err : undefined,
     );
   }

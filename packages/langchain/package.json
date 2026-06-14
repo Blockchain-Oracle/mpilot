@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/langchain",
+  "name": "@concierge-mantle/langchain",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -27,7 +27,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge/tools": "workspace:*"
+    "@concierge-mantle/tools": "workspace:*"
   },
   "peerDependencies": {
     "@langchain/core": "^1.1.0",
@@ -37,5 +37,8 @@
     "@langchain/core": "1.1.48",
     "tsup": "8.5.0",
     "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

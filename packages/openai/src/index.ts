@@ -1,4 +1,4 @@
-// Raw-shape OpenAI adapter for the framework-agnostic @concierge/tools
+// Raw-shape OpenAI adapter for the framework-agnostic @concierge-mantle/tools
 // registry (ADR-014). Wraps NO SDK — emits the Chat Completions wire-format
 // tool array plus a dispatch() executor, so the same toolkit drives the
 // `openai` client AND Anthropic Messages raw tool-use (key renames only:
@@ -16,7 +16,7 @@ import {
   isZodPipe,
   type ProviderToolFactory,
   toJsonSchema,
-} from '@concierge/tools';
+} from '@concierge-mantle/tools';
 
 /**
  * Duck-typed per the guards.ts convention: `instanceof z.ZodError` fails
@@ -121,7 +121,7 @@ export function toOpenAITool(t: ConciergeTool): OpenAIFunctionTool {
   // `type: 'object'` field; this guard guarantees it is a runtime no-op.
   if (parameters['type'] !== 'object') {
     throw new TypeError(
-      `[@concierge/openai] toOpenAITool: expected a root type:"object" schema for tool "${t.name}", got ${JSON.stringify(parameters['type'])} — z.toJSONSchema emission may have changed; pin/check the zod version.`,
+      `[@concierge-mantle/openai] toOpenAITool: expected a root type:"object" schema for tool "${t.name}", got ${JSON.stringify(parameters['type'])} — z.toJSONSchema emission may have changed; pin/check the zod version.`,
     );
   }
   return {
@@ -170,7 +170,7 @@ export function getOpenAITools(
       if (!t) {
         const known = [...byName.keys()].sort();
         throw new Error(
-          `[@concierge/openai] dispatch: unknown tool "${name}". ${
+          `[@concierge-mantle/openai] dispatch: unknown tool "${name}". ${
             known.length === 0
               ? 'No tools are registered — check providerToolFactories and agent.chainId.'
               : `Known tools: ${known.join(', ')}`
@@ -186,7 +186,7 @@ export function getOpenAITools(
           // attribution — in a Promise.all fan-out over parallel tool calls,
           // a bare "Unexpected token" names neither tool nor payload.
           throw new SyntaxError(
-            `[@concierge/openai] dispatch("${name}"): malformed JSON arguments — ${
+            `[@concierge-mantle/openai] dispatch("${name}"): malformed JSON arguments — ${
               cause instanceof Error ? cause.message : String(cause)
             }`,
             { cause },
@@ -209,7 +209,7 @@ export function getOpenAITools(
         // ZodError with a TypeError mid-flight.
         if (isZodError(err)) {
           try {
-            err.message = `[@concierge/openai] dispatch("${name}"): arguments failed inputSchema validation — ${err.message}`;
+            err.message = `[@concierge-mantle/openai] dispatch("${name}"): arguments failed inputSchema validation — ${err.message}`;
           } catch {
             // attribution only — the original error still propagates below
           }

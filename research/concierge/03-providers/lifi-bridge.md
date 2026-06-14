@@ -1,4 +1,4 @@
-# `@concierge/lifi-bridge` — Domain Knowledge
+# `@concierge-mantle/lifi-bridge` — Domain Knowledge
 
 ## What this is
 

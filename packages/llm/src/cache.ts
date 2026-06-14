@@ -41,7 +41,7 @@ function markLast<T extends { cache_control?: unknown }>(
   if (arr.length === 0) {
     // biome-ignore lint/suspicious/noConsole: empty prefix is almost always a caller bug, surface it
     console.warn(
-      `[@concierge/llm] markPrefixForCaching: empty ${kind} array — no cache_control marker inserted. Likely caller bug.`,
+      `[@concierge-mantle/llm] markPrefixForCaching: empty ${kind} array — no cache_control marker inserted. Likely caller bug.`,
     );
     return [];
   }

@@ -1,4 +1,4 @@
-# Story — `@concierge/aave-v3-mantle` action provider
+# Story — `@concierge-mantle/aave-v3-mantle` action provider
 
 **ID:** story-30-aave-v3-mantle-provider
 **Epic:** Epic E3 — Action Providers
@@ -11,18 +11,18 @@
 ## User story
 
 **As a** Concierge agent runtime
-**I want to** an `@concierge/aave-v3-mantle` package exposes `supply`, `borrow`, `repay`, `withdraw`, `setUserEMode`, `claimRewards` as Vercel AI SDK `tool()` definitions with Zod input schemas, viem-based execution, and ERC-8004 attestation hooks
+**I want to** an `@concierge-mantle/aave-v3-mantle` package exposes `supply`, `borrow`, `repay`, `withdraw`, `setUserEMode`, `claimRewards` as Vercel AI SDK `tool()` definitions with Zod input schemas, viem-based execution, and ERC-8004 attestation hooks
 **So that** the `plan → simulate → propose → execute → record` tick loop can act on Aave V3 Mantle without hand-rolling ABIs or addresses
 
 ---
 
 ## File modification map
 
-- `packages/providers/aave-v3-mantle/package.json` — NEW — `name: "@concierge/aave-v3-mantle"`, exports map, peer deps on `viem`, `zod`, `ai`, `@concierge/shared`, `@concierge/sdk`
+- `packages/providers/aave-v3-mantle/package.json` — NEW — `name: "@concierge-mantle/aave-v3-mantle"`, exports map, peer deps on `viem`, `zod`, `ai`, `@concierge-mantle/shared`, `@concierge-mantle/sdk`
 - `packages/providers/aave-v3-mantle/src/index.ts` — NEW — barrel exports
 - `packages/providers/aave-v3-mantle/src/provider.ts` — NEW — `createAaveV3MantleProvider(opts)` returns a `ProviderInterface` (per story-22) with the 6 actions registered. Wraps `IPool` calls via viem `writeContract`. Emits structured `TickAction` events the runtime consumes.
-- `packages/providers/aave-v3-mantle/src/actions/supply.ts` — NEW — `supply({ asset, amount, onBehalfOf })` Vercel AI SDK `tool()` def. Zod schema validates asset = sUSDe|USDC|USDe|USDY|mETH (enum constrained to addresses from `@concierge/shared`), amount > 0, onBehalfOf is valid address. Execute: `walletClient.writeContract({ address: pool, abi: ipoolAbi, functionName: 'supply', args: [asset, amount, onBehalfOf, 0] })` (referralCode=0 always per ADR-008 notes).
-- `packages/providers/aave-v3-mantle/src/actions/borrow.ts` — NEW — `borrow({ asset, amount, onBehalfOf })`. Schema constrains asset to borrowable set (USDC, USDe, USDT0 per E-Mode 1). Execute calls `IPool.borrow(asset, amount, 2, 0, onBehalfOf)` (variable rate; ADR-008). **PRE-CHECK:** reads `userEModeCategory` via `getUserAccountData`; if `0` (not in E-Mode) AND user has sUSDe supplied, throws `AaveBorrowRequiresEMode1()` typed error from `@concierge/sdk` BEFORE submitting tx (catches the silent-fail trap from `research/concierge/03-providers/aave-v3-mantle.md`).
+- `packages/providers/aave-v3-mantle/src/actions/supply.ts` — NEW — `supply({ asset, amount, onBehalfOf })` Vercel AI SDK `tool()` def. Zod schema validates asset = sUSDe|USDC|USDe|USDY|mETH (enum constrained to addresses from `@concierge-mantle/shared`), amount > 0, onBehalfOf is valid address. Execute: `walletClient.writeContract({ address: pool, abi: ipoolAbi, functionName: 'supply', args: [asset, amount, onBehalfOf, 0] })` (referralCode=0 always per ADR-008 notes).
+- `packages/providers/aave-v3-mantle/src/actions/borrow.ts` — NEW — `borrow({ asset, amount, onBehalfOf })`. Schema constrains asset to borrowable set (USDC, USDe, USDT0 per E-Mode 1). Execute calls `IPool.borrow(asset, amount, 2, 0, onBehalfOf)` (variable rate; ADR-008). **PRE-CHECK:** reads `userEModeCategory` via `getUserAccountData`; if `0` (not in E-Mode) AND user has sUSDe supplied, throws `AaveBorrowRequiresEMode1()` typed error from `@concierge-mantle/sdk` BEFORE submitting tx (catches the silent-fail trap from `research/concierge/03-providers/aave-v3-mantle.md`).
 - `packages/providers/aave-v3-mantle/src/actions/repay.ts` — NEW — `repay({ asset, amount, onBehalfOf })`. Supports `amount === 'max'` → uses `type(uint256).max`.
 - `packages/providers/aave-v3-mantle/src/actions/withdraw.ts` — NEW — `withdraw({ asset, amount, to })`. Pre-flight checks `getUserAccountData` to ensure HF post-withdraw ≥ user policy floor; refuses if it would breach.
 - `packages/providers/aave-v3-mantle/src/actions/setUserEMode.ts` — NEW — `setUserEMode({ categoryId })`. Schema enforces `categoryId ∈ {0, 1, 2}`.
@@ -37,7 +37,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge/aave-v3-mantle run build` runs
+When `pnpm --filter @concierge-mantle/aave-v3-mantle run build` runs
 Then exit code is 0
 
 Given the provider is created with a valid wallet client + Sepolia chain
@@ -97,7 +97,7 @@ test -f README.md
 
 # Package builds
 cd ../../..
-pnpm --filter @concierge/aave-v3-mantle run build
+pnpm --filter @concierge-mantle/aave-v3-mantle run build
 test $? -eq 0
 
 # Typecheck passes
@@ -132,8 +132,8 @@ grep -q "concierge.aave.v3.borrow.v1" packages/providers/aave-v3-mantle/src/atte
 - **`referralCode = 0` always** per `research/concierge/03-providers/aave-v3-mantle.md` § Gotchas. Some Aave forks revert on non-whitelisted refs; passing 0 is universally safe.
 - **`interestRateMode = 2`** (variable) — only mode supported on Aave V3. Stable rate is being phased out.
 - **`amount === 'max'`** convention for `repay` + `withdraw`: SDK accepts `'max'` (string literal) and converts to `type(uint256).max`. Reduces "did I get the decimals right" bugs on max actions.
-- **Schemas constrain asset to known addresses** — `asset: z.enum([SUSDE_ADDR, USDC_ADDR, USDE_ADDR, USDY_ADDR, METH_ADDR])` — so the LLM can't hallucinate addresses. Addresses come from `@concierge/shared/addresses.ts` resolved per chain id.
-- **Use OZ-style typed errors throughout.** All thrown errors come from `@concierge/sdk` error hierarchy (story-23). Reference: `AaveBorrowRequiresEMode1`, `AaveSupplyFailed`, `WithdrawWouldBreakHealthFactor`, `OraclePriceUnavailable`.
+- **Schemas constrain asset to known addresses** — `asset: z.enum([SUSDE_ADDR, USDC_ADDR, USDE_ADDR, USDY_ADDR, METH_ADDR])` — so the LLM can't hallucinate addresses. Addresses come from `@concierge-mantle/shared/addresses.ts` resolved per chain id.
+- **Use OZ-style typed errors throughout.** All thrown errors come from `@concierge-mantle/sdk` error hierarchy (story-23). Reference: `AaveBorrowRequiresEMode1`, `AaveSupplyFailed`, `WithdrawWouldBreakHealthFactor`, `OraclePriceUnavailable`.
 - **`maxSafeBorrow` is pure compute** — single chain read for `getUserAccountData`, then arithmetic. Lets the `plan()` phase iterate without burning RPC calls.
 - **Attestation payload schema** per `research/concierge/03-providers/aave-v3-mantle.md` § ERC-8004 attestation hook — includes preHF / postHF / eMode / amountBase / txHash. Hash via EIP-712 typed-data in the `record()` phase (story-67), not here.
 - **viem chain selection** — provider takes either `chain: 'mantle-mainnet' | 'mantle-sepolia'` OR an explicit chain object. Defaults to whichever the runtime's wallet client is connected to (auto-detected via `walletClient.chain.id`).

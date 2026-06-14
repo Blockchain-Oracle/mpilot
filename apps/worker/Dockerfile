@@ -5,12 +5,12 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/worker/package.json apps/worker/
 COPY packages packages
-RUN pnpm install --frozen-lockfile --filter @concierge/worker...
+RUN pnpm install --frozen-lockfile --filter @concierge-mantle/worker...
 
 FROM deps AS build
 WORKDIR /app
 COPY apps/worker apps/worker
-RUN pnpm --filter @concierge/worker run build
+RUN pnpm --filter @concierge-mantle/worker run build
 
 FROM node:22-alpine AS runtime
 WORKDIR /app

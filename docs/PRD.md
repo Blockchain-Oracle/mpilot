@@ -16,7 +16,7 @@ The user sets a financial goal in plain English — *"max stablecoin yield, keep
 
 Concierge is for Mantle/Bybit-adjacent DeFi users holding stablecoins (USDC), staking assets (mETH), or RWA yield tokens (sUSDe, USDY) who want active management without spending hours per week — and who want a verifiable audit trail, not a black-box robo-advisor.
 
-**But Concierge is more than the consumer app.** It ships as a **core (`@concierge/tools` + `@concierge/agent` + `@concierge/sdk`) with N framework adapters** so that any developer building on LangChain, Vercel AI SDK, OpenAI's Chat Completions, Anthropic's Claude Agent SDK, Coinbase AgentKit, CopilotKit, or assistant-ui can drop Concierge's 30+ DeFi actions into their existing agent app with one `pnpm add`. The web app at `concierge.xyz` is the flagship reference consumer of that core — not the source of truth.
+**But Concierge is more than the consumer app.** It ships as a **core (`@concierge-mantle/tools` + `@concierge-mantle/agent` + `@concierge-mantle/sdk`) with N framework adapters** so that any developer building on LangChain, Vercel AI SDK, OpenAI's Chat Completions, Anthropic's Claude Agent SDK, Coinbase AgentKit, CopilotKit, or assistant-ui can drop Concierge's 30+ DeFi actions into their existing agent app with one `pnpm add`. The web app at `concierge.xyz` is the flagship reference consumer of that core — not the source of truth.
 
 **One-line pitch (judge-facing):**
 > An autonomous AI agent for Mantle that bridges, swaps, lends, and rebalances 24/7 — every move signed by your session key, every receipt on-chain via ERC-8004, every action composable into any other agent runtime via npm.
@@ -33,19 +33,19 @@ Concierge is the canonical reference of Mantle's "Agents as Interface" 2026 thes
 Concierge is NOT an app with a side door for the SDK. It's a **layered set of npm packages** that the four surfaces all consume. Each surface is a first-class deliverable, sized by judge-impact:
 
 ### Surface 1 — Consumer web app (`concierge.xyz`)
-The flagship demo. Landing + onboarding + dashboard + tick stream + reputation viewer. Built on `@concierge/react-ui` (our own component library). This is the judge's first contact and the X-thread shareable. Dogfoods the whole package set.
+The flagship demo. Landing + onboarding + dashboard + tick stream + reputation viewer. Built on `@concierge-mantle/react-ui` (our own component library). This is the judge's first contact and the X-thread shareable. Dogfoods the whole package set.
 
-### Surface 2 — npm SDK + framework adapters (`@concierge/*`)
+### Surface 2 — npm SDK + framework adapters (`@concierge-mantle/*`)
 The infrastructure deliverable. Total **15 packages** (5 existing + 10 new — see `architecture.md` repo structure):
-- **Core (framework-agnostic):** `@concierge/shared`, `@concierge/agent`, `@concierge/tools` (the 30+ DeFi actions as a single source of truth), plus 7 protocol packages (`@concierge/aave-v3-mantle`, `@concierge/mantle-dex`, `@concierge/ethena-susde`, `@concierge/ondo-usdy`, `@concierge/meth-staking`, `@concierge/lifi-bridge`, `@concierge/erc8004`).
-- **Framework adapters** (15-40 LOC each, wrap `@concierge/tools` for one runtime): `@concierge/vercel-ai`, `@concierge/openai` (covers Anthropic raw tool-use too — same JSON Schema), `@concierge/langchain`, `@concierge/agentkit`. Audit dropped GOAT (15 months stale) and `@openai/agents` (15 months stale) — use direct Chat Completions instead.
-- **Components:** `@concierge/react` (headless tool-part components), `@concierge/react-ui` (styled drop-ins), plus 2 optional UI adapters `@concierge/react-assistant-ui` + `@concierge/react-copilotkit` (cover LangGraph / CrewAI / Mastra / Pydantic AI / AG-UI users transitively).
-- **MCP:** `@concierge/mcp` — transport-agnostic core, ships as stdio default + Cloudflare Worker hosted variant.
-- **Skill:** `@concierge/skill` — `npx skills add Blockchain-Oracle/concierge` Track 6 qualifier.
-- **Meta:** `@concierge/sdk` — convenience re-export for the common case.
+- **Core (framework-agnostic):** `@concierge-mantle/shared`, `@concierge-mantle/agent`, `@concierge-mantle/tools` (the 30+ DeFi actions as a single source of truth), plus 7 protocol packages (`@concierge-mantle/aave-v3-mantle`, `@concierge-mantle/mantle-dex`, `@concierge-mantle/ethena-susde`, `@concierge-mantle/ondo-usdy`, `@concierge-mantle/meth-staking`, `@concierge-mantle/lifi-bridge`, `@concierge-mantle/erc8004`).
+- **Framework adapters** (15-40 LOC each, wrap `@concierge-mantle/tools` for one runtime): `@concierge-mantle/vercel-ai`, `@concierge-mantle/openai` (covers Anthropic raw tool-use too — same JSON Schema), `@concierge-mantle/langchain`, `@concierge-mantle/agentkit`. Audit dropped GOAT (15 months stale) and `@openai/agents` (15 months stale) — use direct Chat Completions instead.
+- **Components:** `@concierge-mantle/react` (headless tool-part components), `@concierge-mantle/react-ui` (styled drop-ins), plus 2 optional UI adapters `@concierge-mantle/react-assistant-ui` + `@concierge-mantle/react-copilotkit` (cover LangGraph / CrewAI / Mastra / Pydantic AI / AG-UI users transitively).
+- **MCP:** `@concierge-mantle/mcp` — transport-agnostic core, ships as stdio default + Cloudflare Worker hosted variant.
+- **Skill:** `@concierge-mantle/skill` — `npx skills add Blockchain-Oracle/concierge` Track 6 qualifier.
+- **Meta:** `@concierge-mantle/sdk` — convenience re-export for the common case.
 
-### Surface 3 — MCP server (`@concierge/mcp` stdio + `mcp.concierge.xyz/mcp` hosted)
-The agent-host distribution moat. Stdio install via `claude mcp add concierge -- npx -y @concierge/mcp` works in **Claude Code, Claude Desktop, Cursor, Windsurf, VS Code Copilot, Zed, Cline, Goose, OpenCode, Codex** (10+ hosts). Per-tool `outputSchema` enables structured tool results that other MCPs can compose against. Three-rail generative UI:
+### Surface 3 — MCP server (`@concierge-mantle/mcp` stdio + `mcp.concierge.xyz/mcp` hosted)
+The agent-host distribution moat. Stdio install via `claude mcp add concierge -- npx -y @concierge-mantle/mcp` works in **Claude Code, Claude Desktop, Cursor, Windsurf, VS Code Copilot, Zed, Cline, Goose, OpenCode, Codex** (10+ hosts). Per-tool `outputSchema` enables structured tool results that other MCPs can compose against. Three-rail generative UI:
 - **Vercel AI SDK `tool-${name}` parts** for the web app (and any AI-SDK consumer);
 - **MCP Apps `ui://` HTML resources** rendered in sandboxed iframes by Claude Desktop / ChatGPT / Goose / VS Code Insiders (SEP-1865, merged 2026-01-28);
 - **MCP Elicitation** (`mode: 'form'` for high-value confirmations + `mode: 'url'` for OAuth/wallet-connect handoff) — both stable since spec `2025-06-18`.
@@ -60,11 +60,11 @@ The Byreal/Track 6 qualifier. Built per the `vercel-labs/skills` v1.5.10 format 
 | Surface | Judge moment | Differentiation |
 |---|---|---|
 | Web app | "Look, it ticks live on `concierge.xyz`. Status pill animates. Reasoning streams. Tx hash confirms. Attestation lands." | UI/UX track; community voting shareable. |
-| npm SDK + adapters | "I `pnpm add @concierge/langchain` in my LangChain agent — instant Mantle DeFi." | Mantle Ecosystem Contribution — actual infrastructure that other devs adopt. |
-| MCP stdio + hosted + MCP Apps | "I run `npx -y @concierge/mcp` in Claude Desktop, and the proposal card renders as an iframe inside Claude. I click Approve inside Claude, my session key signs, tx confirms — without leaving the chat." | First-mover on MCP Apps in DeFi; first-mover on stdio-default MCP for a Mantle agent. |
+| npm SDK + adapters | "I `pnpm add @concierge-mantle/langchain` in my LangChain agent — instant Mantle DeFi." | Mantle Ecosystem Contribution — actual infrastructure that other devs adopt. |
+| MCP stdio + hosted + MCP Apps | "I run `npx -y @concierge-mantle/mcp` in Claude Desktop, and the proposal card renders as an iframe inside Claude. I click Approve inside Claude, my session key signs, tx confirms — without leaving the chat." | First-mover on MCP Apps in DeFi; first-mover on stdio-default MCP for a Mantle agent. |
 | Skill via `npx skills add` | "`npx skills add Blockchain-Oracle/concierge` and my OpenCode agent now knows Concierge." | Track 6 (Byreal Agentic Economy) qualifier; cross-host skill distribution. |
 
-**No other Mantle Track 6 team can claim all four with depth.** Most ship one surface. We ship all four because the core (`@concierge/tools`) makes the marginal cost of each additional surface = ~20-40 LOC of adapter code.
+**No other Mantle Track 6 team can claim all four with depth.** Most ship one surface. We ship all four because the core (`@concierge-mantle/tools`) makes the marginal cost of each additional surface = ~20-40 LOC of adapter code.
 
 ---
 
@@ -78,9 +78,9 @@ The Byreal/Track 6 qualifier. Built per the `vercel-labs/skills` v1.5.10 format 
 
 4. **Judge clicks Approve.** Pill transitions to `executing`. Pending tx hash links to MantleScan Sepolia. Within ~6 seconds: `confirmed`. Card auto-expands the attestation: *"ERC-8004 feedback hash `0xabc…` written to ReputationRegistry. Agent reputation now +1.74."* Tx hash + ERC-8004 explorer link both clickable.
 
-5. **Judge opens a SECOND surface — Claude Desktop.** Pastes `npx -y @concierge/mcp` into their MCP config. Claude Desktop loads Concierge's tools. Judge types: *"Concierge, what's my position?"* Claude calls the MCP server. The Portfolio card renders **inside Claude Desktop** as an MCP Apps `ui://` HTML iframe — live position data, identical to the web app card. Judge clicks Approve inside Claude. MCP Elicitation pops a structured confirmation form (`confirm: bool`, `maxSlippageBps: number`). Judge confirms. Same session key signs. Same tx hash confirms. **Same agent, two surfaces, one Mainnet action.**
+5. **Judge opens a SECOND surface — Claude Desktop.** Pastes `npx -y @concierge-mantle/mcp` into their MCP config. Claude Desktop loads Concierge's tools. Judge types: *"Concierge, what's my position?"* Claude calls the MCP server. The Portfolio card renders **inside Claude Desktop** as an MCP Apps `ui://` HTML iframe — live position data, identical to the web app card. Judge clicks Approve inside Claude. MCP Elicitation pops a structured confirmation form (`confirm: bool`, `maxSlippageBps: number`). Judge confirms. Same session key signs. Same tx hash confirms. **Same agent, two surfaces, one Mainnet action.**
 
-6. **Judge opens a THIRD surface — their own LangChain agent.** Runs `pnpm add @concierge/langchain` in their app. 5 lines later, their agent has Concierge's 30+ DeFi tools. They demo it composing Concierge + a Telegram MCP: *"if my yield drops below 6%, message me on Telegram and propose a rebalance."*
+6. **Judge opens a THIRD surface — their own LangChain agent.** Runs `pnpm add @concierge-mantle/langchain` in their app. 5 lines later, their agent has Concierge's 30+ DeFi tools. They demo it composing Concierge + a Telegram MCP: *"if my yield drops below 6%, message me on Telegram and propose a rebalance."*
 
 **The wow moment:** *The agent does the work, the user just talks, and the same agent runs across the web app, Claude Desktop, and any other developer's stack — with an on-chain reputation receipt that lives forever and a structured JSON contract that any future surface can consume.*
 
@@ -95,7 +95,7 @@ The Byreal/Track 6 qualifier. Built per the `vercel-labs/skills` v1.5.10 format 
 - **Custom prediction markets** — that's AgentArena's wedge (plan B candidate).
 - **Multi-agent swarms / committees** — one agent per user, simpler ship.
 - **Pre-built canned strategies UI** — Concierge describes goals; agent picks actions.
-- **`@concierge/goat` adapter** — GOAT SDK 4-15 months stale per `AUDIT-2026-06-09.md`. Defer to v1.1 if GOAT resumes active maintenance.
+- **`@concierge-mantle/goat` adapter** — GOAT SDK 4-15 months stale per `AUDIT-2026-06-09.md`. Defer to v1.1 if GOAT resumes active maintenance.
 - **`@openai/agents` dependency** — 15 months stale; use direct Chat Completions tool shape (covers Anthropic raw tool-use too — single adapter).
 - **Tambo / Crayon component libraries** — both are model-driven (LLM picks the component); contradicts Concierge's contract that *tool X always renders card X*.
 - **Mobile native app** — web app responsive only; mobile PWA defer to v1.1.
@@ -116,9 +116,9 @@ Full decisions live in `architecture.md` ADRs. Highlights:
 
 | Decision | Choice | ADR |
 |---|---|---|
-| MCP transport default | **stdio** (`npx -y @concierge/mcp`); hosted Cloudflare Worker is optional secondary | ADR-011 (amended) |
-| Tool registry shape | `@concierge/tools` framework-agnostic registry; `ConciergeTool` interface (`name`, `description`, `inputSchema: ZodObject`, `invoke`, optional `supportsNetwork`) | ADR-014 |
-| Components | Two-package split: `@concierge/react` (headless) + `@concierge/react-ui` (styled); web app dogfoods both | ADR-015 |
+| MCP transport default | **stdio** (`npx -y @concierge-mantle/mcp`); hosted Cloudflare Worker is optional secondary | ADR-011 (amended) |
+| Tool registry shape | `@concierge-mantle/tools` framework-agnostic registry; `ConciergeTool` interface (`name`, `description`, `inputSchema: ZodObject`, `invoke`, optional `supportsNetwork`) | ADR-014 |
+| Components | Two-package split: `@concierge-mantle/react` (headless) + `@concierge-mantle/react-ui` (styled); web app dogfoods both | ADR-015 |
 | LLM provider abstraction | Vercel AI SDK `LanguageModelV1`; env auto-detect; tick worker stays Anthropic | ADR-016 |
 | Generative UI rails | Three rails on a structured-JSON `outputSchema` contract: Vercel AI SDK tool-parts + MCP Apps `ui://` resources + MCP Elicitation (form + url modes) | ADR-017 |
 | Vercel AI SDK version | **`ai 6.x` + `@ai-sdk/react 3.x`** (current stable 2026-06-08) | architecture.md stack |
@@ -146,16 +146,16 @@ Full decisions live in `architecture.md` ADRs. Highlights:
 
 - **General (70%):** Byreal integration depth via `npx skills add Blockchain-Oracle/concierge` (vercel-labs/skills v1.5.10) · agent autonomy via cron tick loop with session-key auto-execute · technical completeness across 7 providers · sustainability (15 open-source npm packages other Mantle devs compose against) · cross-runtime support: a Mantle dev can use Concierge from LangChain, Vercel AI SDK, OpenAI, Anthropic, Coinbase AgentKit, CopilotKit, assistant-ui, or any MCP-compatible host
 - **Strategy Alpha (30%):** Verifiability via ERC-8004 attestation per tick + structured-JSON `outputSchema` per tool means **every action is backtestable forever AND replayable in any other agent runtime**
-- **Submission answer:** *"Concierge ships as a Claude-/OpenCode-/Cursor-/Windsurf-compatible Agent Skill installable via `npx skills add Blockchain-Oracle/concierge`, plus 15 npm packages (`@concierge/tools` + 4 framework adapters + 2 component adapters + MCP stdio server + 7 protocol packages + React headless/styled components). Every action is composable into any Mantle dev's existing agent stack via a single `pnpm add`."*
+- **Submission answer:** *"Concierge ships as a Claude-/OpenCode-/Cursor-/Windsurf-compatible Agent Skill installable via `npx skills add Blockchain-Oracle/concierge`, plus 15 npm packages (`@concierge-mantle/tools` + 4 framework adapters + 2 component adapters + MCP stdio server + 7 protocol packages + React headless/styled components). Every action is composable into any Mantle dev's existing agent stack via a single `pnpm add`."*
 
 ### Best UI/UX
 
 | Dimension | Weight | Approach |
 |---|---|---|
-| Visual Design (30%) | — | Designer agent owns implementation (see `docs/ux-spec.md` + `research/concierge/08-ux-component-intent.md`); shipped as `@concierge/react-ui` (other devs reuse) |
+| Visual Design (30%) | — | Designer agent owns implementation (see `docs/ux-spec.md` + `research/concierge/08-ux-component-intent.md`); shipped as `@concierge-mantle/react-ui` (other devs reuse) |
 | Interaction & Flow (30%) | — | Onboarding flow → goal-set → activate → live tick stream → approval/autopilot UX → ERC-8004 receipt viewer; identical interactions across web app AND Claude Desktop (MCP Apps iframe) AND any consuming app |
 | AI Interaction Design (25%) | — | Three-rail gen UI: tick cards stream reasoning text + status pill transitions + nested simulation/execution cards (Vercel AI SDK) · MCP Apps iframes in Claude Desktop · MCP Elicitation structured confirmation forms — "the AI is visibly thinking" pattern across every surface |
-| Accessibility (15%) | — | Keyboard nav, screen reader, motion-reduce, light/dark, mobile-responsive (contract in `08-ux-component-intent.md`); enforced in headless `@concierge/react` package; styling in `@concierge/react-ui` |
+| Accessibility (15%) | — | Keyboard nav, screen reader, motion-reduce, light/dark, mobile-responsive (contract in `08-ux-component-intent.md`); enforced in headless `@concierge-mantle/react` package; styling in `@concierge-mantle/react-ui` |
 
 ### Community Voting
 
@@ -184,12 +184,12 @@ The README must contain in this order:
 5. **Run-locally steps** (3 commands max — `git clone` → `pnpm install` → `pnpm dev`)
 6. **Deployed contracts table** with mantlescan.xyz links for `ConciergeRegistry` + session-key validator + the canonical ERC-8004 / Aave V3 / sUSDe / USDC addresses we compose against
 7. **MCP install instructions:**
-   - Stdio (default): `claude mcp add concierge -- npx -y @concierge/mcp`
+   - Stdio (default): `claude mcp add concierge -- npx -y @concierge-mantle/mcp`
    - Hosted (optional): `claude mcp add concierge https://mcp.concierge.xyz/mcp --header "Authorization: Bearer ck_live_..."`
 8. **Skill install:** `npx skills add Blockchain-Oracle/concierge`
-9. **SDK quickstart** — 5-line `@concierge/sdk` example with model auto-detection
-10. **Framework adapter install snippets** — one block per framework (`@concierge/vercel-ai`, `@concierge/openai`, `@concierge/langchain`, `@concierge/agentkit`)
-11. **Component install snippets** — `@concierge/react-ui` standalone + `@concierge/react-assistant-ui` for assistant-ui users + `@concierge/react-copilotkit` for AG-UI / LangGraph / CrewAI / Mastra users
+9. **SDK quickstart** — 5-line `@concierge-mantle/sdk` example with model auto-detection
+10. **Framework adapter install snippets** — one block per framework (`@concierge-mantle/vercel-ai`, `@concierge-mantle/openai`, `@concierge-mantle/langchain`, `@concierge-mantle/agentkit`)
+11. **Component install snippets** — `@concierge-mantle/react-ui` standalone + `@concierge-mantle/react-assistant-ui` for assistant-ui users + `@concierge-mantle/react-copilotkit` for AG-UI / LangGraph / CrewAI / Mastra users
 12. **Per-tool MCP Apps `ui://` resource list** — what cards render inside Claude Desktop
 13. **License** (MIT)
 14. **Architecture diagram** (linked, from `docs/architecture-diagram.svg`)
@@ -220,4 +220,4 @@ The README must contain in this order:
 ## Changelog
 
 - **2026-06-03 (initial draft):** Four-surface model first articulated; 13 ADRs locked.
-- **2026-06-09 (this rewrite):** Composable-primitive framing made explicit. MCP transport: stdio-first + hosted optional. Components: `@concierge/react` + `@concierge/react-ui` split + 2 optional adapters. Model-agnostic via Vercel AI SDK `LanguageModelV1`. Three-rail generative UI on structured-JSON contract. Stack bumped to `ai 6.x`. Dropped GOAT + `@openai/agents` (both stale). 10 new packages added to repo structure. 16 new stories defined in `epics.md` + `sprint-status.yaml` (see SPEC-REWORK-BRIEF).
+- **2026-06-09 (this rewrite):** Composable-primitive framing made explicit. MCP transport: stdio-first + hosted optional. Components: `@concierge-mantle/react` + `@concierge-mantle/react-ui` split + 2 optional adapters. Model-agnostic via Vercel AI SDK `LanguageModelV1`. Three-rail generative UI on structured-JSON contract. Stack bumped to `ai 6.x`. Dropped GOAT + `@openai/agents` (both stale). 10 new packages added to repo structure. 16 new stories defined in `epics.md` + `sprint-status.yaml` (see SPEC-REWORK-BRIEF).

@@ -1,4 +1,4 @@
-import { tool } from '@concierge/tools';
+import { tool } from '@concierge-mantle/tools';
 import { z } from 'zod';
 import { computeRateFromSqrt, fetchPoolState } from '../_agni.ts';
 import type { ActionContext } from '../_context.ts';

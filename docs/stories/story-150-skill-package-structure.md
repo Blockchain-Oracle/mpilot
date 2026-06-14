@@ -12,7 +12,7 @@
 
 **As a** Concierge maintainer
 **I want to** the RealClaw skill lives at `packages/skill-mantle-agent` with the standard skill folder layout (SKILL.md, assets/, scripts/, references/) per the RealClaw skills convention, NOT the Byreal Skills CLI (which is Solana-only)
-**So that** the skill can be packaged + published to RealClaw's skill registry as a Track-6 qualifier, distributed via `npx skills add @concierge/mantle-agent`
+**So that** the skill can be packaged + published to RealClaw's skill registry as a Track-6 qualifier, distributed via `npx skills add @concierge-mantle/mantle-agent`
 
 ---
 
@@ -66,7 +66,7 @@ When checked
 Then it excludes development artifacts (.test.ts, vitest.config.ts, src/)
 
 Given typecheck
-When `pnpm --filter @concierge/skill-mantle-agent run typecheck` runs
+When `pnpm --filter @concierge-mantle/skill-mantle-agent run typecheck` runs
 Then exit code is 0
 
 Given the structure validation test
@@ -110,7 +110,7 @@ bun -e "
 ! grep -iE "(BNPL|Buy.Now.Pay.Later|yield.spread.wedge)" packages/skill-mantle-agent/SKILL.md
 
 # Tests pass
-pnpm --filter @concierge/skill-mantle-agent run test 2>&1 | grep "structure" | grep -q "PASS"
+pnpm --filter @concierge-mantle/skill-mantle-agent run test 2>&1 | grep "structure" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

@@ -2,8 +2,8 @@
 // Fork note: Pinned to FORK_BLOCK (block 96_500_000 ≈ 2026-06-10).
 // At that block the Agni USDY/USDC pool (deployed ~2026-06-05) is ~5 days old,
 // so observe([604800]) reverts with "OLD" — deterministically verifying InsufficientLiquidity.
-import { ConciergeError } from '@concierge/sdk';
-import { ADDRESSES } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { executeGetYieldRate } from '../../actions/getYieldRate.ts';
 import { type AnvilFork, FORK_BLOCK, startAnvilFork } from '../setup.ts';

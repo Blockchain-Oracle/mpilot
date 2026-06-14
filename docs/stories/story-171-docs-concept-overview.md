@@ -78,7 +78,7 @@ test -f _meta.tsx
 
 cd ../../../../..
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # All 5 phases mentioned in the-loop

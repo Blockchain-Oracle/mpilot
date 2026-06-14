@@ -66,7 +66,7 @@ installed, you can ask your assistant questions like:
 ## Installation
 
 ```bash
-npx skills add @concierge/mantle-agent
+npx skills add @concierge-mantle/mantle-agent
 ```
 
 After install, run the post-install configurator to link your Mantle wallet:

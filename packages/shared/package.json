@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/shared",
+  "name": "@concierge-mantle/shared",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -36,5 +36,8 @@
   "devDependencies": {
     "tsup": "8.5.0",
     "viem": "2.52.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { tool } from '@concierge-mantle/tools';
 import { z } from 'zod';
 import { type ActionContext, ROUTE_TTL_MS } from '../_context.ts';
 import { type LifiBridgeRoute, LifiBridgeRouteSchema } from '../_types.ts';
@@ -45,14 +45,14 @@ async function requireWallet(ctx: ActionContext) {
   if (!ctx.walletClient) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/lifi-bridge] bridge: walletClient is required. Pass walletClient when creating the provider.',
+      '[@concierge-mantle/lifi-bridge] bridge: walletClient is required. Pass walletClient when creating the provider.',
     );
   }
   const account = ctx.walletClient.account?.address as `0x${string}` | undefined;
   if (!account) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/lifi-bridge] bridge: walletClient has no bound account. Use createWalletClient({ account }).',
+      '[@concierge-mantle/lifi-bridge] bridge: walletClient has no bound account. Use createWalletClient({ account }).',
     );
   }
   return { walletClient: ctx.walletClient, account };
@@ -77,7 +77,7 @@ async function resolveRoute(
   if (!quoteResult.route) {
     throw new ConciergeError(
       'InsufficientLiquidity',
-      '[@concierge/lifi-bridge] bridge: no routes available for this token pair',
+      '[@concierge-mantle/lifi-bridge] bridge: no routes available for this token pair',
     );
   }
   return quoteResult.route;
@@ -91,19 +91,19 @@ async function submitBridgeTx(
   if (txReq.to.toLowerCase() !== lifiDiamond.toLowerCase()) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/lifi-bridge] bridge: route targets ${txReq.to} which is not the Li.Fi Diamond — refusing to submit`,
+      `[@concierge-mantle/lifi-bridge] bridge: route targets ${txReq.to} which is not the Li.Fi Diamond — refusing to submit`,
     );
   }
   if (walletClient.chain === undefined) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/lifi-bridge] bridge: walletClient has no bound chain — bind a chain or call switchChain before bridging',
+      '[@concierge-mantle/lifi-bridge] bridge: walletClient has no bound chain — bind a chain or call switchChain before bridging',
     );
   }
   if (walletClient.chain.id !== txReq.chainId) {
     throw new ConciergeError(
       'NetworkUnsupported',
-      `[@concierge/lifi-bridge] bridge: wallet chain ${walletClient.chain.id} ≠ route chain ${txReq.chainId} — switch networks before bridging`,
+      `[@concierge-mantle/lifi-bridge] bridge: wallet chain ${walletClient.chain.id} ≠ route chain ${txReq.chainId} — switch networks before bridging`,
     );
   }
   try {
@@ -117,7 +117,7 @@ async function submitBridgeTx(
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/lifi-bridge] bridge: source-chain tx submission failed — ${err instanceof Error ? err.message : String(err)}`,
+      `[@concierge-mantle/lifi-bridge] bridge: source-chain tx submission failed — ${err instanceof Error ? err.message : String(err)}`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -153,7 +153,7 @@ export async function executeBridge(
   } catch (err) {
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge/lifi-bridge] bridge: tx submitted (sourceTxHash: ${sourceTxHash}) but attestation failed — record tx manually`,
+      `[@concierge-mantle/lifi-bridge] bridge: tx submitted (sourceTxHash: ${sourceTxHash}) but attestation failed — record tx manually`,
       err instanceof Error ? err : undefined,
     );
   }

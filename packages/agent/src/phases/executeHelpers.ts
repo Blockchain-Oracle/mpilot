@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { sanitizeError } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome } from '../types.ts';
 import type { ApprovedProposal, EoaQueueEnqueue, ExecutionRepository } from './execute.ts';
@@ -6,7 +6,7 @@ import type { ExecuteOutcome, ExecutionRow } from './executeSchema.ts';
 
 /** Stderr fallback so a gas-drift signal cannot be silently disabled by an unwired logDrift dep. */
 export function defaultDriftLog(msg: string): void {
-  process.stderr.write(`[concierge/runtime] ${msg}\n`);
+  process.stderr.write(`[concierge-mantle/agent] ${msg}\n`);
 }
 
 /** Safe-range note: bigint→number via `(actual*10000n)/estimate` is lossless for gas values < ~9e14. */
@@ -30,7 +30,7 @@ export async function insertOrThrow(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runExecute: execution row insert failed (proposalId=${row.proposalId}${row.userOpHash ? ` userOpHash=${row.userOpHash}` : ''}): ${safe.message}`,
+      `[@concierge-mantle/agent] runExecute: execution row insert failed (proposalId=${row.proposalId}${row.userOpHash ? ` userOpHash=${row.userOpHash}` : ''}): ${safe.message}`,
       safe,
       {
         proposalId: row.proposalId,
@@ -55,7 +55,7 @@ export async function eoaFallback(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runExecute (EOA fallback): enqueue failed: ${safe.message}`,
+      `[@concierge-mantle/agent] runExecute (EOA fallback): enqueue failed: ${safe.message}`,
       safe,
     );
   }
@@ -72,7 +72,7 @@ export async function eoaFallback(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/runtime] runExecute (EOA fallback): row insert failed AFTER queue enqueue; reconcile queueId=${queued.queueId}: ${safe.message}`,
+      `[@concierge-mantle/agent] runExecute (EOA fallback): row insert failed AFTER queue enqueue; reconcile queueId=${queued.queueId}: ${safe.message}`,
       safe,
       { proposalId: inputs.proposal.id, agentId: inputs.state.agentId, queueId: queued.queueId },
     );

@@ -8,9 +8,9 @@ Concierge is an **autonomous DeFi agent for Mantle** built for the Mantle Turing
 
 **Four surfaces, one core:**
 1. **Web app** (`concierge.xyz/app`) — consumer-facing agent control + live tick stream
-2. **npm SDK** (`@concierge/sdk` + 7 `@concierge/<provider>` packages) — "AgentKit for Mantle" — other Mantle devs install our action providers
+2. **npm SDK** (`@concierge-mantle/sdk` + 7 `@concierge-mantle/<provider>` packages) — "AgentKit for Mantle" — other Mantle devs install our action providers
 3. **MCP server** (`mcp.concierge.xyz/api/sse`) — Claude Code / OpenClaw / RealClaw can drive Concierge natively
-4. **RealClaw skill** (`npx skills add @concierge/mantle-agent`) — satisfies Mantle Turing Test Track 6 (Agentic Economy) "must use core capabilities of RealClaw" requirement
+4. **RealClaw skill** (`npx skills add @concierge-mantle/mantle-agent`) — satisfies Mantle Turing Test Track 6 (Agentic Economy) "must use core capabilities of RealClaw" requirement
 
 **Locked architecture:** TypeScript monorepo (Bun) · Next.js 15 app · Vercel AI SDK foundation · viem + ZeroDev ERC-4337 smart accounts · Foundry contracts · Postgres (Neon) + Redis (Upstash) · Claude Sonnet 4.6 (default LLM) · Anthropic SDK · MCP TypeScript SDK · Tambo or assistant-ui or custom shadcn (designer's call).
 
@@ -37,13 +37,13 @@ Read in this order if you're an AI agent or new contributor:
 
 | Provider | Mantle protocol | Source-of-truth file |
 |---|---|---|
-| `@concierge/aave-v3-mantle` | Aave V3 (Pool `0x458F…1422`) | `03-providers/aave-v3-mantle.md` |
-| `@concierge/mantle-dex` | Merchant Moe + Agni + FusionX + WOOFi aggregator | `03-providers/mantle-dex.md` |
-| `@concierge/ethena-susde` | sUSDe (`0x211C…E5d2`) | `03-providers/ethena-susde.md` |
-| `@concierge/ondo-usdy` | USDY (bridged from Ethereum) | `03-providers/ondo-usdy.md` |
-| `@concierge/meth-staking` | mETH (Mantle's LST) | `03-providers/meth-staking.md` |
-| `@concierge/lifi-bridge` | Li.Fi multi-route bridging | `03-providers/lifi-bridge.md` |
-| `@concierge/erc8004` | Identity `0x8004…a432` + Reputation `0x8004…9b63` | `03-providers/erc8004.md` |
+| `@concierge-mantle/aave-v3-mantle` | Aave V3 (Pool `0x458F…1422`) | `03-providers/aave-v3-mantle.md` |
+| `@concierge-mantle/mantle-dex` | Merchant Moe + Agni + FusionX + WOOFi aggregator | `03-providers/mantle-dex.md` |
+| `@concierge-mantle/ethena-susde` | sUSDe (`0x211C…E5d2`) | `03-providers/ethena-susde.md` |
+| `@concierge-mantle/ondo-usdy` | USDY (bridged from Ethereum) | `03-providers/ondo-usdy.md` |
+| `@concierge-mantle/meth-staking` | mETH (Mantle's LST) | `03-providers/meth-staking.md` |
+| `@concierge-mantle/lifi-bridge` | Li.Fi multi-route bridging | `03-providers/lifi-bridge.md` |
+| `@concierge-mantle/erc8004` | Identity `0x8004…a432` + Reputation `0x8004…9b63` | `03-providers/erc8004.md` |
 
 ## What this folder is NOT
 

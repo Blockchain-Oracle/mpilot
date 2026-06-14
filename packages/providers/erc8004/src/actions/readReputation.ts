@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge/sdk';
-import { reputationRegistryAbi } from '@concierge/shared/abi';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { reputationRegistryAbi } from '@concierge-mantle/shared/abi';
+import { tool } from '@concierge-mantle/tools';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 
@@ -58,7 +58,7 @@ async function fetchFeedbackArrays(
     } catch (err) {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/erc8004] readReputation: readAllFeedback failed for agent ${agentId}`,
+        `[@concierge-mantle/erc8004] readReputation: readAllFeedback failed for agent ${agentId}`,
         err,
       );
     }
@@ -78,7 +78,7 @@ async function fetchFeedbackArrays(
   ) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/erc8004] readReputation: readAllFeedback returned inconsistent array lengths for agent ${agentId}`,
+      `[@concierge-mantle/erc8004] readReputation: readAllFeedback returned inconsistent array lengths for agent ${agentId}`,
     );
   }
 
@@ -97,7 +97,7 @@ function summarizeFeedback(arrays: FeedbackArrays): FeedbackSummary {
     if (feedbackIndex === undefined || value === undefined || schema === undefined) {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/erc8004] readReputation: malformed readAllFeedback response at index ${i}`,
+        `[@concierge-mantle/erc8004] readReputation: malformed readAllFeedback response at index ${i}`,
       );
     }
     schemaCounts[schema] = (schemaCounts[schema] ?? 0) + 1;
@@ -131,7 +131,7 @@ export async function executeReadReputation(
     } catch (err) {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/erc8004] readReputation: getClients failed for agent ${input.agentId}`,
+        `[@concierge-mantle/erc8004] readReputation: getClients failed for agent ${input.agentId}`,
         err,
       );
     }

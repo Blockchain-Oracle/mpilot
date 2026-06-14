@@ -33,7 +33,7 @@ The user sees the tick cards stream in real time: status pill animates `pending 
 
 3. **MCP server distribution moat.** Concierge ships its tool surface via MCP — drivable from Claude Code / Claude Desktop / OpenClaw / RealClaw natively. Judges and community users on those clients drive Concierge without us shipping any extra UI for them. Free distribution into the exact audience Mantle is courting.
 
-4. **SDK positioning ("AgentKit for Mantle").** Other Mantle developers `npm install @concierge/sdk` and drop our 7 action providers into their own agents. Becomes infrastructure other builders compose against. Coinbase AgentKit's playbook, ported.
+4. **SDK positioning ("AgentKit for Mantle").** Other Mantle developers `npm install @concierge-mantle/sdk` and drop our 7 action providers into their own agents. Becomes infrastructure other builders compose against. Coinbase AgentKit's playbook, ported.
 
 5. **Multi-track stacking.** Agentic Economy (Byreal) qualifies via RealClaw skill packaging (verified pattern). Grand Champion via full-stack execution. Best UI/UX via the live tick-card stream. Community Voting via Sepolia playground (mock-deploy pattern from archived Patron is reusable). 20-Project Deployment Award via Mainnet contract + verified frontend + ≥2 min demo.
 
@@ -55,7 +55,7 @@ The user sees the tick cards stream in real time: status pill animates `pending 
 
 ## Naming
 
-Working name: **Concierge** (clean, explains itself in 5 seconds, sets the user-as-principal / agent-as-steward frame). Designer may iterate; if rebrand happens, it's a find/replace on `@concierge/*` packages + domain. Final name lock by Day 2.
+Working name: **Concierge** (clean, explains itself in 5 seconds, sets the user-as-principal / agent-as-steward frame). Designer may iterate; if rebrand happens, it's a find/replace on `@concierge-mantle/*` packages + domain. Final name lock by Day 2.
 
 ## Pitch openers (verbatim use)
 
@@ -63,15 +63,15 @@ Working name: **Concierge** (clean, explains itself in 5 seconds, sets the user-
 
 - **1-sentence X-thread opener:** *"Mantle gave us ERC-8004 in February. Six months later, nobody's actually composed against it as a primitive — until now."*
 
-- **Demo opener (judge walkthrough):** *"This is Concierge. The agent in front of you isn't running locally — it lives at concierge.xyz/app, and it's also installable in your Claude Code right now via `npx skills add @concierge/mantle-agent`. I'm about to set a goal in English. Watch what happens."*
+- **Demo opener (judge walkthrough):** *"This is Concierge. The agent in front of you isn't running locally — it lives at concierge.xyz/app, and it's also installable in your Claude Code right now via `npx skills add @concierge-mantle/mantle-agent`. I'm about to set a goal in English. Watch what happens."*
 
 ## Definition of done (what "shipped" means)
 
 - Mantle Mainnet contracts deployed + verified on MantleScan: `ConciergeRegistry`, agent session-key validator
-- 7 npm packages published: `@concierge/sdk` + 7 providers (`@concierge/aave-v3-mantle`, `@concierge/mantle-dex`, `@concierge/ethena-susde`, `@concierge/ondo-usdy`, `@concierge/meth-staking`, `@concierge/lifi-bridge`, `@concierge/erc8004`)
+- 7 npm packages published: `@concierge-mantle/sdk` + 7 providers (`@concierge-mantle/aave-v3-mantle`, `@concierge-mantle/mantle-dex`, `@concierge-mantle/ethena-susde`, `@concierge-mantle/ondo-usdy`, `@concierge-mantle/meth-staking`, `@concierge-mantle/lifi-bridge`, `@concierge-mantle/erc8004`)
 - Web app live at `concierge.xyz` with full landing + `/app` + `/docs`
 - MCP server live at `mcp.concierge.xyz/api/sse`, drivable from Claude Code / Claude Desktop / OpenClaw / RealClaw
-- RealClaw skill installable via `npx skills add @concierge/mantle-agent`
+- RealClaw skill installable via `npx skills add @concierge-mantle/mantle-agent`
 - Real Mainnet ticks logged (real capital under management — proves it actually runs, not a demo-mode stub)
 - ≥ 2 min demo video walking through goal-set → tick stream → approval → execution → ERC-8004 receipt → /agent/:id reputation page
 - X thread tagged `#MantleAIHackathon` with verified Mainnet addresses

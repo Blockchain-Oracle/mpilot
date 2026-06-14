@@ -1,9 +1,9 @@
-// @concierge/sdk — META package (story-22 amended, ADR-014/016/018/019):
+// @concierge-mantle/sdk — META package (story-22 amended, ADR-014/016/018/019):
 // one install + one import for the Concierge core. Curated named re-exports
 // (not `export *`) so the public surface is deliberate.
 //
 // The agent-runtime exports (`createConcierge`, `Concierge`) land when
-// `@concierge/agent` is born in Epic E5 — no story before E5 creates that
+// `@concierge-mantle/agent` is born in Epic E5 — no story before E5 creates that
 // package, and stubbing a fake runtime here is a banned hot-path mock. See
 // the deferral addendum in docs/stories/story-22-sdk-skeleton.md.
 
@@ -16,7 +16,7 @@ export {
   type MainnetAddressPath,
   SEPOLIA_PENDING_ADDRESS_SLOTS,
   type SepoliaAddressPath,
-} from '@concierge/shared';
+} from '@concierge-mantle/shared';
 export {
   bigintSafeStringify,
   CARD_SCHEMAS,
@@ -41,8 +41,8 @@ export {
   type TickPhase,
   tool,
   type UICardId,
-} from '@concierge/tools';
-export { getVercelAITools, toVercelAITool } from '@concierge/vercel-ai';
+} from '@concierge-mantle/tools';
+export { getVercelAITools, toVercelAITool } from '@concierge-mantle/vercel-ai';
 export { type ConciergeConfig, ConfigSchema, loadConfig } from './config.ts';
 export {
   defaultModel,

@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { tool } from '@concierge-mantle/tools';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 import { HEX_ADDRESS, NON_NEG_INT_STR, NON_ZERO_ADDRESS, VENUE_NAME } from '../_schema.ts';
@@ -93,11 +93,11 @@ export async function executeQuote(
     if (venueEntry === undefined)
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/mantle-dex] quote: venue index ${i} out of bounds`,
+        `[@concierge-mantle/mantle-dex] quote: venue index ${i} out of bounds`,
       );
     const venue = venueEntry.name;
     if (s.status === 'rejected') {
-      console.error(`[@concierge/mantle-dex] quote: ${venue} rejected:`, s.reason);
+      console.error(`[@concierge-mantle/mantle-dex] quote: ${venue} rejected:`, s.reason);
     } else if (s.value !== null) {
       routeMap[venue] = s.value;
     }
@@ -130,7 +130,7 @@ export async function resolveRouteMap(
   if (best === undefined) {
     throw new ConciergeError(
       'InsufficientLiquidity',
-      `[@concierge/mantle-dex] quote: no venue returned a route for ${tokenIn} → ${tokenOut}`,
+      `[@concierge-mantle/mantle-dex] quote: no venue returned a route for ${tokenIn} → ${tokenOut}`,
     );
   }
 

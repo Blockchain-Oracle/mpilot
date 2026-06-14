@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 
 /**
  * AES-256-GCM envelope: `[12-byte IV][16-byte tag][ciphertext]`. Self-contained;
@@ -19,7 +19,7 @@ export function assertEncryptionKey(key: Buffer, caller: string): void {
   if (!Buffer.isBuffer(key) || key.length !== KEY_BYTES) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] ${caller}: encryptionKey must be exactly ${KEY_BYTES} bytes (AES-256), got ${Buffer.isBuffer(key) ? key.length : typeof key}.`,
+      `[@concierge-mantle/smart-account] ${caller}: encryptionKey must be exactly ${KEY_BYTES} bytes (AES-256), got ${Buffer.isBuffer(key) ? key.length : typeof key}.`,
     );
   }
 }
@@ -58,7 +58,7 @@ export function encryptEnvelope(plaintext: Buffer, key: Buffer, aad: Buffer): Bu
   if (plaintext.length !== PLAINTEXT_BYTES) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] encryptEnvelope: plaintext must be ${PLAINTEXT_BYTES} bytes, got ${plaintext.length}.`,
+      `[@concierge-mantle/smart-account] encryptEnvelope: plaintext must be ${PLAINTEXT_BYTES} bytes, got ${plaintext.length}.`,
     );
   }
   const iv = randomBytes(IV_BYTES);
@@ -81,7 +81,7 @@ export function decryptEnvelope(envelope: Buffer, key: Buffer, aad: Buffer): Buf
   if (envelope.length !== ENVELOPE_BYTES) {
     throw new ConciergeError(
       'DecryptionFailed',
-      `[@concierge/smart-account] decryptEnvelope: envelope length ${envelope.length} is not the expected ${ENVELOPE_BYTES} bytes (corrupted row or wrong column).`,
+      `[@concierge-mantle/smart-account] decryptEnvelope: envelope length ${envelope.length} is not the expected ${ENVELOPE_BYTES} bytes (corrupted row or wrong column).`,
     );
   }
   const iv = envelope.subarray(0, IV_BYTES);
@@ -95,7 +95,7 @@ export function decryptEnvelope(envelope: Buffer, key: Buffer, aad: Buffer): Buf
   } catch {
     throw new ConciergeError(
       'DecryptionFailed',
-      '[@concierge/smart-account] decryptEnvelope: AES-256-GCM decryption failed — wrong encryption key, wrong AAD (agentId/sessionKeyAddress mismatch — possible row swap), tampered ciphertext, or corrupted envelope.',
+      '[@concierge-mantle/smart-account] decryptEnvelope: AES-256-GCM decryption failed — wrong encryption key, wrong AAD (agentId/sessionKeyAddress mismatch — possible row swap), tampered ciphertext, or corrupted envelope.',
     );
   }
 }

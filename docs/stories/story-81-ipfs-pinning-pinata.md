@@ -76,11 +76,11 @@ cd ../..
 test -f packages/db/src/schema/pinReceipts.ts
 test -f packages/db/migrations/0002_pin_receipts.sql
 
-pnpm --filter @concierge/attestation run build
+pnpm --filter @concierge-mantle/attestation run build
 test $? -eq 0
 
 # Tests pass with the dual-pin redundancy test + both-fail-throws test
-pnpm --filter @concierge/attestation run test --reporter=verbose 2>&1 | grep -E "(Pinata.*succeeds|Pinata.*fails|both.*fail)" | grep -q "✓"
+pnpm --filter @concierge-mantle/attestation run test --reporter=verbose 2>&1 | grep -E "(Pinata.*succeeds|Pinata.*fails|both.*fail)" | grep -q "✓"
 
 bun scripts/check-file-loc.mjs
 ```

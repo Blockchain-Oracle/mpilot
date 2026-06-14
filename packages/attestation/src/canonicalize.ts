@@ -37,7 +37,7 @@ export function canonicalize(input: unknown, opts: CanonicalizeOptions = {}): st
 function walk(value: unknown, seen: WeakSet<object>, depth: number, maxDepth: number): string {
   if (depth > maxDepth) {
     throw new Error(
-      `[@concierge/attestation] canonicalize: max depth ${maxDepth} exceeded (CWE-674 guard).`,
+      `[@concierge-mantle/attestation] canonicalize: max depth ${maxDepth} exceeded (CWE-674 guard).`,
     );
   }
   if (value === null) return 'null';
@@ -45,7 +45,7 @@ function walk(value: unknown, seen: WeakSet<object>, depth: number, maxDepth: nu
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) {
       throw new Error(
-        '[@concierge/attestation] canonicalize: NaN/Infinity not representable in JSON.',
+        '[@concierge-mantle/attestation] canonicalize: NaN/Infinity not representable in JSON.',
       );
     }
     return JSON.stringify(value);
@@ -53,18 +53,20 @@ function walk(value: unknown, seen: WeakSet<object>, depth: number, maxDepth: nu
   if (typeof value === 'boolean') return value ? 'true' : 'false';
   if (typeof value === 'bigint') {
     throw new Error(
-      '[@concierge/attestation] canonicalize: bigint cannot be encoded; stringify before passing in.',
+      '[@concierge-mantle/attestation] canonicalize: bigint cannot be encoded; stringify before passing in.',
     );
   }
   if (typeof value === 'undefined') {
-    throw new Error('[@concierge/attestation] canonicalize: undefined is not valid JSON.');
+    throw new Error('[@concierge-mantle/attestation] canonicalize: undefined is not valid JSON.');
   }
   if (typeof value === 'function' || typeof value === 'symbol') {
-    throw new Error(`[@concierge/attestation] canonicalize: ${typeof value} is not valid JSON.`);
+    throw new Error(
+      `[@concierge-mantle/attestation] canonicalize: ${typeof value} is not valid JSON.`,
+    );
   }
   if (Array.isArray(value)) {
     if (seen.has(value)) {
-      throw new Error('[@concierge/attestation] canonicalize: cyclic input.');
+      throw new Error('[@concierge-mantle/attestation] canonicalize: cyclic input.');
     }
     seen.add(value);
     const out = `[${value.map((v) => walk(v, seen, depth + 1, maxDepth)).join(',')}]`;
@@ -73,7 +75,7 @@ function walk(value: unknown, seen: WeakSet<object>, depth: number, maxDepth: nu
   }
   if (typeof value === 'object') {
     if (seen.has(value)) {
-      throw new Error('[@concierge/attestation] canonicalize: cyclic input.');
+      throw new Error('[@concierge-mantle/attestation] canonicalize: cyclic input.');
     }
     seen.add(value);
     const obj = value as Record<string, unknown>;
@@ -84,25 +86,27 @@ function walk(value: unknown, seen: WeakSet<object>, depth: number, maxDepth: nu
     const parts: string[] = [];
     for (const k of allNames) {
       if (FORBIDDEN_KEYS.has(k)) {
-        throw new Error(`[@concierge/attestation] canonicalize: forbidden key '${k}' (CWE-1321).`);
+        throw new Error(
+          `[@concierge-mantle/attestation] canonicalize: forbidden key '${k}' (CWE-1321).`,
+        );
       }
       const desc = Object.getOwnPropertyDescriptor(obj, k);
       if (desc === undefined) continue;
       if (!desc.enumerable) {
         throw new Error(
-          `[@concierge/attestation] canonicalize: non-enumerable own property '${k}' rejected (would diverge hash from JSON round-trip).`,
+          `[@concierge-mantle/attestation] canonicalize: non-enumerable own property '${k}' rejected (would diverge hash from JSON round-trip).`,
         );
       }
       if (desc.get !== undefined) {
         throw new Error(
-          `[@concierge/attestation] canonicalize: accessor own property '${k}' rejected.`,
+          `[@concierge-mantle/attestation] canonicalize: accessor own property '${k}' rejected.`,
         );
       }
       // Round-1 contract: throw on undefined object values (silent drop would
       // collide two structurally-different envelopes to the same keccak).
       if (obj[k] === undefined) {
         throw new Error(
-          `[@concierge/attestation] canonicalize: undefined value at key '${k}' — delete the key explicitly.`,
+          `[@concierge-mantle/attestation] canonicalize: undefined value at key '${k}' — delete the key explicitly.`,
         );
       }
       parts.push(`${JSON.stringify(k)}:${walk(obj[k], seen, depth + 1, maxDepth)}`);
@@ -110,5 +114,7 @@ function walk(value: unknown, seen: WeakSet<object>, depth: number, maxDepth: nu
     seen.delete(value);
     return `{${parts.join(',')}}`;
   }
-  throw new Error(`[@concierge/attestation] canonicalize: unsupported type ${typeof value}.`);
+  throw new Error(
+    `[@concierge-mantle/attestation] canonicalize: unsupported type ${typeof value}.`,
+  );
 }

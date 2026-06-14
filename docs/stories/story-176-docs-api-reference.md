@@ -23,7 +23,7 @@
 - `apps/web/content/docs/reference/mcp-tools.mdx` — NEW — handwritten MCP tools list (read + write) with input schemas
 - `apps/web/content/docs/reference/rest-api.mdx` — NEW — handwritten REST endpoint reference (/api/portfolio, /api/proposals/[id]/approve, etc.)
 - `apps/web/content/docs/reference/contracts.mdx` — NEW — handwritten contracts reference (ConciergeRegistry methods, events)
-- `apps/web/content/docs/reference/errors.mdx` — NEW — handwritten typed error reference (every error from @concierge/sdk + how to handle)
+- `apps/web/content/docs/reference/errors.mdx` — NEW — handwritten typed error reference (every error from @concierge-mantle/sdk + how to handle)
 - `apps/web/content/docs/reference/_meta.tsx` — NEW — top-level reference nav
 - `apps/web/scripts/generate-sdk-reference.ts` — NEW — TypeDoc invocation script that outputs MDX into apps/web/content/docs/reference/sdk/
 - `.github/workflows/regenerate-docs.yml` — NEW — CI job that regenerates SDK reference on every push to main and commits the diff
@@ -35,9 +35,9 @@
 ```
 Given the generate-sdk-reference script runs
 When `pnpm apps/web/scripts/generate-sdk-reference.ts` executes
-Then it produces MDX files in apps/web/content/docs/reference/sdk/ for every public export of @concierge/sdk
+Then it produces MDX files in apps/web/content/docs/reference/sdk/ for every public export of @concierge-mantle/sdk
 
-Given a public function signature changes in @concierge/sdk
+Given a public function signature changes in @concierge-mantle/sdk
 When the regenerate script runs in CI
 Then the docs reference reflects the new signature (drift caught by uncommitted diff in CI)
 
@@ -55,7 +55,7 @@ Then it covers ConciergeRegistry's public methods (registerAgent, validateSessio
 
 Given the typed errors reference
 When inspected
-Then it lists every error class from @concierge/sdk/errors with: error code, when it fires, recovery action
+Then it lists every error class from @concierge-mantle/sdk/errors with: error code, when it fires, recovery action
 
 Given the regenerate-docs.yml workflow
 When triggered by push to main
@@ -83,7 +83,7 @@ test -f apps/web/content/docs/reference/errors.mdx
 test -f apps/web/scripts/generate-sdk-reference.ts
 test -f .github/workflows/regenerate-docs.yml
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # Regenerate script runs cleanly

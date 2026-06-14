@@ -80,11 +80,11 @@ test -f src/policies/concierge.ts
 
 cd ../..
 
-pnpm --filter @concierge/smart-account run build
+pnpm --filter @concierge-mantle/smart-account run build
 test $? -eq 0
 
 # Tests pass
-pnpm --filter @concierge/smart-account run test --reporter=verbose 2>&1 | grep -q "composition.test"
+pnpm --filter @concierge-mantle/smart-account run test --reporter=verbose 2>&1 | grep -q "composition.test"
 
 # Bad inputs throw typed errors
 bun -e "

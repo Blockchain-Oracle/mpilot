@@ -77,14 +77,14 @@ test -f src/loadSessionKey.ts
 
 cd ../..
 
-pnpm --filter @concierge/smart-account run build
+pnpm --filter @concierge-mantle/smart-account run build
 test $? -eq 0
 
 # Tests pass
-pnpm --filter @concierge/smart-account run test 2>&1 | grep "issueSessionKey" | grep -q "PASS"
+pnpm --filter @concierge-mantle/smart-account run test 2>&1 | grep "issueSessionKey" | grep -q "PASS"
 
 # Encrypted-at-rest invariant verified
-pnpm --filter @concierge/smart-account run test 2>&1 | grep -E "Encrypted|persist" | grep -q "PASS"
+pnpm --filter @concierge-mantle/smart-account run test 2>&1 | grep -E "Encrypted|persist" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

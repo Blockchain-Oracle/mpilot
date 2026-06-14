@@ -30,7 +30,7 @@ export function safeParseSerializableProposalCard(
   return SerializableProposalCardSchema.safeParse(data);
 }
 
-// Drift in @concierge/shared's TickLoopPhase fails compilation BIDIRECTIONALLY:
+// Drift in @concierge-mantle/shared's TickLoopPhase fails compilation BIDIRECTIONALLY:
 // `satisfies` catches narrowing; the `_AssertNever` helper catches widening
 // (the previous `_widenFence: ... = null as never` form was a NO-OP — `never`
 // is assignable to any type, so widening slipped through silently).

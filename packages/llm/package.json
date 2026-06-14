@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/llm",
+  "name": "@concierge-mantle/llm",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -30,12 +30,15 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.104.1",
     "@anthropic-ai/claude-agent-sdk": "0.3.177",
-    "@concierge/sdk": "workspace:*"
+    "@concierge-mantle/sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "22.19.20",
     "tsup": "8.5.0",
     "typescript": "6.0.3",
     "vitest": "4.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

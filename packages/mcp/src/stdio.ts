@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // stdio entry per ADR-011 amended — DEFAULT install path
-// (`claude mcp add concierge -- npx -y @concierge/mcp`). Stdout is RESERVED
+// (`claude mcp add concierge -- npx -y @concierge-mantle/mcp`). Stdout is RESERVED
 // for MCP JSON-RPC; ALL logs MUST go to stderr.
 
 import { realpathSync } from 'node:fs';
@@ -16,7 +16,7 @@ import { assertModelEnvOrExit, bootstrapWallet, type WalletConfig } from './wall
  * follow-up agent integration story.
  *
  * Round-1: emit a loud stderr warning when called with an empty toolset so
- * users running `npx -y @concierge/mcp` see why Claude Desktop shows "0 tools"
+ * users running `npx -y @concierge-mantle/mcp` see why Claude Desktop shows "0 tools"
  * — silent no-op would route bug reports to the wrong layer.
  */
 export async function runStdio(
@@ -51,7 +51,7 @@ export async function runStdio(
 
 /**
  * Round-1 (silent-failure HIGH): detect bin invocation under symlinks/Windows.
- * `npx -y @concierge/mcp` installs via a symlinked shim; argv[1] is the
+ * `npx -y @concierge-mantle/mcp` installs via a symlinked shim; argv[1] is the
  * symlink, `import.meta.url` is the resolved real path — string-equal fails.
  * `realpathSync` both sides + canonical `pathToFileURL` comparison handles
  * symlinks, Windows path encoding, and node `--import` invocations.

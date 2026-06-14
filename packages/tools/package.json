@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/tools",
+  "name": "@concierge-mantle/tools",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -32,7 +32,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge/shared": "workspace:*"
+    "@concierge-mantle/shared": "workspace:*"
   },
   "peerDependencies": {
     "zod": "^4.1.0"
@@ -40,5 +40,8 @@
   "devDependencies": {
     "tsup": "8.5.0",
     "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

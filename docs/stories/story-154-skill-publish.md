@@ -29,7 +29,7 @@
 ## Acceptance criteria (BDD)
 
 ```
-Given `pnpm --filter @concierge/skill-mantle-agent run publish --dry-run`
+Given `pnpm --filter @concierge-mantle/skill-mantle-agent run publish --dry-run`
 When executed
 Then it: validates manifest, runs full test suite, computes the new version, generates a CHANGELOG entry, but does NOT publish (--dry-run honored)
 
@@ -38,7 +38,7 @@ When the publish script runs
 Then it aborts BEFORE incrementing version OR creating git tag (transactional — no half-published state)
 
 Given a clean dry-run
-When `pnpm --filter @concierge/skill-mantle-agent run publish --release` is run
+When `pnpm --filter @concierge-mantle/skill-mantle-agent run publish --release` is run
 Then version bumped in package.json + SKILL.md frontmatter (kept in sync), CHANGELOG entry added, git tag created (v0.1.0), npm publish executed, RealClaw registry POST sent
 
 Given the RealClaw registry POST
@@ -47,7 +47,7 @@ Then the script logs the failure AND prints recovery instructions (the npm publi
 
 Given the npm publish
 When it succeeds
-Then the package is publicly installable via `npm install @concierge/mantle-agent` AND `npx skills add @concierge/mantle-agent` (the post-install script lives in the published artifact)
+Then the package is publicly installable via `npm install @concierge-mantle/mantle-agent` AND `npx skills add @concierge-mantle/mantle-agent` (the post-install script lives in the published artifact)
 
 Given the version field is consistent
 When the publish completes
@@ -73,7 +73,7 @@ test -f packages/skill-mantle-agent/.npmrc
 test -f .github/workflows/publish-skill.yml
 
 # Dry-run publish works
-pnpm --filter @concierge/skill-mantle-agent run publish --dry-run
+pnpm --filter @concierge-mantle/skill-mantle-agent run publish --dry-run
 test $? -eq 0
 
 # Manifest version matches package.json version
@@ -85,7 +85,7 @@ bun -e "
 "
 
 # Tests pass
-pnpm --filter @concierge/skill-mantle-agent run test 2>&1 | grep "publish" | grep -q "PASS"
+pnpm --filter @concierge-mantle/skill-mantle-agent run test 2>&1 | grep "publish" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

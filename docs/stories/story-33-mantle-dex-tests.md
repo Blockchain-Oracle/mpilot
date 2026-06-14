@@ -1,4 +1,4 @@
-# Story — `@concierge/mantle-dex` integration tests
+# Story — `@concierge-mantle/mantle-dex` integration tests
 
 **ID:** story-33-mantle-dex-tests
 **Epic:** Epic E3 — Action Providers
@@ -35,7 +35,7 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge/mantle-dex run test` runs
+When `pnpm --filter @concierge-mantle/mantle-dex run test` runs
 Then exit code is 0 AND ≥ 25 test cases pass
 
 Given quote_USDC_to_sUSDe
@@ -75,7 +75,7 @@ When `pnpm scripts/check-file-loc.mjs` runs
 Then every test file ≤ 400 LOC
 
 Given coverage gate
-When `pnpm --filter @concierge/mantle-dex run test --coverage` runs
+When `pnpm --filter @concierge-mantle/mantle-dex run test --coverage` runs
 Then line coverage on `src/` is ≥ 80% (lower than Aave's 85% because off-chain quote logic has wider permutation space)
 ```
 
@@ -88,19 +88,19 @@ Then line coverage on `src/` is ≥ 80% (lower than Aave's 85% because off-chain
 test -n "$MANTLE_RPC_URL"
 
 # Tests pass
-pnpm --filter @concierge/mantle-dex run test --reporter=verbose
+pnpm --filter @concierge-mantle/mantle-dex run test --reporter=verbose
 test $? -eq 0
 
 # ≥ 25 test cases
-pnpm --filter @concierge/mantle-dex run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 25 {exit 0} {exit 1}'
+pnpm --filter @concierge-mantle/mantle-dex run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 25 {exit 0} {exit 1}'
 
 # Slippage-breach + re-quote tests are present and passing
 for tn in SlippageBreach_RevertsBeforeSubmit RequoteOnExecute_PicksFreshBest NoRouteVenueReturnsNullCleanly; do
-  pnpm --filter @concierge/mantle-dex run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
+  pnpm --filter @concierge-mantle/mantle-dex run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
 done
 
 # Coverage ≥ 80%
-cov=$(pnpm --filter @concierge/mantle-dex run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @concierge-mantle/mantle-dex run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 80
 
 # No file exceeds 400 LOC

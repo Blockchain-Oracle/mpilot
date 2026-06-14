@@ -30,7 +30,7 @@ export async function createDbClient(
 ): Promise<{ db: DbClient; pool: Pool }> {
   if (!databaseUrl) {
     throw new Error(
-      '[@concierge/db] createDbClient: databaseUrl is required (expected a Postgres connection string).',
+      '[@concierge-mantle/db] createDbClient: databaseUrl is required (expected a Postgres connection string).',
     );
   }
   const pool = new Pool({ connectionString: databaseUrl });
@@ -44,7 +44,7 @@ export async function createDbClient(
       options.onPoolError(err);
     } else {
       // biome-ignore lint/suspicious/noConsole: pool failure must be observable; stderr is MCP-safe
-      console.error('[@concierge/db] pool error:', err);
+      console.error('[@concierge-mantle/db] pool error:', err);
     }
   });
   if (options.ping) {

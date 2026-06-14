@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/meth-staking",
+  "name": "@concierge-mantle/meth-staking",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,9 +28,9 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge/shared": "workspace:*",
-    "@concierge/sdk": "workspace:*",
-    "@concierge/tools": "workspace:*"
+    "@concierge-mantle/shared": "workspace:*",
+    "@concierge-mantle/sdk": "workspace:*",
+    "@concierge-mantle/tools": "workspace:*"
   },
   "peerDependencies": {
     "viem": "^2.52.0",
@@ -41,5 +41,8 @@
     "tsup": "8.5.0",
     "viem": "2.52.2",
     "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -81,7 +81,7 @@ test -f docs/DEPLOY-WEB-RUNBOOK.md
 test -f .github/workflows/deploy-web-preview.yml
 test -f .github/workflows/deploy-web-production.yml
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # Production workflow targets main

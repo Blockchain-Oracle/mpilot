@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { describe, expect, it } from 'vitest';
 import { createOndoUsdyProvider } from '../../provider.ts';
 

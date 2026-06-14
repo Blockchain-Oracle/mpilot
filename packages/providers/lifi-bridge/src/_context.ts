@@ -1,4 +1,4 @@
-import type { EvmChainId } from '@concierge/shared';
+import type { EvmChainId } from '@concierge-mantle/shared';
 import type { PublicClient, WalletClient } from 'viem';
 
 export const LIFI_DIAMOND = '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE' as const;

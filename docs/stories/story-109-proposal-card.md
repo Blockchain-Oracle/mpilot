@@ -86,11 +86,11 @@ test -f components/dashboard/CountdownBadge.tsx
 
 cd ../..
 
-pnpm --filter @concierge/web run build
+pnpm --filter @concierge-mantle/web run build
 test $? -eq 0
 
 # Tests pass
-pnpm --filter @concierge/web run test 2>&1 | grep -E "(ProposalCard|BeforeAfterDiff)" | grep -q "PASS"
+pnpm --filter @concierge-mantle/web run test 2>&1 | grep -E "(ProposalCard|BeforeAfterDiff)" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

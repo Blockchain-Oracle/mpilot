@@ -1,4 +1,4 @@
-import { ADDRESSES } from '@concierge/shared';
+import { ADDRESSES } from '@concierge-mantle/shared';
 import { describe, expect, it } from 'vitest';
 import { createErc8004Provider } from '../provider.ts';
 

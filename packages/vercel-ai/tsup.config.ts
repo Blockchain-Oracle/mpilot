@@ -8,5 +8,5 @@ export default defineConfig({
   clean: true,
   target: 'node22',
   tsconfig: 'tsconfig.build.json',
-  external: ['ai', 'zod', '@concierge/tools'],
+  external: ['ai', 'zod', '@concierge-mantle/tools'],
 });

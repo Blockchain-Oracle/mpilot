@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address, EvmChainId } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address, EvmChainId } from '@concierge-mantle/shared';
 import type { PublicClient, WalletClient } from 'viem';
 
 export interface DexAddresses {
@@ -24,14 +24,14 @@ export async function requireWallet(
   if (!ctx.walletClient) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/mantle-dex] ${action}: walletClient is required for write operations.`,
+      `[@concierge-mantle/mantle-dex] ${action}: walletClient is required for write operations.`,
     );
   }
   const account = ctx.walletClient.account?.address as Address | undefined;
   if (!account) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/mantle-dex] ${action}: walletClient has no bound account. Pass an explicit account to createWalletClient({ account: privateKeyToAccount(...) }).`,
+      `[@concierge-mantle/mantle-dex] ${action}: walletClient has no bound account. Pass an explicit account to createWalletClient({ account: privateKeyToAccount(...) }).`,
     );
   }
   return { walletClient: ctx.walletClient, account };

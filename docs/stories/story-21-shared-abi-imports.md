@@ -11,7 +11,7 @@
 ## User story
 
 **As a** Concierge provider author
-**I want to** import canonical ABIs from `@concierge/shared` without copying JSON
+**I want to** import canonical ABIs from `@concierge-mantle/shared` without copying JSON
 **So that** every package uses the same source-of-truth ABI
 
 ---

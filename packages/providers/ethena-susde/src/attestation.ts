@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge/sdk';
-import type { Address, EvmChainId, Hex } from '@concierge/shared';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import type { Address, EvmChainId, Hex } from '@concierge-mantle/shared';
 import { z } from 'zod';
 import { NON_NEG_INT_STR, NON_ZERO_ADDRESS, TX_HASH } from './_schema.ts';
 
@@ -35,13 +35,13 @@ export function buildAttestationPayload(ctx: AttestationContext): AttestationPay
   if (ctx.amountIn <= 0n) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/ethena-susde] attestation: amountIn must be positive',
+      '[@concierge-mantle/ethena-susde] attestation: amountIn must be positive',
     );
   }
   if (ctx.amountOut <= 0n) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/ethena-susde] attestation: amountOut must be positive',
+      '[@concierge-mantle/ethena-susde] attestation: amountOut must be positive',
     );
   }
   const raw = {

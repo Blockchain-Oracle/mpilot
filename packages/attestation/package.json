@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/attestation",
+  "name": "@concierge-mantle/attestation",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -29,7 +29,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge/sdk": "workspace:*",
+    "@concierge-mantle/sdk": "workspace:*",
     "viem": "2.52.2",
     "zod": "4.1.13"
   },
@@ -38,5 +38,8 @@
     "tsup": "8.5.0",
     "typescript": "5.9.3",
     "vitest": "4.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge/sdk';
-import { reputationRegistryAbi } from '@concierge/shared/abi';
-import { tool } from '@concierge/tools';
+import { ConciergeError } from '@concierge-mantle/sdk';
+import { reputationRegistryAbi } from '@concierge-mantle/shared/abi';
+import { tool } from '@concierge-mantle/tools';
 import {
   AbiEventSignatureEmptyTopicsError,
   AbiEventSignatureNotFoundError,
@@ -59,7 +59,7 @@ function scanForFeedbackIndex(
         continue;
       throw new ConciergeError(
         'RpcError',
-        '[@concierge/erc8004] attestAction: unexpected error decoding ReputationRegistry log',
+        '[@concierge-mantle/erc8004] attestAction: unexpected error decoding ReputationRegistry log',
         err,
       );
     }
@@ -74,13 +74,13 @@ function assertAttestInputValid(
   if (!ctx.walletClient) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge/erc8004] attestAction: walletClient is required',
+      '[@concierge-mantle/erc8004] attestAction: walletClient is required',
     );
   }
   if (input.actionPayload.schema !== input.providerSchema) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/erc8004] attestAction: actionPayload.schema ("${input.actionPayload.schema}") must match providerSchema ("${input.providerSchema}")`,
+      `[@concierge-mantle/erc8004] attestAction: actionPayload.schema ("${input.actionPayload.schema}") must match providerSchema ("${input.providerSchema}")`,
     );
   }
 }
@@ -120,7 +120,7 @@ export async function executeAttestAction(
         : 'TxFailed';
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge/erc8004] attestAction: giveFeedback reverted — ${msg}`,
+      `[@concierge-mantle/erc8004] attestAction: giveFeedback reverted — ${msg}`,
       err,
       { reason, agentId: input.agentId },
     );
@@ -131,7 +131,7 @@ export async function executeAttestAction(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge/erc8004] attestAction: waitForTransactionReceipt failed for ${txHash}`,
+        `[@concierge-mantle/erc8004] attestAction: waitForTransactionReceipt failed for ${txHash}`,
         err,
       );
     });
@@ -139,7 +139,7 @@ export async function executeAttestAction(
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge/erc8004] attestAction: transaction reverted — ${txHash}`,
+      `[@concierge-mantle/erc8004] attestAction: transaction reverted — ${txHash}`,
       undefined,
       { agentId: input.agentId },
     );
@@ -149,7 +149,7 @@ export async function executeAttestAction(
   if (feedbackIndex === undefined) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/erc8004] attestAction: no NewFeedback event found in receipt ${txHash}`,
+      `[@concierge-mantle/erc8004] attestAction: no NewFeedback event found in receipt ${txHash}`,
     );
   }
   return { txHash, feedbackIndex, feedbackHash };

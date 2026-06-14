@@ -1,13 +1,13 @@
-# @concierge/langchain
+# @concierge-mantle/langchain
 
-LangChain JS adapter for `@concierge/tools`. Converts the framework-agnostic
+LangChain JS adapter for `@concierge-mantle/tools`. Converts the framework-agnostic
 Concierge registry into `StructuredToolInterface[]` ready for
 `model.bindTools(tools)` or any LangChain agent toolset.
 
 ## Quickstart
 
 ```ts
-import { getLangChainTools } from '@concierge/langchain';
+import { getLangChainTools } from '@concierge-mantle/langchain';
 
 const tools = getLangChainTools(agent, [aaveTools /* …provider factories */]);
 const bound = model.bindTools(tools);

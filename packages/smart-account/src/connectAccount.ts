@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator';
 import { createKernelAccount, createKernelAccountClient } from '@zerodev/sdk';
 import { getEntryPoint, KERNEL_V3_1 } from '@zerodev/sdk/constants';
@@ -31,7 +31,7 @@ function validateConnectConfig(config: ConnectConciergeAccountConfig): {
   if (!isAddress(config.address)) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] connectToConciergeAccount: InvalidAddress('${config.address}') — must be a 42-char 0x-prefixed hex string.`,
+      `[@concierge-mantle/smart-account] connectToConciergeAccount: InvalidAddress('${config.address}') — must be a 42-char 0x-prefixed hex string.`,
     );
   }
   return resolveChainConfig(
@@ -77,13 +77,13 @@ export async function connectToConciergeAccount(
   if (!kernelAccount.address) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] connectToConciergeAccount: kernel account returned no address (malformed SDK response).`,
+      `[@concierge-mantle/smart-account] connectToConciergeAccount: kernel account returned no address (malformed SDK response).`,
     );
   }
   if (kernelAccount.address.toLowerCase() !== config.address.toLowerCase()) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge/smart-account] connectToConciergeAccount: address mismatch — supplied '${config.address}' but kernel account resolved to '${kernelAccount.address}'. Causes: (1) owner key does not match this smart account, (2) kernel version / entry point / validator config used at creation differs from current.`,
+      `[@concierge-mantle/smart-account] connectToConciergeAccount: address mismatch — supplied '${config.address}' but kernel account resolved to '${kernelAccount.address}'. Causes: (1) owner key does not match this smart account, (2) kernel version / entry point / validator config used at creation differs from current.`,
     );
   }
   const smartAccountAddress = kernelAccount.address;
@@ -112,7 +112,7 @@ export async function connectToConciergeAccount(
   } catch (err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge/smart-account] connectToConciergeAccount: kernel client init failed (chain: '${config.chain}')`,
+      `[@concierge-mantle/smart-account] connectToConciergeAccount: kernel client init failed (chain: '${config.chain}')`,
       sanitizeCause(err, apiKey),
     );
   }

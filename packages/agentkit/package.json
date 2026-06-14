@@ -1,5 +1,5 @@
 {
-  "name": "@concierge/agentkit",
+  "name": "@concierge-mantle/agentkit",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -27,7 +27,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge/tools": "workspace:*"
+    "@concierge-mantle/tools": "workspace:*"
   },
   "peerDependencies": {
     "@coinbase/agentkit": "^0.10.4",
@@ -38,5 +38,8 @@
     "graphql": "16.12.0",
     "tsup": "8.5.0",
     "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

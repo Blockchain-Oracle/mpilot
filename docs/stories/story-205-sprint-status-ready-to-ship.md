@@ -43,7 +43,7 @@ Then it contains: total epics (13), stories shipped vs deferred (count), total L
 
 Given the coverage report
 When generated
-Then it aggregates per-package coverage and shows the WEAKEST package's % (e.g., "lowest: @concierge/aave-v3-mantle at 78%")
+Then it aggregates per-package coverage and shows the WEAKEST package's % (e.g., "lowest: @concierge-mantle/aave-v3-mantle at 78%")
 
 Given SCOPE-CUTS.md
 When inspected

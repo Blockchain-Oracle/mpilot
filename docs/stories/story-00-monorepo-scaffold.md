@@ -113,4 +113,4 @@ test $? -eq 0
 - License is MIT — copy from https://opensource.org/license/mit verbatim.
 - README is a placeholder for now (`Concierge — autonomous AI agent for Mantle. Setup instructions in story-200-readme-finalize.`).
 - The `contracts/` folder gets Foundry-initialized in story-03 — leave it as `.gitkeep` for now.
-- `apps/` will hold `web/` + `mcp/` + `worker/`; `packages/` will hold `sdk/`, `shared/`, `ui/`, `skill/`; `packages/providers/` will hold the 7 `@concierge/<provider>` packages.
+- `apps/` will hold `web/` + `mcp/` + `worker/`; `packages/` will hold `sdk/`, `shared/`, `ui/`, `skill/`; `packages/providers/` will hold the 7 `@concierge-mantle/<provider>` packages.

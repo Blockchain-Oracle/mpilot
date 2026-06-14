@@ -49,7 +49,7 @@ Convince a tired hackathon judge or curious dev in 5 seconds that Concierge is r
 
 #### `<DeveloperCTA>`
 - **Purpose:** Pitch the SDK to Mantle devs.
-- **Content:** Code block (`npm install @concierge/sdk`), 3-line example showing an agent being spun up, "Read the docs" CTA.
+- **Content:** Code block (`npm install @concierge-mantle/sdk`), 3-line example showing an agent being spun up, "Read the docs" CTA.
 - **Behavior:** code block has copy-to-clipboard button; on copy, brief success animation.
 
 #### `<TrustSignals>`
@@ -58,7 +58,7 @@ Convince a tired hackathon judge or curious dev in 5 seconds that Concierge is r
 - **Behavior:** addresses are copyable on click; logos link to each protocol's page.
 
 #### `<Footer>`
-- Primary nav back to all sections, GitHub link, X link, Docs link, MCP server install snippet (`npx skills add @concierge/mantle-agent`), copyright + MIT license note.
+- Primary nav back to all sections, GitHub link, X link, Docs link, MCP server install snippet (`npx skills add @concierge-mantle/mantle-agent`), copyright + MIT license note.
 
 ### Landing-level interactions
 
@@ -279,14 +279,14 @@ The product. Where users actually interact with Concierge.
 ## Surface 3 — Docs (`concierge.xyz/docs`)
 
 ### Purpose
-Make a Mantle developer `npm install @concierge/sdk` and ship their own agent in 90 seconds.
+Make a Mantle developer `npm install @concierge-mantle/sdk` and ship their own agent in 90 seconds.
 
 ### Pages
 
 - `/docs` — Overview + table of contents
 - `/docs/quickstart` — `git clone` to first running agent in 10 minutes
-- `/docs/sdk` — `@concierge/sdk` API reference
-- `/docs/providers` — `@concierge/<provider>` per-provider reference (mirrors `03-providers/` content)
+- `/docs/sdk` — `@concierge-mantle/sdk` API reference
+- `/docs/providers` — `@concierge-mantle/<provider>` per-provider reference (mirrors `03-providers/` content)
 - `/docs/runtime` — agent runtime concepts (tick loop, session keys, attestation)
 - `/docs/skill` — RealClaw skill packaging guide (`npx skills add` install)
 - `/docs/mcp` — MCP server setup + connect from Claude Code
@@ -423,7 +423,7 @@ Make a Mantle developer `npm install @concierge/sdk` and ship their own agent in
 ### Flow 6: Installing as a RealClaw skill
 
 1. Visitor on `concierge.xyz/docs/skill`
-2. Sees install snippet: `npx skills add @concierge/mantle-agent`
+2. Sees install snippet: `npx skills add @concierge-mantle/mantle-agent`
 3. Copies, runs in their terminal
 4. Their RealClaw / Claude Code / Claude Desktop now has Concierge tools available
 5. They invoke Concierge actions in chat: "Concierge, supply 10 USDC to Aave"

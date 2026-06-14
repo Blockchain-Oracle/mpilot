@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge/sdk';
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PinFeedbackResult } from '../pin.ts';
 import { type PinReceiptRepository, recordPinReceipt } from '../pinReceipt.ts';
