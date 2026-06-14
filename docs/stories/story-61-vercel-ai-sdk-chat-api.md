@@ -128,3 +128,23 @@ bun scripts/check-file-loc.mjs
 - **Auth**: bearer token (worker process calling /api/chat from within the cluster) OR Privy session cookie (browser). Both paths supported; auth gate fails fast for unauthenticated requests with 401.
 - **Hobby plan SSE timeout is 25s**, Pro is 60s. The chat surface is interactive (short responses); the autonomous tick loop runs out-of-band (story-62, BullMQ worker on Fly.io). Don't conflate.
 - Cross-ref: `research/concierge/04-agent-runtime.md` § 1 Vercel AI SDK 6, ADR-002.
+
+---
+
+## ⚠️ 2026-06-14 — implementation decision (framework-agnostic)
+
+Per autonomous-mode research: the original spec puts the chat handler in `apps/web/app/api/chat/route.ts`, but `apps/web/` is a stub (no `package.json`, story-100 still PENDING). Shipping the handler at the Next.js boundary would have blocked this story behind story-100.
+
+**As-built:** the chat handler lives at `packages/agent/src/chat/createChatHandler.ts` as a framework-agnostic `(Request) => Promise<Response>` function. It uses Web platform `Request`/`Response` so it slots into Next.js App Router, Cloudflare Workers, Hono, Bun.serve, and Deno without modification.
+
+When story-100 lands, `apps/web/app/api/chat/route.ts` is a 5-line import:
+
+```ts
+import { createChatHandler } from '@concierge-mantle/agent';
+import { defaultModel } from '@concierge-mantle/sdk';
+const handler = createChatHandler({ model: defaultModel(), agent, systemPromptContext: {...} });
+export const POST = handler;
+```
+
+Auth is handled by an optional `verify(req: Request) => Promise<boolean>` callback. Tests cover the auth-true / auth-false / verify-throws / no-verify paths so future Privy / bearer / OAuth wiring slots in without re-testing the LLM stream path.
+
