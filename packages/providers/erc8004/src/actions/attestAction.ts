@@ -153,7 +153,8 @@ export async function executeAttestAction(
     schema: input.providerSchema,
     agentId: input.agentId.toString(),
     chainId: ctx.chainId,
-    ...(input.txHash !== undefined ? { txHash: input.txHash } : {}),
+    // Zod regex guarantees 0x-prefixed 32-byte hex at runtime; cast for the branded type.
+    ...(input.txHash !== undefined ? { txHash: input.txHash as `0x${string}` } : {}),
     payload: { ...input.actionPayload, schema: input.providerSchema },
     createdAt,
   };
