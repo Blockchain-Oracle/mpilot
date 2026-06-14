@@ -7,13 +7,28 @@ import { executeAttestAction } from '../../actions/attestAction.ts';
 import { executeReadFeedback } from '../../actions/readFeedback.ts';
 import { executeRegisterAgent } from '../../actions/registerAgent.ts';
 
-// Context7 audit C2: keccak-canonicalize mirror of attestAction.ts production path.
+const FIXED_CREATED_AT = '2026-06-14T12:00:00Z';
+
+// Context7 audit C2 (post-review fix): mirrors `attestAction.ts` canonicalize+
+// keccak over the FeedbackEnvelope shape (direct canonicalize so tests can
+// use schemas outside attestation's closed SchemaId discriminator).
 function expectedFeedbackHash(
   payload: { schema: string } & Record<string, unknown>,
   agentId: bigint,
+  chainId: 5000 | 5003 = 5003,
+  createdAt: string = FIXED_CREATED_AT,
 ): `0x${string}` {
   return keccak256(
-    toBytes(canonicalize({ schema: payload.schema, agentId: agentId.toString(), payload })),
+    toBytes(
+      canonicalize({
+        v: 1,
+        schema: payload.schema,
+        agentId: agentId.toString(),
+        chainId,
+        payload: { ...payload, schema: payload.schema },
+        createdAt,
+      }),
+    ),
   );
 }
 
@@ -286,6 +301,7 @@ describe('readFeedback — fork: live Sepolia', () => {
         agentId,
         providerSchema: s,
         actionPayload: payloads[i] ?? { schema: s, amount: '500' },
+        createdAt: FIXED_CREATED_AT,
       });
     }
 

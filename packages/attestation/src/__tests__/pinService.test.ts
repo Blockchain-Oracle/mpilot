@@ -151,6 +151,46 @@ describe('createPinataPinService — round-2 hardening', () => {
     expect(text).toBe(CANONICAL);
   });
 
+  it('Context7 audit M2: uses data.id (UUID) as pinId when Pinata returns it', async () => {
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValue(ok({ data: { cid: VALID_CIDV1, id: 'abc-uuid-123' } }));
+    const svc = createPinataPinService({ jwt: 'jwt-1', fetch: fetchSpy });
+    const out = await svc.pin({
+      canonical: CANONICAL,
+      displayName: 'x',
+      signal: new AbortController().signal,
+    });
+    expect(out.pinId).toBe('pinata:abc-uuid-123');
+  });
+
+  it('security #2: sanitizes data.id to UUID charset (strips CRLF/ANSI injection)', async () => {
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValue(ok({ data: { cid: VALID_CIDV1, id: 'good-id\r\n[FAKE][31m' } }));
+    const svc = createPinataPinService({ jwt: 'jwt-1', fetch: fetchSpy });
+    const out = await svc.pin({
+      canonical: CANONICAL,
+      displayName: 'x',
+      signal: new AbortController().signal,
+    });
+    expect(out.pinId).toBe('pinata:good-idFAKE31m');
+    expect(out.pinId.includes('\r')).toBe(false);
+  });
+
+  it('silent-failure C3: fires onMissingPinataId when data.id is non-string', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(ok({ data: { cid: VALID_CIDV1, id: 42 } }));
+    const onMissingPinataId = vi.fn();
+    const svc = createPinataPinService({ jwt: 'jwt-1', fetch: fetchSpy, onMissingPinataId });
+    const out = await svc.pin({
+      canonical: CANONICAL,
+      displayName: 'x',
+      signal: new AbortController().signal,
+    });
+    expect(out.pinId).toBe(`pinata:${VALID_CIDV1}`);
+    expect(onMissingPinataId).toHaveBeenCalledWith({ cid: VALID_CIDV1 });
+  });
+
   it('200 with `{ error }` envelope → throws WITH the error message (no opaque malformed-CID)', async () => {
     const fetchSpy = vi.fn().mockResolvedValue(ok({ error: 'quota exceeded' }));
     const svc = createPinataPinService({ jwt: 'jwt-1', fetch: fetchSpy });

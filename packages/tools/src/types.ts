@@ -26,8 +26,9 @@ export interface ConciergeToolAnnotations {
   readonly idempotentHint?: boolean;
   /** True when the tool reaches outside the local process (RPC, HTTP, on-chain). */
   readonly openWorldHint?: boolean;
-  /** True when calling the tool can mutate or delete state — required for write tools. */
-  readonly destructiveHint?: boolean;
+  // `destructiveHint` (MCP spec) intentionally omitted until the first write
+  // tool needs it — its MCP-spec default is `true`, which is the safe behaviour
+  // for any tool that omits annotations entirely. Add the field when needed.
 }
 
 export interface ConciergeTool<

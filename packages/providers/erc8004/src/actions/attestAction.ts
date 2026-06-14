@@ -14,6 +14,32 @@ import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 import type { ReceiptLog } from '../_types.ts';
 
+/**
+ * Cross-package contract (Context7 audit C2, post-review):
+ *
+ * The envelope built below has the SAME shape as `FeedbackEnvelope` in
+ * `@concierge-mantle/attestation` ({v, schema, agentId, chainId, txHash?,
+ * payload, createdAt}) so a verifier reading the on-chain feedbackHash and
+ * fetching the IPFS-pinned bytes (produced by writeAttestation, which uses
+ * `computeFeedbackPair`) gets a byte-identical preimage and a matching
+ * keccak hash.
+ *
+ * We canonicalize + keccak DIRECTLY here (rather than calling
+ * `computeFeedbackPair`) so that providers can attest under schema strings
+ * that aren't yet in attestation/schema.ts's closed SchemaId discriminator
+ * (e.g. `concierge.lifi.bridge.sent.v1`). The math contract holds with or
+ * without the Zod check; missing schemas are a separate spec hygiene task.
+ */
+interface AttestEnvelope {
+  readonly v: 1;
+  readonly schema: string;
+  readonly agentId: string;
+  readonly chainId: number;
+  readonly txHash?: `0x${string}`;
+  readonly payload: { schema: string } & Record<string, unknown>;
+  readonly createdAt: string;
+}
+
 export const AttestActionInput = z.object({
   agentId: z.bigint().describe('Agent NFT token ID from registerAgent'),
   providerSchema: z.string().min(1).describe('Schema name e.g. concierge.aave.v3.borrow.v1'),
@@ -21,6 +47,18 @@ export const AttestActionInput = z.object({
     .object({ schema: z.string() })
     .catchall(z.unknown())
     .describe('Full action payload — schema field must match providerSchema'),
+  txHash: z
+    .string()
+    .regex(/^0x[a-fA-F0-9]{64}$/)
+    .optional()
+    .describe(
+      'Tx hash of the on-chain action being attested about (NOT the giveFeedback tx). Included in the canonical envelope when provided.',
+    ),
+  createdAt: z
+    .string()
+    .datetime({ offset: false })
+    .optional()
+    .describe('UTC ISO-8601 timestamp (suffix Z). Defaults to now() if omitted.'),
 });
 
 export const AttestActionOutput = z.object({
@@ -95,21 +133,44 @@ export async function executeAttestAction(
 ): Promise<z.infer<typeof AttestActionOutput>> {
   assertAttestInputValid(ctx, input);
 
-  // Context7 audit C2 + ADR-004: the canonical attestation hash is
-  // keccak256(toBytes(canonicalize(envelope))) — the SAME function
-  // attestation/hash.ts's computeFeedbackPair uses. Previously
-  // hashActionPayload (deleted) computed EIP-712 typed-data instead,
-  // producing a DIFFERENT bytes32 for the same envelope; verifiers
-  // reading the on-chain feedbackHash and pulling IPFS bytes could not
-  // reproduce the commitment. Unverifiable receipts. Canonicalize over
-  // the wire envelope {schema, agentId, payload} so the IPFS bytes
-  // (which writeAttestation pins) match the keccak preimage exactly.
-  const canonicalEnvelope = canonicalize({
+  // Context7 audit C2 + ADR-004 (post-review fix): the canonical attestation
+  // hash MUST be `computeFeedbackPair(FeedbackEnvelope)` from
+  // @concierge-mantle/attestation — the SAME function writeAttestation uses
+  // when it pins to IPFS. Earlier in this PR we canonicalized only
+  // {schema, agentId, payload}; that produced a DIFFERENT preimage from the
+  // 6-field FeedbackEnvelope ({v, schema, agentId, chainId, txHash?, payload,
+  // createdAt}), so any verifier fetching the pinned bytes would re-keccak
+  // them and observe a hash mismatch — the very ADR-004 failure mode the
+  // audit aimed to close. Construct the full envelope here and reuse the
+  // shared helper. computeFeedbackPair validates via Zod before hashing.
+  const createdAt = input.createdAt ?? new Date().toISOString();
+  // silent-failure CRITICAL-1: assertAttestInputValid already requires
+  // actionPayload.schema === providerSchema, but defense-in-depth — overwrite
+  // payload.schema with providerSchema here so the envelope can never embed
+  // two divergent schema strings even if a future caller bypasses the asserter.
+  const envelope: AttestEnvelope = {
+    v: 1,
     schema: input.providerSchema,
     agentId: input.agentId.toString(),
-    payload: input.actionPayload,
-  });
-  const feedbackHash = keccak256(toBytes(canonicalEnvelope));
+    chainId: ctx.chainId,
+    ...(input.txHash !== undefined ? { txHash: input.txHash } : {}),
+    payload: { ...input.actionPayload, schema: input.providerSchema },
+    createdAt,
+  };
+  // silent-failure CRITICAL-2: canonicalize JSON-stringifies; BigInt / Date /
+  // Map / Set / undefined / circular refs in payload throw TypeError. Surface
+  // as a typed ConfigError so callers get an actionable message instead of an
+  // unwrapped TypeError bubbling to the SDK boundary.
+  let feedbackHash: `0x${string}`;
+  try {
+    feedbackHash = keccak256(toBytes(canonicalize(envelope)));
+  } catch (err) {
+    throw new ConciergeError(
+      'ConfigError',
+      '[@concierge-mantle/erc8004] attestAction: failed to canonicalize envelope — actionPayload likely contains a non-JSON-serialisable value (BigInt/Date/Map/Set/undefined/circular ref). Pre-serialise BigInts to strings before calling.',
+      err,
+    );
+  }
 
   let txHash: `0x${string}`;
   try {
@@ -178,7 +239,7 @@ export function createAttestActionTool(ctx: ActionContext) {
     name: 'attestAction',
     description:
       'Records an on-chain reputation attestation for a completed agent action by calling ' +
-      'ReputationRegistry.giveFeedback(). The feedbackHash is an EIP-712 commitment to the full ' +
+      'ReputationRegistry.giveFeedback(). The feedbackHash is keccak256(canonical-JSON) over the canonical FeedbackEnvelope (matches writeAttestation IPFS-pinned bytes per ADR-004). ' +
       'action payload. Per ADR-004: every Mainnet execute() MUST be followed by this call.',
     inputSchema: AttestActionInput,
     outputSchema: AttestActionOutput,

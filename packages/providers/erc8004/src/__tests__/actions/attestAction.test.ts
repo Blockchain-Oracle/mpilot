@@ -13,20 +13,33 @@ import type { ActionContext } from '../../_context.ts';
 import { executeAttestAction } from '../../actions/attestAction.ts';
 import { executeRegisterAgent } from '../../actions/registerAgent.ts';
 
-// Context7 audit C2: production attestation hash is now
-// keccak256(toBytes(canonicalize({schema, agentId, payload}))). This helper
-// mirrors `attestAction.ts` so test expectations match the wire bytes.
+const FIXED_CREATED_AT = '2026-06-14T12:00:00Z';
+
+// Context7 audit C2 (post-review fix): mirror of production canonicalize+keccak
+// over the {v, schema, agentId, chainId, txHash?, payload, createdAt} envelope.
+// SAME shape as `FeedbackEnvelope` so a verifier round-trip via
+// `computeFeedbackPair` matches byte-for-byte. We canonicalize directly here
+// (not via computeFeedbackPair) so tests can exercise schemas outside
+// attestation/schema.ts's closed SchemaId discriminator.
 function expectedFeedbackHash(
   payload: { schema: string } & Record<string, unknown>,
   agentId: bigint,
+  chainId: 5000 | 5003 = 5000,
   providerSchema?: string,
+  createdAt: string = FIXED_CREATED_AT,
+  txHash?: `0x${string}`,
 ): `0x${string}` {
+  const schema = providerSchema ?? payload.schema;
   return keccak256(
     toBytes(
       canonicalize({
-        schema: providerSchema ?? payload.schema,
+        v: 1,
+        schema,
         agentId: agentId.toString(),
-        payload,
+        chainId,
+        ...(txHash !== undefined ? { txHash } : {}),
+        payload: { ...payload, schema },
+        createdAt,
       }),
     ),
   );
@@ -120,6 +133,7 @@ describe('attestAction — happy path', () => {
       agentId: AGENT_ID,
       providerSchema: SCHEMA,
       actionPayload: ACTION_PAYLOAD,
+      createdAt: FIXED_CREATED_AT,
     });
     expect(result.txHash).toBe(TX_HASH);
     expect(result.feedbackIndex).toBe(FEEDBACK_INDEX);
@@ -137,18 +151,32 @@ describe('attestAction — happy path', () => {
       agentId: AGENT_ID,
       providerSchema: SCHEMA,
       actionPayload: ACTION_PAYLOAD,
+      createdAt: FIXED_CREATED_AT,
     });
     expect(result.feedbackIndex).toBe(99n);
   });
 
-  it('feedbackHash matches hashActionPayload(payload, agentId, chainId)', async () => {
+  it('feedbackHash matches keccak256(canonicalize(FeedbackEnvelope)) — cross-package contract, locks C2', async () => {
     const ctx = makeCtx();
     const result = await executeAttestAction(ctx, {
       agentId: AGENT_ID,
       providerSchema: SCHEMA,
       actionPayload: ACTION_PAYLOAD,
+      createdAt: FIXED_CREATED_AT,
     });
-    const expected = expectedFeedbackHash(ACTION_PAYLOAD, AGENT_ID);
+    // Canonicalize the FeedbackEnvelope shape verbatim — same bytes writeAttestation pins to IPFS.
+    const expected = keccak256(
+      toBytes(
+        canonicalize({
+          v: 1,
+          schema: SCHEMA,
+          agentId: AGENT_ID.toString(),
+          chainId: 5000,
+          payload: { ...ACTION_PAYLOAD, schema: SCHEMA },
+          createdAt: FIXED_CREATED_AT,
+        }),
+      ),
+    );
     expect(result.feedbackHash).toBe(expected);
   });
 
@@ -158,6 +186,7 @@ describe('attestAction — happy path', () => {
       agentId: AGENT_ID,
       providerSchema: SCHEMA,
       actionPayload: ACTION_PAYLOAD,
+      createdAt: FIXED_CREATED_AT,
     });
     // biome-ignore lint/suspicious/noExplicitAny: accessing mock fn
     const call = (ctx.walletClient as any).writeContract.mock.calls[0][0];
@@ -183,6 +212,7 @@ describe('attestAction — input validation errors', () => {
         agentId: AGENT_ID,
         providerSchema: SCHEMA,
         actionPayload: ACTION_PAYLOAD,
+        createdAt: FIXED_CREATED_AT,
       }),
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
   });
@@ -194,6 +224,7 @@ describe('attestAction — input validation errors', () => {
         agentId: AGENT_ID,
         providerSchema: SCHEMA,
         actionPayload: { ...ACTION_PAYLOAD, schema: 'concierge.aave.v3.supply.v1' },
+        createdAt: FIXED_CREATED_AT,
       }),
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
   });
@@ -209,6 +240,7 @@ describe('attestAction — transaction errors', () => {
         agentId: 99999n,
         providerSchema: SCHEMA,
         actionPayload: ACTION_PAYLOAD,
+        createdAt: FIXED_CREATED_AT,
       }),
     ).rejects.toSatisfy(
       (e: unknown) => e instanceof ConciergeError && e.type === 'AttestationFailed',
@@ -224,6 +256,7 @@ describe('attestAction — transaction errors', () => {
         agentId: AGENT_ID,
         providerSchema: SCHEMA,
         actionPayload: ACTION_PAYLOAD,
+        createdAt: FIXED_CREATED_AT,
       }),
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'RpcError');
   });
@@ -237,6 +270,7 @@ describe('attestAction — transaction errors', () => {
         agentId: AGENT_ID,
         providerSchema: SCHEMA,
         actionPayload: ACTION_PAYLOAD,
+        createdAt: FIXED_CREATED_AT,
       }),
     ).rejects.toSatisfy(
       (e: unknown) => e instanceof ConciergeError && e.type === 'AttestationFailed',
@@ -279,17 +313,20 @@ describe('attestAction — fork: live Sepolia ReputationRegistry', () => {
     };
   }
 
-  it('register → attest succeeds; feedbackHash matches local EIP-712 computation', async () => {
+  it('register → attest succeeds; feedbackHash bytes-match computeFeedbackPair on the same FeedbackEnvelope', async () => {
     const { agentId } = await executeRegisterAgent(makeAgentCtx(), {});
     const payload = { schema: 'concierge.aave.v3.borrow.v1', amount: '1000000' };
     const result = await executeAttestAction(makeClientCtx(), {
       agentId,
       providerSchema: 'concierge.aave.v3.borrow.v1',
       actionPayload: payload,
+      createdAt: FIXED_CREATED_AT,
     });
     expect(result.txHash).toMatch(/^0x[0-9a-fA-F]{64}$/);
     expect(result.feedbackIndex).toBeGreaterThanOrEqual(0n);
-    expect(result.feedbackHash).toBe(expectedFeedbackHash(payload, agentId));
+    expect(result.feedbackHash).toBe(
+      expectedFeedbackHash(payload, agentId, 5003, undefined, FIXED_CREATED_AT),
+    );
   });
 
   it('attest against non-existent agentId throws AttestationFailed with reason AgentNotFound', async () => {
@@ -298,6 +335,7 @@ describe('attestAction — fork: live Sepolia ReputationRegistry', () => {
         agentId: 99999n,
         providerSchema: 'concierge.aave.v3.borrow.v1',
         actionPayload: { schema: 'concierge.aave.v3.borrow.v1', amount: '1' },
+        createdAt: FIXED_CREATED_AT,
       }),
     ).rejects.toSatisfy(
       (e: unknown) =>

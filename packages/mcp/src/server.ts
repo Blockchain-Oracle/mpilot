@@ -1,3 +1,4 @@
+import { ConciergeError } from '@concierge-mantle/sdk';
 import { bigintSafeStringify, type ConciergeTool } from '@concierge-mantle/tools';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
@@ -66,12 +67,14 @@ export function createConciergeMcpServer(opts: CreateConciergeMcpServerOpts): Mc
         // Context7 audit M4 (2026-06-14): include structured error code in the
         // tool-result `_meta` block so MCP clients can branch on the typed
         // ConciergeError code (ConfigError, RpcError, AttestationFailed, …)
-        // without parsing the human message string.
-        const code = extractErrorCode(err);
+        // without parsing the human message string. Post-review (silent-failure
+        // C4): ALWAYS emit `_meta.code` so non-Concierge errors (viem reverts,
+        // AbortError, etc) still surface a stable code instead of silently
+        // dropping the field.
         return {
           content: [{ type: 'text', text: `Tool '${tool.name}' failed: ${message}` }],
           isError: true,
-          _meta: code !== undefined ? { code } : undefined,
+          _meta: { code: extractErrorCode(err) },
         };
       }
     });
@@ -133,13 +136,35 @@ function walk(node: unknown): unknown {
   return out;
 }
 
-/** Context7 audit M4: pull `.type`/`.code` off ConciergeError-shaped errors for `_meta.code`. */
-function extractErrorCode(err: unknown): string | undefined {
-  if (err === null || typeof err !== 'object') return undefined;
-  const e = err as { type?: unknown; code?: unknown };
-  if (typeof e.type === 'string' && e.type.length > 0) return e.type;
-  if (typeof e.code === 'string' && e.code.length > 0) return e.code;
-  return undefined;
+/**
+ * Context7 audit M4: extract a stable, sanitized error code for `_meta.code`.
+ *
+ * Post-review hardening (security #1 + silent-failure C4 + code-reviewer I1):
+ * - Prefer `ConciergeError.type` via `instanceof` so the closed-set enum wins.
+ * - Fall back to `err.code` (Node SystemError) then `err.name` (viem +
+ *   AbortError + TimeoutError) so the field is NEVER silently undefined.
+ * - Allowlist `[A-Za-z0-9_.:-]` and cap 64 chars — these are enum-style
+ *   identifiers, never free text. CWE-117 + CWE-400 mitigation: an
+ *   attacker-controlled `.type` (from a malicious RPC response) can't inject
+ *   ANSI/CRLF into downstream client logs nor mass-amplify via a long string.
+ * - Returns `'UnknownError'` when no usable identifier can be extracted, so
+ *   the MCP client branch on `_meta.code` is always defined.
+ */
+function extractErrorCode(err: unknown): string {
+  if (err instanceof ConciergeError) return sanitizeCode(err.type) || 'UnknownError';
+  if (err === null || typeof err !== 'object') return 'UnknownError';
+  const e = err as { type?: unknown; code?: unknown; name?: unknown };
+  const fromType = typeof e.type === 'string' ? sanitizeCode(e.type) : '';
+  if (fromType) return fromType;
+  const fromCode = typeof e.code === 'string' ? sanitizeCode(e.code) : '';
+  if (fromCode) return fromCode;
+  const fromName = typeof e.name === 'string' ? sanitizeCode(e.name) : '';
+  if (fromName) return fromName;
+  return 'UnknownError';
+}
+
+function sanitizeCode(s: string): string {
+  return s.replace(/[^A-Za-z0-9_.:-]/g, '').slice(0, 64);
 }
 
 /** Round-2: cap restricted to error messages (was truncating success text). */

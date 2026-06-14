@@ -68,10 +68,19 @@ export function createPinataPinService(config: {
   readonly fetch?: typeof fetch;
   /** 'public' (free tier default) or 'private'. */
   readonly network?: 'public' | 'private';
+  /**
+   * Optional observability sink for the data.id-missing fallback path
+   * (silent-failure C3 mitigation). Receives `{cid}` when Pinata omits or
+   * returns a non-string `data.id` and we fall back to a CID-derived pinId.
+   * Defaults to a stderr writer so ops still notices a silent Pinata API
+   * change. Pass `() => {}` to suppress.
+   */
+  readonly onMissingPinataId?: (info: { readonly cid: string }) => void;
 }): PinService {
   const host = config.host ?? PINATA_V3_HOST;
   const fetchImpl = config.fetch ?? globalThis.fetch;
   const network = config.network ?? 'public';
+  const onMissingPinataId = config.onMissingPinataId ?? defaultOnMissingPinataId;
   return {
     name: 'pinata',
     async pin({ canonical, displayName, signal }) {
@@ -117,11 +126,18 @@ export function createPinataPinService(config: {
       // Context7 audit M2: prefer Pinata's authoritative `data.id` (UUID)
       // over a synthesised `pinata:${cid}`. Pin reconciliation, DELETE,
       // and dashboard correlation all require the UUID — the CID alone
-      // isn't unique across re-uploads. Fall back to the CID-derived form
-      // if Pinata ever returns a response without `id` (defensive).
-      const pinataId = typeof body.data?.id === 'string' ? body.data.id : '';
-      const pinId = pinataId.length > 0 ? `pinata:${pinataId}` : `pinata:${cid}`;
-      return { cid, pinId };
+      // isn't unique across re-uploads.
+      // Security #2 + silent-failure C3: sanitize (UUID charset, 128-cap)
+      // before embedding to prevent log-line forgery / ANSI injection
+      // (CWE-117), and fire `onMissingPinataId` when we fall back to the
+      // CID-derived form so ops sees a Pinata API contract change.
+      const rawId = typeof body.data?.id === 'string' ? body.data.id : '';
+      const pinataId = rawId.replace(/[^A-Za-z0-9-]/g, '').slice(0, 128);
+      if (pinataId.length === 0) {
+        onMissingPinataId({ cid });
+        return { cid, pinId: `pinata:${cid}` };
+      }
+      return { cid, pinId: `pinata:${pinataId}` };
     },
   };
 }
@@ -134,6 +150,20 @@ function sanitizeDisplayName(s: string): string {
 function stripCtrl(s: string): string {
   // biome-ignore lint/suspicious/noControlCharactersInRegex: deliberate control strip (CWE-117 mitigation)
   return s.replace(/[\u0000-\u001f\u007f]/g, '?');
+}
+
+/**
+ * silent-failure C3: stderr-emit a single line when Pinata omits `data.id`
+ * so a silent API contract change is observable. EPIPE-safe.
+ */
+function defaultOnMissingPinataId(info: { readonly cid: string }): void {
+  try {
+    process.stderr.write(
+      `[@concierge-mantle/attestation] pinata: data.id missing or non-string — falling back to CID-derived pinId (cid=${info.cid.slice(0, 64)}). Reconciliation correlation degraded.\n`,
+    );
+  } catch {
+    /* observability loss is acceptable; throwing would orphan a successful pin */
+  }
 }
 
 export { isValidCid };

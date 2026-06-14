@@ -7,13 +7,29 @@ import { executeReadFeedback } from '../actions/readFeedback.ts';
 import { executeReadReputation } from '../actions/readReputation.ts';
 import { executeRegisterAgent } from '../actions/registerAgent.ts';
 
-// Context7 audit C2: production attestation hash is now keccak-canonicalize.
+const FIXED_CREATED_AT = '2026-06-14T12:00:00Z';
+
+// Context7 audit C2 (post-review fix): mirrors `attestAction.ts` canonicalize+
+// keccak over the FeedbackEnvelope shape. Direct canonicalize (not
+// computeFeedbackPair) so tests can use schemas outside attestation's
+// closed SchemaId discriminator.
 function expectedFeedbackHash(
   payload: { schema: string } & Record<string, unknown>,
   agentId: bigint,
+  chainId: 5000 | 5003 = 5003,
+  createdAt: string = FIXED_CREATED_AT,
 ): `0x${string}` {
   return keccak256(
-    toBytes(canonicalize({ schema: payload.schema, agentId: agentId.toString(), payload })),
+    toBytes(
+      canonicalize({
+        v: 1,
+        schema: payload.schema,
+        agentId: agentId.toString(),
+        chainId,
+        payload: { ...payload, schema: payload.schema },
+        createdAt,
+      }),
+    ),
   );
 }
 
@@ -78,6 +94,7 @@ describe('ERC-8004 end-to-end integration — live Sepolia fork', () => {
         agentId,
         providerSchema: schema,
         actionPayload: payload,
+        createdAt: FIXED_CREATED_AT,
       });
       attestResults.push(r);
     }
