@@ -2,6 +2,7 @@ import type { LanguageModelV2 } from '@ai-sdk/provider';
 import type { ConciergeAgentLike, ProviderToolFactory } from '@concierge-mantle/tools';
 import { getVercelAITools } from '@concierge-mantle/vercel-ai';
 import {
+  consumeStream,
   convertToModelMessages,
   type ModelMessage,
   stepCountIs,
@@ -227,19 +228,29 @@ export function createChatHandler(
       return new Response('System prompt context unavailable', { status: 503 });
     }
 
+    // Round-3 — verified against Vercel AI SDK v6 official docs via Context7:
+    //  - `abortSignal: req.signal` so client disconnects cancel the upstream
+    //    LLM call. WITHOUT this, an aborted browser request keeps burning
+    //    Anthropic/OpenAI credits to completion (cost-control bug per the
+    //    v6 stopping-streams doc).
+    //  - `consumeSseStream: consumeStream` for proper abort cleanup
+    //    (releases the SSE reader on abort so the request slot frees up).
+    //  - `stepCountIs` is the v6 export (verified: `isStepCount` is v7-only;
+    //    `toUIMessageStream` is also v7-only).
+    //  - `result.toUIMessageStreamResponse({...})` is the v6 pattern. v7
+    //    migration will switch to `createUIMessageStreamResponse + toUIMessageStream`
+    //    but those don't exist in v6 today.
     const result = streamText({
       model: deps.model,
       system,
       messages: modelMessages,
       stopWhen: stepCountIs(maxSteps),
       tools,
+      abortSignal: req.signal,
     });
 
-    // Round-1 HIGH: stream-internal errors (LLM rate limit, network drop)
-    // surface inside the SSE stream, not as a thrown exception. Without
-    // onError, the default replaces the message with a generic "An error
-    // occurred" and ops sees nothing.
     return result.toUIMessageStreamResponse({
+      consumeSseStream: consumeStream,
       onError: (err) => {
         safeOnError(onError, { stage: 'streamText', error: err });
         return err instanceof Error ? `Stream error: ${err.message}` : 'Stream error';
