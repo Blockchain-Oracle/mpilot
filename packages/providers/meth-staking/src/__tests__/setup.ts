@@ -30,7 +30,35 @@ function getFreePort(): Promise<number> {
   });
 }
 
+/**
+ * Port-race-tolerant wrapper around the underlying spawn. Per
+ * `feedback_anvil_port_collision_pattern.md` — `getFreePort()` has a TOCTOU
+ * race: another process can grab the port between our `srv.close()` and
+ * `anvil --port N` bind. Retry up to 5 times when the failure shape matches
+ * "before listening" / "EADDRINUSE" / "address in use" — each retry gets a
+ * fresh port. Other failure shapes propagate immediately so genuine bugs
+ * surface fast.
+ */
 export async function startAnvilFork(forkBlock?: number): Promise<AnvilFork> {
+  const PORT_RACE_RX = /before listening|EADDRINUSE|address in use|address already in use/i;
+  const MAX_ATTEMPTS = 5;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await startAnvilForkOnce(forkBlock);
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!PORT_RACE_RX.test(msg) || attempt === MAX_ATTEMPTS) throw err;
+      process.stderr.write(
+        `[setup] Anvil port race on attempt ${attempt}/${MAX_ATTEMPTS}; retrying with fresh port. (${msg.slice(0, 80)})\n`,
+      );
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error('Anvil retry loop exhausted unexpectedly');
+}
+
+async function startAnvilForkOnce(forkBlock?: number): Promise<AnvilFork> {
   const port = await getFreePort();
   const blockArgs = forkBlock !== undefined ? ['--fork-block-number', String(forkBlock)] : [];
 

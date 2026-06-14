@@ -64,6 +64,9 @@ importers:
       '@types/node':
         specifier: 22.14.1
         version: 22.14.1
+      tsup:
+        specifier: 8.5.0
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
       tsx:
         specifier: 4.22.4
         version: 4.22.4
@@ -73,6 +76,12 @@ importers:
       vitest:
         specifier: 4.1.8
         version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@22.14.1)(msw@2.14.6(@types/node@22.14.1)(typescript@5.9.3))(vite@8.0.16(@types/node@22.14.1)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.22.4)(yaml@2.9.0))
+
+  examples/sdk-smoke:
+    dependencies:
+      '@concierge-mantle/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
 
   packages/agent:
     dependencies:

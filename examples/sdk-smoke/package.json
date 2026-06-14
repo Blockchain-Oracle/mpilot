@@ -1,0 +1,12 @@
+{
+  "name": "@concierge-mantle/sdk-smoke",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoke": "node index.mjs"
+  },
+  "dependencies": {
+    "@concierge-mantle/sdk": "workspace:*"
+  }
+}
