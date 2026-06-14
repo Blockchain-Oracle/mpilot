@@ -22,5 +22,8 @@
     "@types/node": "22.19.20",
     "tsx": "4.22.4",
     "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

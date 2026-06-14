@@ -36,5 +36,8 @@
   "devDependencies": {
     "tsup": "8.5.0",
     "viem": "2.52.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
