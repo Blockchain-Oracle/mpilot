@@ -60,8 +60,12 @@ describe('proposalCard DOM behaviour (post-review pr-test gap)', () => {
       'https://host.example',
     );
     expect(document.getElementById('title')?.textContent).toBe('Aave borrow');
-    expect(document.getElementById('body')?.innerHTML).toContain('amount');
-    expect(document.getElementById('body')?.innerHTML).toContain('1000');
+    // Designer's card uses `#rows` for the field-row container (was `#body`
+    // in the engineering stub). The designer also `label()`-cases the field
+    // names ("amount" → "Amount"), so we match case-insensitively.
+    const rowsHtml = document.getElementById('rows')?.innerHTML ?? '';
+    expect(rowsHtml.toLowerCase()).toContain('amount');
+    expect(rowsHtml).toContain('1000');
     expect((document.getElementById('actions') as HTMLDivElement).hidden).toBe(false);
   });
 
@@ -113,12 +117,30 @@ describe('proposalCard DOM behaviour (post-review pr-test gap)', () => {
   });
 
   it("silent-failure C-NEW-2 fix: 'null' origin disables buttons + shows remediation hint", () => {
-    postFromParent({ type: 'concierge.data', payload: { proposalId: 'p-x' } }, 'null');
-    expect((document.getElementById('approve') as HTMLButtonElement).disabled).toBe(true);
-    expect((document.getElementById('reject') as HTMLButtonElement).disabled).toBe(true);
-    expect(document.getElementById('body')?.innerHTML).toContain(
-      'does not support inline approval',
-    );
+    // Designer's card uses `location.origin === 'null'` to detect a
+    // sandboxed iframe without allow-same-origin. In happy-dom the parent
+    // window's origin is whatever the dispatched MessageEvent carries — we
+    // simulate the locked-out state by stubbing `location.origin`.
+    const originalOrigin = location.origin;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, origin: 'null' },
+    });
+    try {
+      postFromParent({ type: 'concierge.data', payload: { proposalId: 'p-x' } }, 'null');
+      expect((document.getElementById('approve') as HTMLButtonElement).disabled).toBe(true);
+      expect((document.getElementById('reject') as HTMLButtonElement).disabled).toBe(true);
+      // Designer's card surfaces the remediation hint in #status (role="status"),
+      // not appended to the field-row container.
+      expect(document.getElementById('status')?.innerHTML).toContain(
+        'does not support inline approval',
+      );
+    } finally {
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...window.location, origin: originalOrigin },
+      });
+    }
   });
 
   it('structural origin gate: messages whose ev.source !== window.parent are ignored', () => {
@@ -141,8 +163,8 @@ describe('proposalCard DOM behaviour (post-review pr-test gap)', () => {
       },
       'https://host.example',
     );
-    const bodyHtml = document.getElementById('body')?.innerHTML ?? '';
-    expect(bodyHtml).toContain('&lt;script&gt;');
-    expect(bodyHtml).not.toMatch(/<script>alert\(1\)<\/script>/);
+    const rowsHtml = document.getElementById('rows')?.innerHTML ?? '';
+    expect(rowsHtml).toContain('&lt;script&gt;');
+    expect(rowsHtml).not.toMatch(/<script>alert\(1\)<\/script>/);
   });
 });
