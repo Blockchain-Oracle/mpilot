@@ -1,0 +1,28 @@
+{
+  "name": "@concierge-mantle/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no unit tests yet — see e2e in story-115'"
+  },
+  "dependencies": {
+    "@concierge-mantle/ui": "workspace:*",
+    "next": "15.1.4",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.20",
+    "@types/react": "19.2.5",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3"
+  }
+}
