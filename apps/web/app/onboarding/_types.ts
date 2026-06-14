@@ -38,6 +38,10 @@ export type PolicyMode = 'manual' | 'autopilot';
 
 export interface OnboardingData {
   readonly wallet: WalletId | null;
+  /** Connected wallet address (set by r1 — Privy login). */
+  readonly walletAddress: `0x${string}` | null;
+  /** Whether the connected wallet is Privy-embedded or an external one (MetaMask/WalletConnect). */
+  readonly walletKind: 'embedded' | 'external' | null;
   readonly goal: string;
   readonly overrides: Readonly<Record<string, string>>;
   readonly keys: Readonly<Record<LlmProviderId, string>>;
@@ -48,6 +52,8 @@ export interface OnboardingData {
 
 export const INITIAL_DATA: OnboardingData = {
   wallet: null,
+  walletAddress: null,
+  walletKind: null,
   goal: '',
   overrides: {},
   keys: { anthropic: '', openai: '', google: '', xai: '' },
