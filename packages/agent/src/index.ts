@@ -1,3 +1,10 @@
+export {
+  type CreateChatHandlerDeps,
+  createChatHandler,
+  DEFAULT_MAX_STEPS,
+  renderSystemPrompt,
+  type SystemPromptContext,
+} from './chat/index.ts';
 export { createLock } from './lock.ts';
 export type { ActionSimResult, ComputeDeltaStateInput, DeltaState } from './phases/deltaState.ts';
 export { computeDeltaState } from './phases/deltaState.ts';
