@@ -1,4 +1,17 @@
 export {
+  buildElicitationDeps,
+  DEFAULT_HIGH_VALUE_USD,
+  type ElicitationCapability,
+  type ElicitFn,
+  type ElicitParams,
+  type FormConfirmationOpts,
+  type FormConfirmationResult,
+  readHighValueThresholdUsd,
+  requestFormConfirmation,
+  requestUrlElicitation,
+  type UrlElicitationOpts,
+} from './elicitation.ts';
+export {
   registerUIResources,
   UI_RESOURCES,
   uiResourceUriForCardId,
@@ -28,3 +41,9 @@ export {
   defaultConfigPath,
   type WalletConfig,
 } from './wallet-bootstrap.ts';
+export {
+  type ImportedSessionKey,
+  type ImportSessionKeyOpts,
+  importSessionKeyViaElicitation,
+  type PollFn,
+} from './wallet-import-flow.ts';
