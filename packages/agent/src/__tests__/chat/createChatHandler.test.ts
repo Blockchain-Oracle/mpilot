@@ -228,10 +228,69 @@ describe('createChatHandler', () => {
         messages: [{ id: 'm1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }],
       }),
     );
-    expect(res.status).toBe(500);
+    // Round-2: 503 not 500 — getSystemPromptContext is an upstream-dependency
+    // failure (DB/JWT/config), not a handler bug. Lets LBs retry.
+    expect(res.status).toBe(503);
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ stage: 'getSystemPromptContext' }),
     );
+  });
+
+  // ── Round-2 hardening tests ────────────────────────────────────────────
+
+  it('onError throwing does NOT propagate (observability never breaks request handling)', async () => {
+    // CRITICAL silent-failure round-2 fix: a user-supplied onError that
+    // throws must NOT escape; the handler still returns its intended Response.
+    const throwingOnError = vi.fn(() => {
+      throw new Error('sentry-init-broken');
+    });
+    const handler = createChatHandler(
+      baseDeps({
+        onError: throwingOnError,
+        getSystemPromptContext: async () => {
+          throw new Error('downstream-dead');
+        },
+      }),
+    );
+    const res = await handler(
+      postJson({
+        messages: [{ id: 'm1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }],
+      }),
+    );
+    expect(res.status).toBe(503); // still returns 503; onError throw swallowed
+    expect(throwingOnError).toHaveBeenCalled();
+  });
+
+  it('malformed Content-Length header → 400 (NaN bypass closed)', async () => {
+    const handler = createChatHandler(baseDeps({ maxBodyBytes: 100 }));
+    const res = await handler(
+      new Request('http://test/api/chat', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'content-length': 'abc', // NaN — previously bypassed cap
+        },
+        body: JSON.stringify({
+          messages: [{ id: 'm1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }],
+        }),
+      }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('post-read body cap closes the chunked/spoofed Content-Length bypass', async () => {
+    // Send a body that exceeds the cap, but WITHOUT a content-length header
+    // (simulates chunked / lying client). Post-read check should still 413.
+    const handler = createChatHandler(baseDeps({ maxBodyBytes: 64 }));
+    const big = 'x'.repeat(500);
+    const res = await handler(
+      new Request('http://test/api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' }, // NO content-length
+        body: big,
+      }),
+    );
+    expect(res.status).toBe(413);
   });
 
   // ── Defaults + constants ──────────────────────────────────────────────

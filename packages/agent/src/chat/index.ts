@@ -1,5 +1,7 @@
 export {
   type AuthGate,
+  type ChatHandlerErrorInfo,
+  type ChatHandlerErrorStage,
   type CreateChatHandlerDeps,
   createChatHandler,
   DEFAULT_MAX_BODY_BYTES,
