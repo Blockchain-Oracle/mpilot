@@ -32,13 +32,13 @@ describe('readHighValueThresholdUsd', () => {
 
   it('throws ConfigError on non-numeric env value', () => {
     expect(() => readHighValueThresholdUsd({ CONCIERGE_CONFIRM_THRESHOLD_USD: 'abc' })).toThrow(
-      /non-negative finite number/,
+      /non-negative/,
     );
   });
 
   it('throws ConfigError on negative env value', () => {
     expect(() => readHighValueThresholdUsd({ CONCIERGE_CONFIRM_THRESHOLD_USD: '-1' })).toThrow(
-      /non-negative finite number/,
+      /non-negative/,
     );
   });
 });
@@ -211,6 +211,64 @@ describe('requestUrlElicitation — SEP-1036 URL handoff', () => {
       }),
     ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
   });
+
+  it('REJECTS non-http(s) URL schemes (CWE-601: open-redirect / phishing)', async () => {
+    for (const url of ['javascript:alert(1)', 'data:text/html,evil', 'file:///etc/passwd']) {
+      await expect(
+        requestUrlElicitation({
+          elicit: vi.fn(),
+          capability: SUPPORTED,
+          url,
+          message: 'go',
+        }),
+      ).rejects.toSatisfy(
+        (e: unknown) =>
+          e instanceof ConciergeError && e.type === 'ConfigError' && /scheme/.test(e.message),
+      );
+    }
+  });
+
+  it('REJECTS http:// to non-loopback hosts (https-only for remote)', async () => {
+    await expect(
+      requestUrlElicitation({
+        elicit: vi.fn(),
+        capability: SUPPORTED,
+        url: 'http://attacker.example/phish',
+        message: 'go',
+      }),
+    ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
+  });
+
+  it('ALLOWS http://localhost for dev', async () => {
+    const elicit = mkElicit({ action: 'accept' });
+    await expect(
+      requestUrlElicitation({
+        elicit,
+        capability: SUPPORTED,
+        url: 'http://localhost:3000/auth/import',
+        message: 'go',
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('THROWS UserRejected with metadata.action distinguishing cancel vs decline', async () => {
+    for (const action of ['cancel', 'decline'] as const) {
+      const elicit = mkElicit({ action });
+      await expect(
+        requestUrlElicitation({
+          elicit,
+          capability: SUPPORTED,
+          url: 'https://x.example',
+          message: 'go',
+        }),
+      ).rejects.toSatisfy(
+        (e: unknown) =>
+          e instanceof ConciergeError &&
+          e.type === 'UserRejected' &&
+          (e.metadata as { action?: string } | undefined)?.action === action,
+      );
+    }
+  });
 });
 
 describe('importSessionKeyViaElicitation — URL handoff + polling', () => {
@@ -250,7 +308,7 @@ describe('importSessionKeyViaElicitation — URL handoff + polling', () => {
     expect(params?.url).toContain('token=tok-xyz');
   });
 
-  it('THROWS ConfigError when the poll deadline expires without a key', async () => {
+  it('THROWS RpcError(kind=timeout) when the poll deadline expires without a key', async () => {
     // Use real timers — fake timers + an unhandled rejection chase race here
     // and aren't worth the test-side complexity. Use a 1s deadline.
     vi.useRealTimers();
@@ -264,6 +322,11 @@ describe('importSessionKeyViaElicitation — URL handoff + polling', () => {
         poll,
         timeoutSeconds: 1,
       }),
-    ).rejects.toSatisfy((e: unknown) => e instanceof ConciergeError && e.type === 'ConfigError');
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof ConciergeError &&
+        e.type === 'RpcError' &&
+        (e.metadata as { kind?: string } | undefined)?.kind === 'timeout',
+    );
   });
 });
