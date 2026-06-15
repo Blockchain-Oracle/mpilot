@@ -54,8 +54,11 @@ const GOOGLE_KEY = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_A
 let model;
 let modelLabel;
 if (OPENAI_KEY && OPENAI_KEY.startsWith('sk-')) {
-  model = createOpenAI({ apiKey: OPENAI_KEY })('gpt-4o');
-  modelLabel = 'openai gpt-4o';
+  // gpt-5: stronger multi-step tool-chaining than gpt-4o — gpt-4o intermittently
+  // emitted zero tool calls for the register→attest chain (golden-path 2026-06-15).
+  const openaiModel = process.env.GOLDEN_OPENAI_MODEL ?? 'gpt-5';
+  model = createOpenAI({ apiKey: OPENAI_KEY })(openaiModel);
+  modelLabel = `openai ${openaiModel}`;
 } else if (ANTHROPIC_KEY && ANTHROPIC_KEY.startsWith('sk-ant-')) {
   model = createAnthropic({ apiKey: ANTHROPIC_KEY })('claude-sonnet-4-5');
   modelLabel = 'anthropic claude-sonnet-4-5';

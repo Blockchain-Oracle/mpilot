@@ -50,9 +50,17 @@ export async function runScenario({ goal, walletClient, publicClient, model: pro
     stopWhen: stepCountIs(6),
   });
 
+  // `result.toolCalls`/`toolResults` only carry the FINAL step. Reasoning
+  // models (gpt-5) append a text summary step, which empties those — even when
+  // a tool fired on-chain in an earlier step. Aggregate across every step so a
+  // multi-step plan (register → attest) is attributed correctly.
+  const steps = result.steps ?? [];
+  const allToolCalls = steps.flatMap((s) => s.toolCalls ?? []);
+  const allToolResults = steps.flatMap((s) => s.toolResults ?? []);
+
   return {
-    toolCalls: result.toolCalls,
-    toolResults: result.toolResults,
+    toolCalls: allToolCalls.length > 0 ? allToolCalls : (result.toolCalls ?? []),
+    toolResults: allToolResults.length > 0 ? allToolResults : (result.toolResults ?? []),
     text: result.text,
     usage: result.usage,
     finishReason: result.finishReason,

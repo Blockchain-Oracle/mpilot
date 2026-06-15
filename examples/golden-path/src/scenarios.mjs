@@ -89,6 +89,38 @@ export const SCENARIOS = [
     },
   },
   {
+    id: 'erc8004-register-then-attest',
+    goal:
+      'First mint an ERC-8004 identity NFT for this wallet, then record an attestation ' +
+      'against that new agent for a completed Aave supply action. Use providerSchema ' +
+      '"concierge.aave.v3.supply.v1" and an actionPayload of ' +
+      '{ "schema": "concierge.aave.v3.supply.v1", "asset": "USDC", "amount": "10000000" }. ' +
+      'Pass the agentId returned by the mint into the attestation call.',
+    async snapshot({ publicClient, owner }) {
+      return {
+        agentCount: await publicClient.readContract({
+          address: IDENTITY_REGISTRY,
+          abi: identityAbi,
+          functionName: 'balanceOf',
+          args: [owner],
+        }),
+      };
+    },
+    async assert({ before, after, planner }) {
+      const minted = after.agentCount - before.agentCount >= 1n;
+      const names = (planner.toolCalls ?? []).map((c) => c.toolName);
+      const attested = names.includes('erc8004_attestAction');
+      const attestResult = (planner.toolResults ?? []).find(
+        (r) => r.toolName === 'erc8004_attestAction',
+      );
+      const feedbackHash = (attestResult?.output ?? attestResult?.result)?.feedbackHash;
+      return {
+        pass: minted && attested && Boolean(feedbackHash),
+        detail: `minted: ${minted} | attest called: ${attested} | feedbackHash: ${feedbackHash ?? '—'}`,
+      };
+    },
+  },
+  {
     id: 'dex-swap-wmnt-usdc',
     goal: 'Swap 1 WMNT for USDC on Merchant Moe with ≤1% slippage.',
     async snapshot({ publicClient, owner, tokens }) {
