@@ -1,4 +1,4 @@
-import type { LanguageModelV2 } from '@ai-sdk/provider';
+import type { LanguageModelV2, LanguageModelV3 } from '@ai-sdk/provider';
 import type { ConciergeAgentLike, ProviderToolFactory } from '@mpilot/tools';
 import { getVercelAITools } from '@mpilot/vercel-ai';
 import {
@@ -46,8 +46,13 @@ export interface ChatHandlerErrorInfo {
 }
 
 export interface CreateChatHandlerDeps {
-  /** Vercel AI SDK v6 model. Typically from `defaultModel()` (story-320). */
-  readonly model: LanguageModelV2;
+  /**
+   * Vercel AI SDK v6 model. Typically from `defaultModel()` (story-320), which
+   * returns a `LanguageModelV3` from the installed `@ai-sdk/*@^3` providers.
+   * `streamText` accepts both the v2 and v3 model interfaces, so we widen here
+   * rather than forcing every caller to cast.
+   */
+  readonly model: LanguageModelV2 | LanguageModelV3;
   /** Concierge runtime context — supplies `chainId` for tool gating. */
   readonly agent: ConciergeAgentLike;
   /** Provider tool factories from each `@mpilot/<provider>` package. */

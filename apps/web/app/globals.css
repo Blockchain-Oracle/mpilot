@@ -3,7 +3,7 @@
    This file owns the reset, the body baseline, and component-level
    primitives we want available everywhere (.btn, .badge, .card). */
 
-@import url("@concierge-mantle/ui/tokens.css");
+@import url("@mpilot/ui/tokens.css");
 
 *,
 *::before,

@@ -1,0 +1,54 @@
+{
+  "name": "@mpilot/runtime",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "!src/__tests__/**"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepare": "tsup",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@mpilot/aave-v3-mantle": "workspace:*",
+    "@mpilot/erc8004": "workspace:*",
+    "@mpilot/ethena-susde": "workspace:*",
+    "@mpilot/lifi-bridge": "workspace:*",
+    "@mpilot/mantle-dex": "workspace:*",
+    "@mpilot/meth-staking": "workspace:*",
+    "@mpilot/ondo-usdy": "workspace:*",
+    "@mpilot/tools": "workspace:*",
+    "@mpilot/wallet": "workspace:*"
+  },
+  "peerDependencies": {
+    "viem": "^2.52.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.20",
+    "tsup": "8.5.0",
+    "viem": "2.52.2",
+    "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
