@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPublicClient, http } from 'viem';
 import { mintConciergeIdentity } from '../../_lib/conciergeMint';
 import { Check, LockboxGlyph } from '../../_lib/icons';
+import { sanitizeErrorMessage } from '../../_lib/sanitizeError';
 import { mantleSepolia } from '../../_lib/wagmi';
 import type { StatePatcher } from '../_types';
 import { useConciergeAccount } from './ConciergeAccountContext';
@@ -52,11 +53,14 @@ export function StepIdentity({ onBack, onNext, set }: StepIdentityProps) {
       });
       setLocalAgentId(result.agentId);
       setTxHash(result.txHash);
-      set({ agentId: result.agentId });
+      // OnboardingData is JSON-serializable (it eventually round-trips
+      // through the persistence layer in r4). bigint can't survive
+      // JSON.stringify, so we stash the decimal string in shared state
+      // and keep the bigint only in component-local state.
+      set({ agentId: result.agentId.toString() });
       setPhase('done');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMsg(msg);
+      setErrorMsg(sanitizeErrorMessage(err));
       setPhase('error');
     }
   };

@@ -44,8 +44,12 @@ export interface OnboardingData {
   readonly walletKind: 'embedded' | 'external' | null;
   /** Deployed smart-account address (set by r2 — StepAccount). */
   readonly smartAccountAddress: `0x${string}` | null;
-  /** ERC-8004 agent token id (set by r2 — StepIdentity). */
-  readonly agentId: bigint | null;
+  /**
+   * ERC-8004 agent token id as a decimal string (set by r2 — StepIdentity).
+   * Stored as string rather than bigint so the OnboardingData object stays
+   * JSON-serializable for r4 persistence + any in-flight diagnostics.
+   */
+  readonly agentId: string | null;
   readonly goal: string;
   readonly overrides: Readonly<Record<string, string>>;
   readonly keys: Readonly<Record<LlmProviderId, string>>;

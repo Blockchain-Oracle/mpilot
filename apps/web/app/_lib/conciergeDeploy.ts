@@ -34,6 +34,15 @@ export async function deployConciergeAccount(args: DeployArgs): Promise<Concierg
       '[apps/web] WalletClient has no account bound. Did the Privy connect flow finish?',
     );
   }
+  // Structural assertion: ZeroDev's signerToEcdsaValidator reads `.signMessage`
+  // on the owner. If a future Privy/viem change drops that method the failure
+  // mode without this guard is a cryptic "undefined is not a function" from
+  // deep inside the validator.
+  if (typeof (account as { signMessage?: unknown }).signMessage !== 'function') {
+    throw new Error(
+      '[apps/web] Connected account cannot signMessage — Privy embedded wallet not ready or unsupported signer.',
+    );
+  }
   // Cast bridges TWO things at once:
   //   1. viem JsonRpcAccount (browser wallet via EIP-1193) → LocalAccount
   //      (the worker path uses a private-key signer; the web path goes

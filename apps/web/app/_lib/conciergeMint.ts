@@ -38,8 +38,20 @@ export async function mintConciergeIdentity(args: MintArgs): Promise<MintResult>
   const result = await provider.actions.registerAgent.invoke({});
   return {
     agentId: result.agentId,
-    // The Zod schema validates `txHash` as `^0x[0-9a-fA-F]{64}$` but exposes it
-    // as `string`; the regex guarantees the branded shape at runtime.
-    txHash: result.txHash as `0x${string}`,
+    txHash: assertHex32(result.txHash),
   };
+}
+
+const HEX32_RE = /^0x[0-9a-fA-F]{64}$/;
+
+/**
+ * Re-validate the tx hash at the boundary. The upstream Zod schema enforces
+ * the same shape, but a future provider refactor could silently widen the
+ * type. Re-asserting here keeps the branded `0x${string}` invariant local.
+ */
+function assertHex32(input: string): `0x${string}` {
+  if (!HEX32_RE.test(input)) {
+    throw new Error(`[apps/web] Expected 32-byte hex tx hash, got ${JSON.stringify(input)}`);
+  }
+  return input as `0x${string}`;
 }

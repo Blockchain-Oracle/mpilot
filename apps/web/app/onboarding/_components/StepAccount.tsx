@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { deployConciergeAccount } from '../../_lib/conciergeDeploy';
 import { Check } from '../../_lib/icons';
+import { sanitizeErrorMessage } from '../../_lib/sanitizeError';
 import { useConnectedWallet } from '../../_lib/useConnectedWallet';
 import type { StatePatcher } from '../_types';
 import { useConciergeAccount } from './ConciergeAccountContext';
@@ -52,8 +53,7 @@ export function StepAccount({ onBack, onNext, set }: StepAccountProps) {
       set({ smartAccountAddress: account.smartAccountAddress });
       setPhase('done');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMsg(msg);
+      setErrorMsg(sanitizeErrorMessage(err));
       setPhase('error');
     }
   };
