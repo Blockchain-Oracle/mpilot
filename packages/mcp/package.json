@@ -1,6 +1,6 @@
 {
   "name": "@mpilot/mcp",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "MCP server for Concierge — autonomous DeFi agent for Mantle. Stdio-first (`npx -y @mpilot/mcp`) + optional hosted Worker.",
   "license": "MIT",
   "repository": {
@@ -25,7 +25,7 @@
   "publishConfig": {
     "access": "public",
     "tag": "latest",
-    "provenance": true
+    "provenance": false
   },
   "exports": {
     ".": {
