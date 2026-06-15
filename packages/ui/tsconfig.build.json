@@ -5,7 +5,7 @@
     "outDir": "dist",
     "jsx": "react-jsx",
     "ignoreDeprecations": "6.0",
-    "types": ["node"]
+    "types": []
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
