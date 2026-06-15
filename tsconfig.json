@@ -13,6 +13,8 @@
     { "path": "./packages/skill" },
     { "path": "./packages/attestation" },
     { "path": "./packages/providers/mantle-dex" },
+    { "path": "./packages/providers/wallet" },
+    { "path": "./packages/runtime" },
     { "path": "./apps/web" },
     { "path": "./apps/mcp" },
     { "path": "./apps/worker" }

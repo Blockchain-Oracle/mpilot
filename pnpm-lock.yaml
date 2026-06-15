@@ -610,6 +610,74 @@ importers:
         specifier: 4.4.3
         version: 4.4.3
 
+  packages/providers/wallet:
+    dependencies:
+      '@mpilot/sdk':
+        specifier: workspace:*
+        version: link:../../sdk
+      '@mpilot/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      '@mpilot/tools':
+        specifier: workspace:*
+        version: link:../../tools
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.20
+        version: 22.19.20
+      tsup:
+        specifier: 8.5.0
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.9.0)
+      viem:
+        specifier: 2.52.2
+        version: 2.52.2(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3)
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
+  packages/runtime:
+    dependencies:
+      '@mpilot/aave-v3-mantle':
+        specifier: workspace:*
+        version: link:../providers/aave-v3-mantle
+      '@mpilot/erc8004':
+        specifier: workspace:*
+        version: link:../providers/erc8004
+      '@mpilot/ethena-susde':
+        specifier: workspace:*
+        version: link:../providers/ethena-susde
+      '@mpilot/lifi-bridge':
+        specifier: workspace:*
+        version: link:../providers/lifi-bridge
+      '@mpilot/mantle-dex':
+        specifier: workspace:*
+        version: link:../providers/mantle-dex
+      '@mpilot/meth-staking':
+        specifier: workspace:*
+        version: link:../providers/meth-staking
+      '@mpilot/ondo-usdy':
+        specifier: workspace:*
+        version: link:../providers/ondo-usdy
+      '@mpilot/tools':
+        specifier: workspace:*
+        version: link:../tools
+      '@mpilot/wallet':
+        specifier: workspace:*
+        version: link:../providers/wallet
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.20
+        version: 22.19.20
+      tsup:
+        specifier: 8.5.0
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.9.0)
+      viem:
+        specifier: 2.52.2
+        version: 2.52.2(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3)
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
   packages/sdk:
     dependencies:
       '@ai-sdk/anthropic':
@@ -14873,7 +14941,7 @@ snapshots:
 
   extension-port-stream@3.0.0:
     dependencies:
-      readable-stream: 3.6.2
+      readable-stream: 4.7.0
       webextension-polyfill: 0.10.0
 
   eyes@0.1.8: {}
