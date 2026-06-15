@@ -72,6 +72,18 @@ export {
   isConciergeErrorType,
 } from './errors.ts';
 export { ConciergeRegistry } from './registry.ts';
+// Browser-safe HTTP client for the Concierge backend — agent state reads,
+// live tick SSE, and chat steering. Auth threaded via a getAccessToken
+// closure; the SDK never persists credentials.
+export {
+  type AgentState,
+  type Attestation,
+  type ConciergeClient,
+  type ConciergeClientConfig,
+  createConciergeClient,
+  type Reputation,
+  type SubscribeTicksOpts,
+} from './createConciergeClient.ts';
 // Chain-aware URL helpers (MantleScan tx/address, IPFS attestations, agent share).
 export {
   agentShareUrl,

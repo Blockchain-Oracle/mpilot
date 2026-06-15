@@ -143,6 +143,21 @@ export interface TickUpdateEnvelope {
  * to the UI — a `JSON.parse(...) as TickUpdateEnvelope` cast is a silent-failure
  * trap (malformed payloads would render as undefined-narrowed switches).
  */
+/**
+ * Minimal structural validator type. `rollup-plugin-dts` (tsup's .d.ts
+ * generator) bundles each package's types in isolation and cannot resolve
+ * `z.ZodType` across the bundled zod dependency — it degrades the annotation
+ * to `undefined`, making the export unusable for consumers. Annotating with a
+ * LOCAL interface sidesteps this entirely. Zod schemas satisfy it via
+ * covariant return types, so no cast is needed at the definition site.
+ */
+export interface RuntimeValidator {
+  safeParse(
+    data: unknown,
+  ): { success: true; data: unknown } | { success: false; error: unknown };
+  parse(data: unknown): unknown;
+}
+
 const hex32 = z.string().regex(HEX32);
 const addr = z.string().regex(ADDR);
 
@@ -196,13 +211,12 @@ const proposalFieldsSchema = z.discriminatedUnion('kind', [
   }),
 ]);
 
-// Explicit type annotation: tsup's DTS pipeline can't track the inferred type
-// of nested z.discriminatedUnion across an exported barrel — without this it
-// emits `declare const tickActionDataSchema: undefined<...>` and downstream
-// consumers see it as `possibly undefined`. Use `ZodTypeAny` to dodge the
-// exactOptionalPropertyTypes mismatch between the Zod-inferred shape and the
-// manual TickActionData interface (Zod widens `prop?: T` to `prop?: T | undefined`).
-export const tickActionDataSchema: z.ZodTypeAny = z.discriminatedUnion('phase', [
+// Annotated with the local `RuntimeValidator` interface (see above) so tsup's
+// DTS pipeline emits a usable declaration. Without an explicit annotation it
+// emits `declare const tickActionDataSchema: undefined` (the nested
+// discriminatedUnion's inferred type is too complex for rollup-plugin-dts), and
+// `z.ZodType` / `z.ZodTypeAny` don't resolve across the bundled zod dep either.
+export const tickActionDataSchema: RuntimeValidator = z.discriminatedUnion('phase', [
   z.object({ phase: z.literal('plan'), reasoning: z.string().max(16_384) }),
   z.object({ phase: z.literal('simulate'), simulation: simulationOutputSchema }),
   z.object({
@@ -238,7 +252,7 @@ export const tickActionDataSchema: z.ZodTypeAny = z.discriminatedUnion('phase', 
 // at runtime (covered by pubsub tests); the manual interface remains the
 // public TS contract.
 
-export const tickUpdateEnvelopeSchema: z.ZodTypeAny = z.object({
+export const tickUpdateEnvelopeSchema: RuntimeValidator = z.object({
   userId: z.string().regex(ID),
   agentId: z.string().regex(ID),
   tickId: z.string().max(128),
