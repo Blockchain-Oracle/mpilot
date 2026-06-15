@@ -561,6 +561,42 @@ pnpm add @concierge-mantle/react-copilotkit           # CopilotKit / AG-UI consu
 
 ---
 
+## Server-side identity verification (LOCKED — added 2026-06-15, ADR-020)
+
+Every `/api/*` route that touches user-scoped state runs through a single boundary: `verifyPrivyAuth(request)` in `apps/web/app/_lib/privyServer.ts`.
+
+**Mechanism.**
+- Client SDK (`@privy-io/react-auth`) issues a short-lived signed access token via `getAccessToken()`.
+- Client sends it as `Authorization: Bearer <token>` on every authenticated `fetch`.
+- Server verifies the token via `@privy-io/node` (v0.21+): `client.utils().auth().verifyAccessToken(token)` returns claims; the `userId` field is the canonical ownership key.
+- Verification happens at the request boundary; downstream code receives a `{ userId }` object and NEVER reads identity from request body, query, or headers.
+
+**Canonical pattern.**
+
+```ts
+// apps/web/app/api/<route>/route.ts
+import { verifyPrivyAuth } from '../../_lib/privyServer';
+
+export async function GET(request: Request) {
+  const user = await verifyPrivyAuth(request);
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  // user.userId is the trusted identity. Use it as the WHERE clause
+  // for every agent / llm_keys / ticks / proposals read or write.
+}
+```
+
+**Why not middleware?** Next.js Edge middleware cannot read Privy's client-side session state. The boundary lives in each route handler in the Node runtime; `runtime = 'nodejs'` is mandatory because `@privy-io/node` uses Node crypto primitives.
+
+**Why not row-level security?** Postgres RLS adds an enforcement layer; we may add it later. The API-layer check is the load-bearing boundary today because every route already calls `verifyPrivyAuth` first.
+
+**Env vars.**
+- `NEXT_PUBLIC_PRIVY_APP_ID` — public, baked into the bundle.
+- `PRIVY_APP_SECRET` — server-only, never sent to the browser. Read from `apps/web/.env.local` (gitignored) for dev; from secret manager in production.
+
+**See also.** `docs/ux-spec.md` § Returning-user gate (the consuming client logic), `/Users/abu/.claude/plans/partitioned-discovering-truffle.md` § D1.
+
+---
+
 ## CI requirements
 
 Must pass on every commit:

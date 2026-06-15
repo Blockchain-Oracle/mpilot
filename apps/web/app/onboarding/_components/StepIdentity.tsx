@@ -1,10 +1,12 @@
 'use client';
 
+import { mantleScanTxUrl } from '@concierge-mantle/sdk';
 import { useState } from 'react';
 import { createPublicClient, http } from 'viem';
 import { mintConciergeIdentity } from '../../_lib/conciergeMint';
 import { Check, LockboxGlyph } from '../../_lib/icons';
 import { sanitizeErrorMessage } from '../../_lib/sanitizeError';
+import { useChainGate } from '../../_lib/useChainGate';
 import { mantleSepolia } from '../../_lib/wagmi';
 import type { StatePatcher } from '../_types';
 import { useConciergeAccount } from './ConciergeAccountContext';
@@ -178,7 +180,7 @@ export function StepIdentity({ onBack, onNext, set }: StepIdentityProps) {
           </div>
           {txHash && (
             <a
-              href={`https://sepolia.mantlescan.xyz/tx/${txHash}`}
+              href={mantleScanTxUrl(txHash, mantleSepolia.id)}
               target="_blank"
               rel="noopener noreferrer"
               style={{ fontSize: '0.72rem', color: 'var(--primary)' }}

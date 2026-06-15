@@ -19,6 +19,8 @@
     "@concierge-mantle/shared": "workspace:*",
     "@concierge-mantle/smart-account": "workspace:*",
     "@concierge-mantle/ui": "workspace:*",
+    "@concierge-mantle/agent": "workspace:*",
+    "@privy-io/node": "^0.21.0",
     "@privy-io/react-auth": "^3.30.0",
     "@privy-io/wagmi": "^4.0.12",
     "@tanstack/react-query": "^5.101.0",

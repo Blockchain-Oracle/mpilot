@@ -50,6 +50,46 @@ const nextConfig = {
     ];
     return config;
   },
+  async headers() {
+    // CSP allowlists: Privy iframe (auth.privy.io + auth.privy.systems), Pimlico
+    // bundler (api.pimlico.io), Mantle public RPC, MantleScan explorer, IPFS
+    // gateway, and the brand-svg fetches (none external — bundled). Tight enough
+    // that a script injection can't beacon to a third party.
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://auth.privy.io https://auth.privy.systems",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.privy.io https://*.privy.systems https://*.mantlescan.xyz https://ipfs.io",
+      "font-src 'self' data:",
+      "connect-src 'self' https://*.privy.io https://*.privy.systems https://api.pimlico.io https://*.mantle.xyz https://*.mantlescan.xyz https://ipfs.io wss://relay.walletconnect.com wss://*.walletconnect.com wss://*.walletconnect.org https://*.walletconnect.com https://*.walletconnect.org",
+      "frame-src 'self' https://auth.privy.io https://auth.privy.systems https://verify.walletconnect.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join('; ');
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'Content-Security-Policy', value: csp },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+        ],
+      },
+      {
+        // Hide /app/* and /onboarding from search-engine indexes.
+        source: '/(app|onboarding)/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
