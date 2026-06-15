@@ -1,0 +1,65 @@
+# Nixpacks build for mPilot — one config, two deploy targets, selected by the
+# APP_NAME env var (set per service in Coolify):
+#
+#   web    → APP_NAME=@mpilot/web     → next build / next start (port 3000) → mpilot.xyz
+#   worker → APP_NAME=@mpilot/worker  → tsup build / node dist/index.js (no port)
+#
+# Mirrors the proven mezoyield / verifiable-agent-execution pattern. Set APP_NAME
+# in BOTH the build and runtime environment of the Coolify service. pnpm is
+# resolved from the root `packageManager` field (pnpm@10) via corepack.
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+nixpkgsArchive = "nixos-24.05"
+
+[phases.install]
+# Dev deps (tsup / next / typescript) are required to BUILD, so install with
+# NODE_ENV=development even though the service runs in production.
+cmds = ["corepack enable", "NODE_ENV=development pnpm install --frozen-lockfile"]
+# Only the dependency-graph files in this phase → the install layer caches until
+# a package.json or the lockfile changes. Source is added in the build phase.
+onlyIncludeFiles = [
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc",
+  "apps/web/package.json",
+  "apps/worker/package.json",
+  "examples/golden-path/package.json",
+  "examples/sdk-smoke/package.json",
+  "packages/agent/package.json",
+  "packages/agentkit/package.json",
+  "packages/attestation/package.json",
+  "packages/db/package.json",
+  "packages/langchain/package.json",
+  "packages/llm/package.json",
+  "packages/mcp/package.json",
+  "packages/openai/package.json",
+  "packages/providers/aave-v3-mantle/package.json",
+  "packages/providers/erc8004/package.json",
+  "packages/providers/ethena-susde/package.json",
+  "packages/providers/lifi-bridge/package.json",
+  "packages/providers/mantle-dex/package.json",
+  "packages/providers/meth-staking/package.json",
+  "packages/providers/ondo-usdy/package.json",
+  "packages/providers/wallet/package.json",
+  "packages/runtime/package.json",
+  "packages/sdk/package.json",
+  "packages/shared/package.json",
+  "packages/skill-mantle-agent/package.json",
+  "packages/smart-account/package.json",
+  "packages/tools/package.json",
+  "packages/ui/package.json",
+  "packages/vercel-ai/package.json",
+]
+
+[phases.build]
+# `<pkg>...` builds the target app AND its workspace dependencies in topo order
+# (so next/tsup see the built dist of every @mpilot/* it imports).
+cmds = ["pnpm --filter \"${APP_NAME:-@mpilot/web}...\" build"]
+
+[start]
+cmd = "pnpm --filter \"${APP_NAME:-@mpilot/web}\" start"
+
+[variables]
+NODE_ENV = "production"
