@@ -12,10 +12,10 @@ import { AttestationPayloadSchema, buildAttestationPayload } from '../attestatio
 // Unwrap is implemented as a DEX swap sUSDe → USDe via WooFi (instant, single call).
 
 export const UnwrapToUSDEInput = z.object({
-  amountSusde: z.coerce
-    .bigint()
-    .positive()
-    .describe('Amount of sUSDe to swap in base units (18 decimals)'),
+  amountSusde: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .describe('Amount of sUSDe in base units (18 decimals) — decimal string'),
   slippageBps: z
     .number()
     .int()
@@ -37,7 +37,8 @@ export async function executeUnwrapToUSDe(
   ctx: ActionContext,
   args: z.infer<typeof UnwrapToUSDEInput>,
 ): Promise<z.infer<typeof UnwrapToUSDEOutput>> {
-  const { amountSusde, slippageBps, recipient } = args;
+  const { amountSusde: amountSusdeStr, slippageBps, recipient } = args;
+  const amountSusde = BigInt(amountSusdeStr);
   const { walletClient, account } = await requireWallet(ctx, 'unwrapToUSDe');
   const { usde, susde, woofiRouter } = ctx.addresses;
 

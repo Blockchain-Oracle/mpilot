@@ -41,7 +41,10 @@ interface AttestEnvelope {
 }
 
 export const AttestActionInput = z.object({
-  agentId: z.bigint().describe('Agent NFT token ID from registerAgent'),
+  agentId: z
+    .string()
+    .regex(/^\d+$/)
+    .describe('Agent NFT token id (decimal string of uint256) from registerAgent'),
   providerSchema: z.string().min(1).describe('Schema name e.g. concierge.aave.v3.borrow.v1'),
   actionPayload: z
     .object({ schema: z.string() })
@@ -67,8 +70,11 @@ export const AttestActionOutput = z.object({
     .regex(/^0x[0-9a-fA-F]{64}$/)
     .describe('Transaction hash'),
   feedbackIndex: z
-    .bigint()
-    .describe('Index of the stored feedback entry in the ReputationRegistry'),
+    .string()
+    .regex(/^\d+$/)
+    .describe(
+      'Index of the stored feedback entry in the ReputationRegistry (decimal string of uint256; JSON-safe)',
+    ),
   feedbackHash: z
     .string()
     .regex(/^0x[0-9a-fA-F]{64}$/)
@@ -180,7 +186,18 @@ export async function executeAttestAction(
       address: ctx.reputationRegistry,
       abi: reputationRegistryAbi,
       functionName: 'giveFeedback',
-      args: [input.agentId, 1n, 0, 'concierge.action', input.providerSchema, '', '', feedbackHash],
+      // input.agentId is now a decimal string (JSON-serializable). Convert at
+      // the EVM boundary — uint256 args need bigint.
+      args: [
+        BigInt(input.agentId),
+        1n,
+        0,
+        'concierge.action',
+        input.providerSchema,
+        '',
+        '',
+        feedbackHash,
+      ],
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -232,7 +249,7 @@ export async function executeAttestAction(
       `[@concierge-mantle/erc8004] attestAction: no NewFeedback event found in receipt ${txHash}`,
     );
   }
-  return { txHash, feedbackIndex, feedbackHash };
+  return { txHash, feedbackIndex: feedbackIndex.toString(), feedbackHash };
 }
 
 export function createAttestActionTool(ctx: ActionContext) {

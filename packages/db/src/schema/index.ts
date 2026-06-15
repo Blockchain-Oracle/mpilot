@@ -10,6 +10,7 @@ export {
   attestations,
   type NewAttestation,
 } from './attestations.ts';
+export { chatMessages } from './chatMessages.ts';
 export {
   type EoaTx,
   type EoaTxStatus,
@@ -29,6 +30,8 @@ export {
   ipfsCache,
   type NewIpfsCacheRow,
 } from './ipfsCache.ts';
+export { llmKeys } from './llmKeys.ts';
+export { notificationPrefs } from './notificationPrefs.ts';
 export {
   type NewPinReceipt,
   type PinReceipt,

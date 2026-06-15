@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Concierge home" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e10]: Concierge
+      - generic [ref=e20]: Step 1 of 7
+      - generic [ref=e21]:
+        - button "Switch to dark mode" [ref=e22] [cursor=pointer]:
+          - img [ref=e23]
+        - link "Exit" [ref=e25] [cursor=pointer]:
+          - /url: /
+  - main [ref=e26]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: ✦
+          - text: No account yet
+        - heading "Connect a wallet to begin" [level=1] [ref=e32]
+        - paragraph [ref=e33]: Your wallet signs every move. Concierge never takes custody — you stay the principal.
+      - generic [ref=e35]:
+        - button "Privy Email, social, or embedded wallet" [disabled] [ref=e36]:
+          - generic [ref=e37]: Pv
+          - generic [ref=e38]:
+            - generic [ref=e39]: Privy
+            - generic [ref=e40]: Email, social, or embedded wallet
+        - button "Reown WalletConnect v2 · 400+ wallets" [disabled] [ref=e41]:
+          - generic [ref=e42]: Re
+          - generic [ref=e43]:
+            - generic [ref=e44]: Reown
+            - generic [ref=e45]: WalletConnect v2 · 400+ wallets
+        - button "Browser wallet MetaMask, Rabby, Coinbase Wallet" [disabled] [ref=e46]:
+          - generic [ref=e47]: Mm
+          - generic [ref=e48]:
+            - generic [ref=e49]: Browser wallet
+            - generic [ref=e50]: MetaMask, Rabby, Coinbase Wallet
+      - button "Continue" [disabled] [ref=e52] [cursor=pointer]:
+        - text: Continue
+        - img [ref=e53]

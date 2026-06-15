@@ -31,7 +31,7 @@ function makeCtx(overrides?: { querySwapResult?: bigint; walletClient?: unknown 
 
 const DUMMY_ACCOUNT = '0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF' as const;
 const DUMMY_WALLET = { account: { address: DUMMY_ACCOUNT }, chain: null };
-const VALID_INPUT = { amountSusde: AMOUNT, slippageBps: 50, recipient: RECIPIENT };
+const VALID_INPUT = { amountSusde: AMOUNT.toString(), slippageBps: 50, recipient: RECIPIENT };
 
 describe('executeUnwrapToUSDe — requireWallet guards', () => {
   it('throws ConfigError when walletClient is missing', async () => {
@@ -64,7 +64,7 @@ describe('executeUnwrapToUSDe — liquidity guards', () => {
     // quoted=1n, slippageBps=9999 → minOut = (1n * 1n) / 10000n = 0n
     await expect(
       executeUnwrapToUSDe(makeCtx({ querySwapResult: 1n, walletClient: DUMMY_WALLET }), {
-        amountSusde: AMOUNT,
+        amountSusde: AMOUNT.toString(),
         slippageBps: 9999,
         recipient: RECIPIENT,
       }),

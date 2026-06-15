@@ -53,7 +53,9 @@ describe('claimRewards action', () => {
 
     expect(result.txHash).toMatch(/^0x[0-9a-fA-F]{64}$/);
     expect(result.rewardsList[0]?.toLowerCase()).toBe(mocks.wmnt.toLowerCase());
-    expect(BigInt(result.claimedAmounts[0])).toBe(10n * 10n ** 18n);
+    // claimedAmounts[0] is the decimal-string serialisation of the on-chain bigint.
+    // BigInt() handles undefined as 0n, so the test relies on the index existing.
+    expect(BigInt(result.claimedAmounts[0] ?? '0')).toBe(10n * 10n ** 18n);
 
     const postBal = await anvil.publicClient.readContract({
       address: mocks.wmnt,
