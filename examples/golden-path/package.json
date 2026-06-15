@@ -1,0 +1,28 @@
+{
+  "name": "@concierge-mantle/golden-path",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "keygen": "node ./scripts/keygen.mjs",
+    "fork": "node ./scripts/fork.mjs",
+    "run": "node ./src/index.mjs",
+    "test": "echo 'harness runs real network — no unit tests'"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.82",
+    "@concierge-mantle/aave-v3-mantle": "workspace:*",
+    "@concierge-mantle/agent": "workspace:*",
+    "@concierge-mantle/erc8004": "workspace:*",
+    "@concierge-mantle/ethena-susde": "workspace:*",
+    "@concierge-mantle/lifi-bridge": "workspace:*",
+    "@concierge-mantle/mantle-dex": "workspace:*",
+    "@concierge-mantle/meth-staking": "workspace:*",
+    "@concierge-mantle/ondo-usdy": "workspace:*",
+    "@concierge-mantle/sdk": "workspace:*",
+    "@concierge-mantle/shared": "workspace:*",
+    "ai": "^6.0.0",
+    "dotenv": "^16.4.5",
+    "viem": "2.52.2"
+  }
+}
