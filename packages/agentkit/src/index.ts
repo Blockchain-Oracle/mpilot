@@ -1,4 +1,4 @@
-// Coinbase AgentKit adapter for the framework-agnostic @concierge-mantle/tools
+// Coinbase AgentKit adapter for the framework-agnostic @mpilot/tools
 // registry (ADR-014), via the `customActionProvider` ESCAPE HATCH — never
 // AgentKit's CreateAction decorator path. That keeps OUR src free of
 // decorator syntax, metadata-reflection imports, and `experimentalDecorators`;
@@ -26,7 +26,7 @@ import {
   isZodObject,
   isZodPipe,
   type ProviderToolFactory,
-} from '@concierge-mantle/tools';
+} from '@mpilot/tools';
 import type { z } from 'zod';
 
 /**
@@ -114,7 +114,7 @@ export function toAgentKitAction(t: ConciergeTool): ConciergeAgentKitAction {
       } catch (cause) {
         const detail = cause instanceof Error ? cause.message : String(cause);
         throw new Error(
-          `[@concierge-mantle/agentkit] tool "${t.name}" returned a non-serializable result: ${detail}`,
+          `[@mpilot/agentkit] tool "${t.name}" returned a non-serializable result: ${detail}`,
           { cause },
         );
       }
@@ -183,7 +183,7 @@ export function getConciergeActionProvider(
   if (registered !== undefined) {
     if (!(registered instanceof Map)) {
       throw new Error(
-        `[@concierge-mantle/agentkit] AgentKit's custom-action metadata is no longer a Map — the registration model changed upstream and the one-provider-per-process guard cannot verify it. Pin @coinbase/agentkit 0.10.x or update @concierge-mantle/agentkit.`,
+        `[@mpilot/agentkit] AgentKit's custom-action metadata is no longer a Map — the registration model changed upstream and the one-provider-per-process guard cannot verify it. Pin @coinbase/agentkit 0.10.x or update @mpilot/agentkit.`,
       );
     }
     const overlap = actions.filter((a) => registered.has(a.name)).map((a) => a.name);
@@ -192,7 +192,7 @@ export function getConciergeActionProvider(
         ? `would silently rebind dispatch for: ${overlap.join(', ')}`
         : `would silently merge its actions into every provider's getActions()`;
     throw new Error(
-      `[@concierge-mantle/agentkit] a custom action provider is already registered in this process; registering another ${consequence}. AgentKit 0.10.x stores custom-action metadata on the shared CustomActionProvider class — create ONE provider per process.`,
+      `[@mpilot/agentkit] a custom action provider is already registered in this process; registering another ${consequence}. AgentKit 0.10.x stores custom-action metadata on the shared CustomActionProvider class — create ONE provider per process.`,
     );
   }
   // Single cross-library type boundary, scoped to the ONE incompatible

@@ -16,8 +16,8 @@ export default defineConfig({
     '@ai-sdk/openai',
     '@ai-sdk/google',
     '@ai-sdk/xai',
-    '@concierge-mantle/shared',
-    '@concierge-mantle/tools',
-    '@concierge-mantle/vercel-ai',
+    '@mpilot/shared',
+    '@mpilot/tools',
+    '@mpilot/vercel-ai',
   ],
 });

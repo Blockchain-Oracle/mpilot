@@ -33,7 +33,7 @@
 ```
 Given DEPLOY-SEPOLIA-RUNBOOK.md exists
 When read
-Then it covers: forge deploy command, expected addresses (auto-synced to @concierge-mantle/shared), distributor funding ($500 USDC + 100 MNT to start)
+Then it covers: forge deploy command, expected addresses (auto-synced to @mpilot/shared), distributor funding ($500 USDC + 100 MNT to start)
 
 Given the InAppFaucet button is clicked
 When the user is on Sepolia mode
@@ -79,7 +79,7 @@ test -f apps/web/components/dashboard/InAppFaucet.tsx
 test -f contracts/src/SepoliaTokenDistributor.sol
 test -f contracts/src/__tests__/SepoliaTokenDistributor.test.sol
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Contracts test passes
@@ -89,7 +89,7 @@ cd contracts && forge test --match-contract SepoliaTokenDistributor && cd ..
 grep -qE "(rate.limit|429)" apps/web/app/api/faucet/route.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "InAppFaucet" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "InAppFaucet" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

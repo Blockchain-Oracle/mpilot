@@ -86,9 +86,9 @@ cd ../..
 test -f apps/web/app/oauth/mcp-authorize/page.tsx
 test -f apps/web/app/api/oauth/mcp-token/route.ts
 
-pnpm --filter @concierge-mantle/mcp-server run build
+pnpm --filter @mpilot/mcp-server run build
 test $? -eq 0
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # PKCE referenced in OAuth code
@@ -98,7 +98,7 @@ grep -qE "(code_challenge|PKCE)" apps/mcp-server/src/auth/oauth.ts
 grep -qE "60.*1000|60_000.*1000" apps/mcp-server/src/auth/rateLimit.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/mcp-server run test 2>&1 | grep "oauth" | grep -q "PASS"
+pnpm --filter @mpilot/mcp-server run test 2>&1 | grep "oauth" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

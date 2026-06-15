@@ -1,4 +1,4 @@
-// LangChain JS adapter for the framework-agnostic @concierge-mantle/tools registry
+// LangChain JS adapter for the framework-agnostic @mpilot/tools registry
 // (ADR-014). Outputs are stringified via bigintSafeStringify so ToolMessage
 // content is a deterministic string under the adapter's control: LangChain
 // v1 would otherwise coerce objects itself (its tool output type is `any`),
@@ -6,6 +6,7 @@
 // silently coercing an object containing wei-scale bigints to
 // `"[object Object]"` (its stringify fallback swallows the BigInt TypeError).
 
+import { tool as lcTool, type StructuredToolInterface } from '@langchain/core/tools';
 import {
   bigintSafeStringify,
   type ConciergeAgentLike,
@@ -14,8 +15,7 @@ import {
   isZodObject,
   isZodPipe,
   type ProviderToolFactory,
-} from '@concierge-mantle/tools';
-import { tool as lcTool, type StructuredToolInterface } from '@langchain/core/tools';
+} from '@mpilot/tools';
 
 /**
  * Convert one ConciergeTool into a LangChain structured tool. The Concierge

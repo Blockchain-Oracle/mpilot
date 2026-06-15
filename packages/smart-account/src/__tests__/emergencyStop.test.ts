@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import type { Address, Hex } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { emergencyStop } from '../emergencyStop.ts';

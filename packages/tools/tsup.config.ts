@@ -8,5 +8,5 @@ export default defineConfig({
   clean: true,
   target: 'node22',
   tsconfig: 'tsconfig.build.json',
-  external: ['zod', '@concierge-mantle/shared'],
+  external: ['zod', '@mpilot/shared'],
 });

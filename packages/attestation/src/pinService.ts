@@ -162,7 +162,7 @@ function stripCtrl(s: string): string {
 function defaultOnMissingPinataId(info: { readonly cid: string }): void {
   try {
     process.stderr.write(
-      `[@concierge-mantle/attestation] pinata: data.id missing or non-string — falling back to CID-derived pinId (cid=${info.cid.slice(0, 64)}). Reconciliation correlation degraded.\n`,
+      `[@mpilot/attestation] pinata: data.id missing or non-string — falling back to CID-derived pinId (cid=${info.cid.slice(0, 64)}). Reconciliation correlation degraded.\n`,
     );
   } catch {
     /* observability loss is acceptable; throwing would orphan a successful pin */

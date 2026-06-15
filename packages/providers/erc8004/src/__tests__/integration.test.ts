@@ -1,4 +1,4 @@
-import { canonicalize } from '@concierge-mantle/attestation';
+import { canonicalize } from '@mpilot/attestation';
 import { keccak256, toBytes } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ActionContext } from '../_context.ts';

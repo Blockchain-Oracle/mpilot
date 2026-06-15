@@ -1,6 +1,6 @@
 // Unit tests for createAgniVenue — focuses on stable-pair fee ordering without a fork.
 
-import type { Address } from '@concierge-mantle/shared';
+import type { Address } from '@mpilot/shared';
 import { ContractFunctionExecutionError, ContractFunctionRevertedError } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { createAgniVenue } from '../../venues/agni.ts';

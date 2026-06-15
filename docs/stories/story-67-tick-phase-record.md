@@ -72,7 +72,7 @@ test -f src/phases/recordFallback.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/agent run build
+pnpm --filter @mpilot/agent run build
 test $? -eq 0
 
 # attestAction called from record
@@ -82,7 +82,7 @@ grep -q "attestAction" packages/runtime/src/phases/record.ts
 grep -qE "(attestationUid|already attested)" packages/runtime/src/phases/record.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/agent run test 2>&1 | grep "record" | grep -q "PASS"
+pnpm --filter @mpilot/agent run test 2>&1 | grep "record" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

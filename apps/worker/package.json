@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/worker",
+  "name": "@mpilot/worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,8 +14,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@concierge-mantle/agent": "workspace:*",
-    "@concierge-mantle/sdk": "workspace:*",
+    "@mpilot/agent": "workspace:*",
+    "@mpilot/sdk": "workspace:*",
     "bullmq": "5.78.0",
     "ioredis": "5.10.1",
     "pino": "10.1.0"

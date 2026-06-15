@@ -18,7 +18,7 @@
 
 ## File modification map
 
-- `apps/web/components/landing/DeveloperCTA.tsx` — NEW — block with headline "Built for developers" or similar; code blocks showing `pnpm add @concierge-mantle/sdk` and a 5-line example of using the SDK to register an agent + read reputation. Links to /docs.
+- `apps/web/components/landing/DeveloperCTA.tsx` — NEW — block with headline "Built for developers" or similar; code blocks showing `pnpm add @mpilot/sdk` and a 5-line example of using the SDK to register an agent + read reputation. Links to /docs.
 - `apps/web/components/landing/CodeBlock.tsx` — NEW — reusable syntax-highlighted code block (uses shiki or rehype-pretty-code). Has copy-to-clipboard button.
 - `apps/web/components/landing/__tests__/DeveloperCTA.test.tsx` — NEW — RTL test
 - `apps/web/lib/copy-to-clipboard.ts` — NEW — `useCopyToClipboard()` hook
@@ -30,7 +30,7 @@
 ```
 Given the section renders
 When inspected
-Then it contains a code block with `pnpm add @concierge-mantle/sdk` AND a 5-line example AND a link to /docs
+Then it contains a code block with `pnpm add @mpilot/sdk` AND a 5-line example AND a link to /docs
 
 Given the code block
 When clicked the copy button
@@ -68,17 +68,17 @@ test -f components/landing/CodeBlock.tsx
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Real install command (NOT placeholder)
-grep -q "pnpm add @concierge-mantle/sdk" apps/web/components/landing/DeveloperCTA.tsx
+grep -q "pnpm add @mpilot/sdk" apps/web/components/landing/DeveloperCTA.tsx
 
 # /docs link present
 grep -q "/docs" apps/web/components/landing/DeveloperCTA.tsx
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "DeveloperCTA" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "DeveloperCTA" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```
@@ -91,6 +91,6 @@ bun scripts/check-file-loc.mjs
 - **Use shiki for syntax highlighting** — server-side rendered, no client-side cost. Reference: shiki.style.
 - **Copy-to-clipboard with feedback.** When clicked, show a brief "Copied!" toast or icon swap for 2 seconds. Better UX than silent copy.
 - **Mobile horizontal scroll on code blocks** preserves readability. Shrinking font to fit is anti-pattern.
-- **The 5-line example** should do something concrete: register an agent, read its reputation. NOT "import { Concierge } from '@concierge-mantle/sdk'" alone — too abstract. Reference: `research/concierge/03-providers/erc8004.md` § Integration pattern for a real-shape example.
+- **The 5-line example** should do something concrete: register an agent, read its reputation. NOT "import { Concierge } from '@mpilot/sdk'" alone — too abstract. Reference: `research/concierge/03-providers/erc8004.md` § Integration pattern for a real-shape example.
 - **Link to /docs in this story is correct** — the docs site itself doesn't exist yet (story-170+). Stub for now; story-176 wires the actual docs.
 - Cross-ref: `research/concierge/08-ux-component-intent.md` § developer CTA, `packages/sdk/README.md` (story-22 — the README's quickstart should mirror this block).

@@ -3,10 +3,10 @@
  * a Vercel AI SDK tool set, lets the planner pick + invoke the right tool.
  * The tool's `invoke` actually fires the on-chain tx.
  */
-import { createAaveV3MantleProvider } from '@concierge-mantle/aave-v3-mantle';
-import { createErc8004Provider } from '@concierge-mantle/erc8004';
-import { createMantleDexProvider } from '@concierge-mantle/mantle-dex';
-import { toVercelAITool } from '@concierge-mantle/vercel-ai';
+import { createAaveV3MantleProvider } from '@mpilot/aave-v3-mantle';
+import { createErc8004Provider } from '@mpilot/erc8004';
+import { createMantleDexProvider } from '@mpilot/mantle-dex';
+import { toVercelAITool } from '@mpilot/vercel-ai';
 import { generateText, stepCountIs } from 'ai';
 
 const SYSTEM = `You are a Mantle Sepolia (chainId 5003) action planner.

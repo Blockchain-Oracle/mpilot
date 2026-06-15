@@ -1,6 +1,6 @@
-import { canonicalize } from '@concierge-mantle/attestation';
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { reputationRegistryAbi } from '@concierge-mantle/shared/abi';
+import { canonicalize } from '@mpilot/attestation';
+import { ConciergeError } from '@mpilot/sdk';
+import { reputationRegistryAbi } from '@mpilot/shared/abi';
 import {
   encodeAbiParameters,
   encodeEventTopics,

@@ -1,4 +1,4 @@
-import type { Address } from '@concierge-mantle/shared';
+import type { Address } from '@mpilot/shared';
 import type { PublicClient, WalletClient } from 'viem';
 
 export interface ActionContext {

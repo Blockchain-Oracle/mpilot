@@ -120,7 +120,7 @@ User flow: pick a goal (*"maximize stablecoin yield, stay within 70% Aave LTV"*)
 ## Track + judge alignment
 
 **Primary tracks:**
-- **Agentic Economy (Byreal)** — DeFi Deep Dive path: agent is packaged as a RealClaw-compatible skill (`npx skills add @concierge-mantle/mantle-agent`) that runs Mantle DeFi strategies; satisfies "must use core capabilities of RealClaw" requirement without using Byreal Skills CLI (Solana-only) or Perps CLI (Hyperliquid-only)
+- **Agentic Economy (Byreal)** — DeFi Deep Dive path: agent is packaged as a RealClaw-compatible skill (`npx skills add @mpilot/mantle-agent`) that runs Mantle DeFi strategies; satisfies "must use core capabilities of RealClaw" requirement without using Byreal Skills CLI (Solana-only) or Perps CLI (Hyperliquid-only)
 - **Grand Champion** — high scores across all four dimensions (Tech Depth 30%, Innovation 25%, Mantle Ecosystem 25%, Product Completeness 20%)
 
 **Secondary tracks stacked:**
@@ -185,19 +185,19 @@ User flow: pick a goal (*"maximize stablecoin yield, stay within 70% Aave LTV"*)
 
 ## Locked v1 action providers (2026-06-03)
 
-Seven providers, each ships as a separate `npm` package under the `@concierge-mantle/*` namespace, all pre-registered in the main SDK:
+Seven providers, each ships as a separate `npm` package under the `@mpilot/*` namespace, all pre-registered in the main SDK:
 
-1. **`@concierge-mantle/aave-v3-mantle`** — `supply`, `borrow`, `repay`, `withdraw`, `set_e_mode`, `claim_rewards`, `get_health_factor` (Pool `0x458F293454fE0d67EC0655f3672301301DD51422`)
-2. **`@concierge-mantle/mantle-dex`** — `swap`, `quote`, `add_liquidity`, `remove_liquidity`, `collect_fees` (routes across Merchant Moe + Agni + FusionX; WOOFi aggregator as price-improvement layer)
-3. **`@concierge-mantle/ethena-susde`** — `deposit_susde`, `withdraw_susde`, `read_yield` (sUSDe `0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2`)
-4. **`@concierge-mantle/ondo-usdy`** — `mint_usdy`, `redeem_usdy`, `read_rate`
-5. **`@concierge-mantle/meth-staking`** — `stake_eth`, `unstake_eth`, `claim_restaking_rewards`
-6. **`@concierge-mantle/lifi-bridge`** — `bridge_in`, `bridge_out`, `quote_route` (Mantle ↔ Ethereum / Base / Arbitrum / Polygon)
-7. **`@concierge-mantle/erc8004`** — `register_agent`, `attest_action`, `read_reputation`, `give_feedback`, `read_all_feedback` (Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`, Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`)
+1. **`@mpilot/aave-v3-mantle`** — `supply`, `borrow`, `repay`, `withdraw`, `set_e_mode`, `claim_rewards`, `get_health_factor` (Pool `0x458F293454fE0d67EC0655f3672301301DD51422`)
+2. **`@mpilot/mantle-dex`** — `swap`, `quote`, `add_liquidity`, `remove_liquidity`, `collect_fees` (routes across Merchant Moe + Agni + FusionX; WOOFi aggregator as price-improvement layer)
+3. **`@mpilot/ethena-susde`** — `deposit_susde`, `withdraw_susde`, `read_yield` (sUSDe `0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2`)
+4. **`@mpilot/ondo-usdy`** — `mint_usdy`, `redeem_usdy`, `read_rate`
+5. **`@mpilot/meth-staking`** — `stake_eth`, `unstake_eth`, `claim_restaking_rewards`
+6. **`@mpilot/lifi-bridge`** — `bridge_in`, `bridge_out`, `quote_route` (Mantle ↔ Ethereum / Base / Arbitrum / Polygon)
+7. **`@mpilot/erc8004`** — `register_agent`, `attest_action`, `read_reputation`, `give_feedback`, `read_all_feedback` (Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`, Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`)
 
-**v1.1 add-ons (post-hackathon or stretch):** `@concierge-mantle/byreal-perps` (if Hyperliquid bridge exists), `@concierge-mantle/pendle` (fixed yield), `@concierge-mantle/nansen-signal` (smart money input), `@concierge-mantle/allora-inference` (depeg probability input).
+**v1.1 add-ons (post-hackathon or stretch):** `@mpilot/byreal-perps` (if Hyperliquid bridge exists), `@mpilot/pendle` (fixed yield), `@mpilot/nansen-signal` (smart money input), `@mpilot/allora-inference` (depeg probability input).
 
-**Track 6 qualification:** Concierge ships as a RealClaw-compatible skill installable via `npx skills add @concierge-mantle/mantle-agent` — TypeScript, MIT, same pattern as `byreal-git/byreal-agent-skills` (verified 2026-06-03). The skill loads our 7 providers + tick loop + ERC-8004 attestation into Claude Code / OpenClaw / RealClaw. This satisfies "must use core capabilities of RealClaw" without depending on Byreal Skills CLI (Solana-only) or Perps CLI (Hyperliquid-only).
+**Track 6 qualification:** Concierge ships as a RealClaw-compatible skill installable via `npx skills add @mpilot/mantle-agent` — TypeScript, MIT, same pattern as `byreal-git/byreal-agent-skills` (verified 2026-06-03). The skill loads our 7 providers + tick loop + ERC-8004 attestation into Claude Code / OpenClaw / RealClaw. This satisfies "must use core capabilities of RealClaw" without depending on Byreal Skills CLI (Solana-only) or Perps CLI (Hyperliquid-only).
 
 ## Open questions before plan mode
 

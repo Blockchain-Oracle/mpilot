@@ -1,4 +1,4 @@
-import type { ConciergeTool } from '@concierge-mantle/tools';
+import type { ConciergeTool } from '@mpilot/tools';
 import type { CreateReadToolsDeps } from './factoryDeps.ts';
 import { createGetAgentStateTool } from './getAgentState.ts';
 import { createGetAttestationTool } from './getAttestation.ts';

@@ -1,7 +1,7 @@
 // Integration tests for getRateAccrual — tests DEX spot price → multiplier pipeline.
 
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { ADDRESSES } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import { ADDRESSES } from '@mpilot/shared';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';
 import { executeGetRateAccrual } from '../../actions/getRateAccrual.ts';

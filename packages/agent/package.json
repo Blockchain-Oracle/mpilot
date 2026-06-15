@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/agent",
+  "name": "@mpilot/agent",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -30,11 +30,11 @@
   },
   "dependencies": {
     "@ai-sdk/provider": "3.0.10",
-    "@concierge-mantle/llm": "workspace:*",
-    "@concierge-mantle/sdk": "workspace:*",
-    "@concierge-mantle/shared": "workspace:*",
-    "@concierge-mantle/tools": "workspace:*",
-    "@concierge-mantle/vercel-ai": "workspace:*",
+    "@mpilot/llm": "workspace:*",
+    "@mpilot/sdk": "workspace:*",
+    "@mpilot/shared": "workspace:*",
+    "@mpilot/tools": "workspace:*",
+    "@mpilot/vercel-ai": "workspace:*",
     "ai": "6.0.199",
     "ioredis": "5.11.1",
     "pino": "10.3.1",

@@ -71,7 +71,7 @@ test -f components/landing/PhaseCard.tsx
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # All 5 phases present
@@ -85,7 +85,7 @@ done
 ! grep -qE "text-gray-600" apps/web/components/landing/HowItWorks.tsx
 
 # RTL test passes
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "HowItWorks" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "HowItWorks" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

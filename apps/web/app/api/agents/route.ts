@@ -8,7 +8,7 @@
  * for convenience, but we use the verified userId as the row owner. Mismatch
  * doesn't fail (a Privy user CAN own multiple wallets) but it does get logged.
  */
-import { agents, llmKeys, notificationPrefs } from '@concierge-mantle/db';
+import { agents, llmKeys, notificationPrefs } from '@mpilot/db';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDb } from '../../_lib/db';

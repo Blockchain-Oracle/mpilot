@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/ethena-susde` action provider
+# Story — `@mpilot/ethena-susde` action provider
 
 **ID:** story-34-ethena-susde-provider
 **Epic:** Epic E3 — Action Providers
@@ -11,7 +11,7 @@
 ## User story
 
 **As a** Concierge agent runtime
-**I want to** an `@concierge-mantle/ethena-susde` package exposes `getYieldRate`, `getCarryVsAave`, `wrapToSusde`, `unwrapToUSDe` actions (no on-chain native staking — that's Ethereum L1) plus reads for the Mantle-side bridged sUSDe
+**I want to** an `@mpilot/ethena-susde` package exposes `getYieldRate`, `getCarryVsAave`, `wrapToSusde`, `unwrapToUSDe` actions (no on-chain native staking — that's Ethereum L1) plus reads for the Mantle-side bridged sUSDe
 **So that** the agent can monitor the sUSDe basis trade carry vs Aave's USDC borrow rate (the wedge's spread-floor mechanic) and bridge USDe ↔ sUSDe on Mantle when policy allows
 
 ---
@@ -24,7 +24,7 @@
 - `packages/providers/ethena-susde/src/actions/wrapToSusde.ts` — NEW — `wrap({ amountUSDe })` calls the Mantle-side wrapper (`USDe.approve(sUSDe, amount)` → `sUSDe.deposit(amount, recipient)`). This is the LayerZero V2 OFT image's `deposit` function, NOT the L1 ERC-4626 vault. Returns receipt + attestation payload.
 - `packages/providers/ethena-susde/src/actions/unwrapToUSDe.ts` — NEW — `unwrap({ amountSusde })`. Calls `sUSDe.redeem(shares, receiver, owner)`. On Mantle there is NO cooldown (cooldown is L1-only); document this prominently.
 - `packages/providers/ethena-susde/src/actions/getYieldRate.ts` — NEW — pure read: queries the sUSDe → USDe oracle rate via the Mantle-side LayerZero OFT (which exposes a `convertToAssets(shares)` view), derives instantaneous yield by comparing `convertToAssets(1e18)` against a stored baseline + block timestamp.
-- `packages/providers/ethena-susde/src/actions/getCarryVsAave.ts` — NEW — composes `getYieldRate` from this provider with `quoteBorrowAPR(USDC)` from `@concierge-mantle/aave-v3-mantle` (story-30 selectors). Returns `{ susdeYieldBps, usdcBorrowBps, carryBps, spreadFloorPassing }`. **Used by the agent's `plan()` phase** to refuse new borrow positions when carry inverts (per `research/concierge/03-providers/ethena-susde.md` § Funding-rate inversion).
+- `packages/providers/ethena-susde/src/actions/getCarryVsAave.ts` — NEW — composes `getYieldRate` from this provider with `quoteBorrowAPR(USDC)` from `@mpilot/aave-v3-mantle` (story-30 selectors). Returns `{ susdeYieldBps, usdcBorrowBps, carryBps, spreadFloorPassing }`. **Used by the agent's `plan()` phase** to refuse new borrow positions when carry inverts (per `research/concierge/03-providers/ethena-susde.md` § Funding-rate inversion).
 - `packages/providers/ethena-susde/src/selectors.ts` — NEW — `getRate()`, `getBalanceUSDe(user)`, `getBalanceSusde(user)`, `convertToShares(amount)`, `convertToAssets(shares)`.
 - `packages/providers/ethena-susde/src/attestation.ts` — NEW — schemas: `concierge.ethena.wrap.v1`, `concierge.ethena.unwrap.v1`.
 
@@ -34,7 +34,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge-mantle/ethena-susde run build` runs
+When `pnpm --filter @mpilot/ethena-susde run build` runs
 Then exit code is 0
 
 Given the provider has 4 actions
@@ -86,7 +86,7 @@ test -f src/attestation.ts
 
 cd ../../..
 
-pnpm --filter @concierge-mantle/ethena-susde run build
+pnpm --filter @mpilot/ethena-susde run build
 test $? -eq 0
 pnpm run typecheck
 test $? -eq 0
@@ -119,6 +119,6 @@ bun scripts/check-file-loc.mjs
 - **Yield rate derivation on Mantle:** the OFT exposes `convertToAssets(shares)` which encodes the current sUSDe:USDe rate. Compare to a baseline snapshot (stored at provider init) to derive annualized yield: `((current / baseline) ^ (year_seconds / elapsed_seconds) - 1) * 10000`. For demo simplicity v1 uses MockAaveOracle's sUSDe price drift on Sepolia; v2 derives from real L1-relayed `convertToAssets` data.
 - **`spreadFloor` is configurable per agent policy** (default 0 bps). User can set to 50 bps (refuse if carry < 0.5%) for more conservative behavior. Read from policy in `getCarryVsAave`.
 - **Wrap action approves THEN deposits** — two txs in succession (separate UserOps when batched via ZeroDev). For non-EIP-2612 USDe paths, this is the canonical pattern. If USDe supports `permit()` (ERC-20 Permit), the action SHOULD use it to collapse approve+deposit into a single tx via permit-then-deposit pattern. Detect support by trying `IERC20Permit(USDe).DOMAIN_SEPARATOR()` — reverts → not supported, fall back to two txs.
-- **Composes with Aave provider** for `getCarryVsAave` — imports `quoteBorrowAPR` from `@concierge-mantle/aave-v3-mantle`. Listed as a peer dep in `package.json`.
+- **Composes with Aave provider** for `getCarryVsAave` — imports `quoteBorrowAPR` from `@mpilot/aave-v3-mantle`. Listed as a peer dep in `package.json`.
 - **No direct Ethena API integration.** The L1 mint/redeem RFQ flow (`https://public.api.ethena.fi/rfq`) is L1-only; Mantle agents never call it. Documented in `research/concierge/03-providers/ethena-susde.md` § API (off-chain).
 - Cross-ref: `research/concierge/03-providers/ethena-susde.md` § Verified facts (Mantle sUSDe at `0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2`, USDe at `0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34`).

@@ -1,4 +1,4 @@
-import type { DbClient } from '@concierge-mantle/db';
+import type { DbClient } from '@mpilot/db';
 import type { Address, Hex } from 'viem';
 import { type EnqueueInput, enqueue } from './queue.ts';
 import { sanitizeMessage } from './sanitize.ts';
@@ -66,7 +66,7 @@ export async function proposeForUser(config: ProposeForUserConfig): Promise<Prop
       const sanitizedMsg = sanitizeMessage(err instanceof Error ? err.message : String(err));
       // biome-ignore lint/suspicious/noConsole: proposal event drop must be observable
       console.error(
-        `[@concierge-mantle/smart-account] proposeForUser: eoa.proposal.pending emit failed (non-fatal — row queued, UI can poll)`,
+        `[@mpilot/smart-account] proposeForUser: eoa.proposal.pending emit failed (non-fatal — row queued, UI can poll)`,
         { queueId: id, agentId: config.txParams.agentId, error: sanitizedMsg },
       );
     }

@@ -1,7 +1,7 @@
-import { canonicalize } from '@concierge-mantle/attestation';
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { reputationRegistryAbi } from '@concierge-mantle/shared/abi';
-import { tool } from '@concierge-mantle/tools';
+import { canonicalize } from '@mpilot/attestation';
+import { ConciergeError } from '@mpilot/sdk';
+import { reputationRegistryAbi } from '@mpilot/shared/abi';
+import { tool } from '@mpilot/tools';
 import {
   AbiEventSignatureEmptyTopicsError,
   AbiEventSignatureNotFoundError,
@@ -18,7 +18,7 @@ import type { ReceiptLog } from '../_types.ts';
  * Cross-package contract (Context7 audit C2, post-review):
  *
  * The envelope built below has the SAME shape as `FeedbackEnvelope` in
- * `@concierge-mantle/attestation` ({v, schema, agentId, chainId, txHash?,
+ * `@mpilot/attestation` ({v, schema, agentId, chainId, txHash?,
  * payload, createdAt}) so a verifier reading the on-chain feedbackHash and
  * fetching the IPFS-pinned bytes (produced by writeAttestation, which uses
  * `computeFeedbackPair`) gets a byte-identical preimage and a matching
@@ -107,7 +107,7 @@ function scanForFeedbackIndex(
         continue;
       throw new ConciergeError(
         'RpcError',
-        '[@concierge-mantle/erc8004] attestAction: unexpected error decoding ReputationRegistry log',
+        '[@mpilot/erc8004] attestAction: unexpected error decoding ReputationRegistry log',
         err,
       );
     }
@@ -122,13 +122,13 @@ function assertAttestInputValid(
   if (!ctx.walletClient) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge-mantle/erc8004] attestAction: walletClient is required',
+      '[@mpilot/erc8004] attestAction: walletClient is required',
     );
   }
   if (input.actionPayload.schema !== input.providerSchema) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/erc8004] attestAction: actionPayload.schema ("${input.actionPayload.schema}") must match providerSchema ("${input.providerSchema}")`,
+      `[@mpilot/erc8004] attestAction: actionPayload.schema ("${input.actionPayload.schema}") must match providerSchema ("${input.providerSchema}")`,
     );
   }
 }
@@ -141,7 +141,7 @@ export async function executeAttestAction(
 
   // Context7 audit C2 + ADR-004 (post-review fix): the canonical attestation
   // hash MUST be `computeFeedbackPair(FeedbackEnvelope)` from
-  // @concierge-mantle/attestation — the SAME function writeAttestation uses
+  // @mpilot/attestation — the SAME function writeAttestation uses
   // when it pins to IPFS. Earlier in this PR we canonicalized only
   // {schema, agentId, payload}; that produced a DIFFERENT preimage from the
   // 6-field FeedbackEnvelope ({v, schema, agentId, chainId, txHash?, payload,
@@ -174,7 +174,7 @@ export async function executeAttestAction(
   } catch (err) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge-mantle/erc8004] attestAction: failed to canonicalize envelope — actionPayload likely contains a non-JSON-serialisable value (BigInt/Date/Map/Set/undefined/circular ref). Pre-serialise BigInts to strings before calling.',
+      '[@mpilot/erc8004] attestAction: failed to canonicalize envelope — actionPayload likely contains a non-JSON-serialisable value (BigInt/Date/Map/Set/undefined/circular ref). Pre-serialise BigInts to strings before calling.',
       err,
     );
   }
@@ -217,7 +217,7 @@ export async function executeAttestAction(
         : 'TxFailed';
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge-mantle/erc8004] attestAction: giveFeedback reverted — ${msg}`,
+      `[@mpilot/erc8004] attestAction: giveFeedback reverted — ${msg}`,
       err,
       { reason, agentId: input.agentId },
     );
@@ -228,7 +228,7 @@ export async function executeAttestAction(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/erc8004] attestAction: waitForTransactionReceipt failed for ${txHash}`,
+        `[@mpilot/erc8004] attestAction: waitForTransactionReceipt failed for ${txHash}`,
         err,
       );
     });
@@ -236,7 +236,7 @@ export async function executeAttestAction(
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge-mantle/erc8004] attestAction: transaction reverted — ${txHash}`,
+      `[@mpilot/erc8004] attestAction: transaction reverted — ${txHash}`,
       undefined,
       { agentId: input.agentId },
     );
@@ -246,7 +246,7 @@ export async function executeAttestAction(
   if (feedbackIndex === undefined) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/erc8004] attestAction: no NewFeedback event found in receipt ${txHash}`,
+      `[@mpilot/erc8004] attestAction: no NewFeedback event found in receipt ${txHash}`,
     );
   }
   return { txHash, feedbackIndex: feedbackIndex.toString(), feedbackHash };

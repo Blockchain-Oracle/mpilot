@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import type { Address, Hex } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

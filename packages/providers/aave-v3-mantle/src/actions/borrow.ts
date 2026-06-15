@@ -3,10 +3,10 @@
 // We detect this by checking the aSUSDe aToken balance — NOT the raw sUSDe wallet balance,
 // which is 0 after supply(sUSDe) moves tokens into the pool.
 
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address } from '@concierge-mantle/shared';
-import { erc20Abi, ipoolAbi } from '@concierge-mantle/shared/abi';
-import { tool } from '@concierge-mantle/tools';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address } from '@mpilot/shared';
+import { erc20Abi, ipoolAbi } from '@mpilot/shared/abi';
+import { tool } from '@mpilot/tools';
 import type { PublicClient } from 'viem';
 import { UserRejectedRequestError } from 'viem';
 import { z } from 'zod';
@@ -54,7 +54,7 @@ async function checkEModePreflight(
   if (eModeCategoryRaw === 0 && aSUsdeBalance > 0n) {
     throw new ConciergeError(
       'EModeNotEnabled',
-      '[@concierge-mantle/aave-v3-mantle] borrow: user has sUSDe collateral (aSUSDe > 0) but E-Mode 1 is not active. Call setUserEMode(1) to avoid a silent zero-return from Pool.borrow().',
+      '[@mpilot/aave-v3-mantle] borrow: user has sUSDe collateral (aSUSDe > 0) but E-Mode 1 is not active. Call setUserEMode(1) to avoid a silent zero-return from Pool.borrow().',
       undefined,
       { aSUsdeBalance: aSUsdeBalance.toString(), eModeCategory: eModeCategoryRaw },
     );
@@ -99,13 +99,13 @@ export function createBorrowTool(ctx: ActionContext) {
         if (err instanceof UserRejectedRequestError) {
           throw new ConciergeError(
             'UserRejected',
-            '[@concierge-mantle/aave-v3-mantle] borrow: transaction rejected by the user.',
+            '[@mpilot/aave-v3-mantle] borrow: transaction rejected by the user.',
             err,
           );
         }
         throw new ConciergeError(
           'RpcError',
-          `[@concierge-mantle/aave-v3-mantle] borrow: Pool.borrow() failed. Verify E-Mode ${eModeCategory} is active and the borrow cap for ${asset} has not been reached.`,
+          `[@mpilot/aave-v3-mantle] borrow: Pool.borrow() failed. Verify E-Mode ${eModeCategory} is active and the borrow cap for ${asset} has not been reached.`,
           err instanceof Error ? err : undefined,
           { asset, poolAddress },
         );
@@ -115,7 +115,7 @@ export function createBorrowTool(ctx: ActionContext) {
       if (receipt.status === 'reverted') {
         throw new ConciergeError(
           'RpcError',
-          `[@concierge-mantle/aave-v3-mantle] borrow: tx ${txHash} was mined but REVERTED. Verify borrow cap and E-Mode eligibility for ${asset}.`,
+          `[@mpilot/aave-v3-mantle] borrow: tx ${txHash} was mined but REVERTED. Verify borrow cap and E-Mode eligibility for ${asset}.`,
           undefined,
           { txHash, asset },
         );

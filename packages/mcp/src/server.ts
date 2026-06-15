@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { bigintSafeStringify, type ConciergeTool } from '@concierge-mantle/tools';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { ConciergeError } from '@mpilot/sdk';
+import { bigintSafeStringify, type ConciergeTool } from '@mpilot/tools';
 import { z } from 'zod';
 import { registerUIResources, uiResourceUriForCardId } from './registerUIResources.ts';
 
@@ -104,7 +104,7 @@ function assertZodObject(
 ): z.ZodObject<z.ZodRawShape> {
   if (!(schema instanceof z.ZodObject)) {
     throw new Error(
-      `[@concierge-mantle/mcp] tool '${toolName}' ${field} must be a z.ZodObject (MCP registerTool requires shape).`,
+      `[@mpilot/mcp] tool '${toolName}' ${field} must be a z.ZodObject (MCP registerTool requires shape).`,
     );
   }
   return schema as z.ZodObject<z.ZodRawShape>;
@@ -214,7 +214,7 @@ function defaultOnEmptyToolset(): void {
   try {
     process.stderr.write(
       '[concierge-mcp] WARNING: starting with 0 tools registered. ' +
-        'See the @concierge-mantle/agent integration story for the production toolset.\n',
+        'See the @mpilot/agent integration story for the production toolset.\n',
     );
   } catch {
     /* same EPIPE-safe guard */

@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import type { Hex } from 'viem';
 import { describe, expect, it } from 'vitest';
 import { SessionKeySecret } from '../crypto/sessionKeySecret.ts';

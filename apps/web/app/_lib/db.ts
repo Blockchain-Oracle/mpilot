@@ -4,7 +4,7 @@
  *
  * Routes that touch the DB MUST set `export const runtime = 'nodejs';`.
  */
-import { createDbClient, type DbClient } from '@concierge-mantle/db';
+import { createDbClient, type DbClient } from '@mpilot/db';
 import type { Pool } from 'pg';
 
 let cached: { db: DbClient; pool: Pool } | null = null;

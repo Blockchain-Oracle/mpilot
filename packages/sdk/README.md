@@ -1,8 +1,8 @@
-# @concierge-mantle/sdk
+# @mpilot/sdk
 
 Meta package for the Concierge core: one install re-exporting
-[`@concierge-mantle/tools`](../tools) (the framework-agnostic tool registry) +
-[`@concierge-mantle/vercel-ai`](../vercel-ai) (the Vercel AI SDK adapter) + the
+[`@mpilot/tools`](../tools) (the framework-agnostic tool registry) +
+[`@mpilot/vercel-ai`](../vercel-ai) (the Vercel AI SDK adapter) + the
 SDK's own `defaultModel()` / `ConciergeRegistry` / `ConciergeError`.
 Pure ESM, Node ≥ 22 (ADR-018).
 
@@ -14,24 +14,24 @@ Pure ESM, Node ≥ 22 (ADR-018).
 | `AI_MODEL` | NO | Override provider + model. Format: `"provider:model"`. Default: `"anthropic:claude-sonnet-4-6"` |
 | `CONCIERGE_RPC_URL` | NO | Override default Mantle RPC. Default: `https://rpc.mantle.xyz` (Mainnet) |
 
-All four `@ai-sdk/*` provider packages ship with `@concierge-mantle/sdk` — install
+All four `@ai-sdk/*` provider packages ship with `@mpilot/sdk` — install
 once, switch providers via `AI_MODEL` with no code change. The bundler
 tree-shakes the providers your build doesn't reach.
 
 ## Install
 
 ```bash
-pnpm add @concierge-mantle/sdk                        # core
-pnpm add @concierge-mantle/langchain @concierge-mantle/sdk   # LangChain consumers
-pnpm add @concierge-mantle/openai @concierge-mantle/sdk      # OpenAI / Anthropic raw tool-use
-pnpm add @concierge-mantle/agentkit @concierge-mantle/sdk    # Coinbase AgentKit consumers
+pnpm add @mpilot/sdk                        # core
+pnpm add @mpilot/langchain @mpilot/sdk   # LangChain consumers
+pnpm add @mpilot/openai @mpilot/sdk      # OpenAI / Anthropic raw tool-use
+pnpm add @mpilot/agentkit @mpilot/sdk    # Coinbase AgentKit consumers
 ```
 
 ## Quickstart (today)
 
 ```ts
 import { streamText } from 'ai';
-import { ConciergeRegistry, defaultModel, getVercelAITools } from '@concierge-mantle/sdk';
+import { ConciergeRegistry, defaultModel, getVercelAITools } from '@mpilot/sdk';
 
 const registry = ConciergeRegistry.mainnet(); // bundled, frozen Mantle addresses
 
@@ -46,7 +46,7 @@ const result = streamText({
 
 > **The agent runtime is not in this package yet.** `createConcierge()` /
 > `Concierge` / `concierge.tick()` (the ADR-019 five-line quickstart) ship
-> with `@concierge-mantle/agent` in Epic E5 and will be re-exported here when that
+> with `@mpilot/agent` in Epic E5 and will be re-exported here when that
 > package exists. This skeleton deliberately does NOT stub them — a fake
 > runtime in the hot path is forbidden.
 
@@ -79,7 +79,7 @@ var, else `anthropic:claude-sonnet-4-6`.
 
 `ConciergeRegistry.mainnet()` (chain 5000) / `ConciergeRegistry.sepolia()`
 (chain 5003). The `addresses` field is the **same frozen object**
-`@concierge-mantle/shared` exports — by reference, never a copy — so there is
+`@mpilot/shared` exports — by reference, never a copy — so there is
 exactly one source of truth and runtime mutation is impossible. Instances
 implement `ConciergeAgentLike`, so a registry can be passed directly to
 `createConciergeTools` or any adapter factory as the agent context.
@@ -97,12 +97,12 @@ mock deploy lands. Two programmatic guards, so nothing depends on prose:
   from the typed network error so `switch (err.type)` handlers never chase a
   network problem that is actually a typo. Prefer it over reading `addresses`
   directly whenever the address is about to be called or funded.
-- **`SEPOLIA_PENDING_ADDRESS_SLOTS`** (re-exported from `@concierge-mantle/shared`,
+- **`SEPOLIA_PENDING_ADDRESS_SLOTS`** (re-exported from `@mpilot/shared`,
   frozen) — the full list of pending paths, for consumers that want to
   enumerate or pre-check.
 
 ```ts
-import { ConciergeRegistry, SEPOLIA_PENDING_ADDRESS_SLOTS } from '@concierge-mantle/sdk';
+import { ConciergeRegistry, SEPOLIA_PENDING_ADDRESS_SLOTS } from '@mpilot/sdk';
 
 ConciergeRegistry.mainnet().requireAddress('aave.pool'); // 0x458F…1422
 ConciergeRegistry.sepolia().requireAddress('aave.pool'); // throws NetworkUnsupported
@@ -135,11 +135,11 @@ plain-JS typos) and makes `type` non-writable after construction, and
 
 ## What's re-exported
 
-- From `@concierge-mantle/tools`: `tool()`, `createConciergeTools`,
+- From `@mpilot/tools`: `tool()`, `createConciergeTools`,
   `bigintSafeStringify`, the serializable card schemas (`CARD_SCHEMAS`,
   `Serializable*CardSchema`, `safeParse*` helpers, `TICK_PHASE_VALUES`) and
   the core types (`ConciergeTool`, `ConciergeAgentLike`,
   `ProviderToolFactory`, `TickPhase`, `UICardId`).
-- From `@concierge-mantle/vercel-ai`: `getVercelAITools`, `toVercelAITool`.
+- From `@mpilot/vercel-ai`: `getVercelAITools`, `toVercelAITool`.
 - Adapter-author utilities (`toJsonSchema`, zod guards) stay in
-  `@concierge-mantle/tools` — import them from there directly.
+  `@mpilot/tools` — import them from there directly.

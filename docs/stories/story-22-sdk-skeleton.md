@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/sdk` skeleton + provider registration pattern
+# Story — `@mpilot/sdk` skeleton + provider registration pattern
 
 **ID:** story-22-sdk-skeleton
 **Epic:** Epic E2 — Shared SDK Core
@@ -8,37 +8,37 @@
 
 ---
 
-## ⚠️ 2026-06-10 IMPLEMENTATION ADDENDUM — `@concierge-mantle/agent` re-exports DEFERRED to Epic E5
+## ⚠️ 2026-06-10 IMPLEMENTATION ADDENDUM — `@mpilot/agent` re-exports DEFERRED to Epic E5
 
-The 2026-06-09 UPDATE below assumes `@concierge-mantle/agent` exists (`createConcierge`,
+The 2026-06-09 UPDATE below assumes `@mpilot/agent` exists (`createConcierge`,
 `Concierge`, `tick()`, `setGoal()` re-exports + the tick/goal BDD criteria).
 **No story in the corpus creates `packages/agent/` before Epic E5** — story-60
-creates `@concierge-mantle/llm`, and the runtime itself is assembled by stories 62-67,
+creates `@mpilot/llm`, and the runtime itself is assembled by stories 62-67,
 all of which transitively depend on THIS story. Stubbing a fake runtime to
 satisfy the criteria would be a banned hot-path mock, so story-22 shipped the
 implementable subset:
 
 - ✅ `packages/sdk/package.json` per ADR-018 (ESM-only, Node ≥22, peers `ai` /
-  `@ai-sdk/provider` / `zod`; zod peer is `^4.1.0` matching `@concierge-mantle/tools`,
+  `@ai-sdk/provider` / `zod`; zod peer is `^4.1.0` matching `@mpilot/tools`,
   not the `^3.25 || ^4.1` below — the dependency chain can't honor zod 3)
 - ✅ `src/defaultModel.ts` per ADR-016 (returns `LanguageModelV3` — the
   interface the installed `@ai-sdk/*` 3.x providers actually ship, per
   SDK-DX-STUDY §A's "pin to whatever is active at story time")
 - ✅ `src/registry.ts` — `ConciergeRegistry.mainnet()/sepolia()`, frozen,
-  sourcing `@concierge-mantle/shared` by reference, `implements ConciergeAgentLike`
+  sourcing `@mpilot/shared` by reference, `implements ConciergeAgentLike`
 - ✅ `src/errors.ts` — `ConciergeError` + `ConciergeErrorType` per ADR-019
-- ✅ Barrel re-exports of the EXISTING surface (`@concierge-mantle/tools` +
-  `@concierge-mantle/vercel-ai`) + README
-- ⏸️ DEFERRED to the E5 story that creates `@concierge-mantle/agent`: the
+- ✅ Barrel re-exports of the EXISTING surface (`@mpilot/tools` +
+  `@mpilot/vercel-ai`) + README
+- ⏸️ DEFERRED to the E5 story that creates `@mpilot/agent`: the
   `createConcierge` / `Concierge` re-exports, the tick/goal BDD criteria
   (missing-goal `ConciergeError`, AsyncIterable + `.on()`, per-phase model
   override), and the ADR-019 five-line quickstart in the README.
 
 ## ⚠️ 2026-06-09 UPDATE — read this BEFORE the original story body
 
-Per architecture.md ADR-014 + ADR-016 + ADR-019 (rework 2026-06-09), the `@concierge-mantle/sdk` shape changed:
+Per architecture.md ADR-014 + ADR-016 + ADR-019 (rework 2026-06-09), the `@mpilot/sdk` shape changed:
 
-1. **`@concierge-mantle/sdk` becomes a META PACKAGE** that re-exports `@concierge-mantle/agent` + `@concierge-mantle/tools` + `@concierge-mantle/vercel-ai` for ergonomic single-import. The "main class" is `Concierge` exported from `@concierge-mantle/agent`, not `@concierge-mantle/sdk` directly.
+1. **`@mpilot/sdk` becomes a META PACKAGE** that re-exports `@mpilot/agent` + `@mpilot/tools` + `@mpilot/vercel-ai` for ergonomic single-import. The "main class" is `Concierge` exported from `@mpilot/agent`, not `@mpilot/sdk` directly.
 
 2. **`createConcierge()` factory replaces the `new Concierge()` class constructor** (per SDK-DX-STUDY §I — factory functions, no class hierarchies needed):
    ```typescript
@@ -54,7 +54,7 @@ Per architecture.md ADR-014 + ADR-016 + ADR-019 (rework 2026-06-09), the `@conci
 
 3. **`goal` is NOT a constructor arg.** `concierge.setGoal('...')` is a separate method. Constructor side-effects = test hell (SDK-DX-STUDY §I).
 
-4. **Providers are NOT user-registered.** The 7 protocol packages (`@concierge-mantle/aave-v3-mantle`, etc.) auto-register into `@concierge-mantle/tools` when the agent is constructed. The `ProviderInterface` / `defineProvider()` pattern in the original story below is REPLACED by `ConciergeTool` from `@concierge-mantle/tools` (story-200).
+4. **Providers are NOT user-registered.** The 7 protocol packages (`@mpilot/aave-v3-mantle`, etc.) auto-register into `@mpilot/tools` when the agent is constructed. The `ProviderInterface` / `defineProvider()` pattern in the original story below is REPLACED by `ConciergeTool` from `@mpilot/tools` (story-200).
 
 5. **Tick API: AsyncIterable + `.on()` events** (per ADR-019):
    ```typescript
@@ -65,17 +65,17 @@ Per architecture.md ADR-014 + ADR-016 + ADR-019 (rework 2026-06-09), the `@conci
 
 6. **No model lock-in.** `model: LanguageModelV2` is the contract. `defaultModel()` helper does env auto-detect (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` / `XAI_API_KEY`) + `AI_MODEL="provider:model"` override. Strike the original `llm: { model: string }` field.
 
-7. **Package config:** ESM-only, `"type": "module"`, `"sideEffects": false`, `"engines.node": ">=22"`, `peerDependencies: { ai: "^6", "@ai-sdk/provider": "*", zod: "^3.25 || ^4.1" }`. Runtime deps: `@concierge-mantle/agent`, `@concierge-mantle/tools`, `@concierge-mantle/vercel-ai`, `@concierge-mantle/shared` (all `workspace:*`).
+7. **Package config:** ESM-only, `"type": "module"`, `"sideEffects": false`, `"engines.node": ">=22"`, `peerDependencies: { ai: "^6", "@ai-sdk/provider": "*", zod: "^3.25 || ^4.1" }`. Runtime deps: `@mpilot/agent`, `@mpilot/tools`, `@mpilot/vercel-ai`, `@mpilot/shared` (all `workspace:*`).
 
 ### Updated file modification map (replaces the one below)
 
 - `packages/sdk/package.json` — NEW per ADR-018 shape
 - `packages/sdk/src/index.ts` — barrel re-exports: `createConcierge`, `defaultModel`, `ConciergeRegistry`, `Concierge` class type, `ConciergeError`, `ConciergeTool`, `tool()`, `SerializableConciergeXxxSchema`s
-- `packages/sdk/src/registry.ts` — `ConciergeRegistry.mainnet()` / `ConciergeRegistry.sepolia()` bundled-addresses factory (sources from `@concierge-mantle/shared`)
+- `packages/sdk/src/registry.ts` — `ConciergeRegistry.mainnet()` / `ConciergeRegistry.sepolia()` bundled-addresses factory (sources from `@mpilot/shared`)
 - `packages/sdk/src/defaultModel.ts` — env-auto-detect helper (per ADR-016)
 - `packages/sdk/README.md` — the 5-line quickstart from ADR-019:
   ```typescript
-  import { createConcierge, defaultModel, ConciergeRegistry } from '@concierge-mantle/sdk';
+  import { createConcierge, defaultModel, ConciergeRegistry } from '@mpilot/sdk';
   const concierge = createConcierge({ model: defaultModel(), registry: ConciergeRegistry.mainnet() });
   await concierge.setGoal('Max USDC yield, stay under 70% LTV');
   for await (const event of concierge.tick()) { console.log(event); }
@@ -111,9 +111,9 @@ Then the first event has type='plan-delta' or type='plan-done'
 
 ### Drop from the original story
 
-- The `ProviderInterface` + `defineProvider()` + provider-registration tests are REPLACED by `@concierge-mantle/tools` per story-200. Delete those tests from this story.
+- The `ProviderInterface` + `defineProvider()` + provider-registration tests are REPLACED by `@mpilot/tools` per story-200. Delete those tests from this story.
 - The `llm: { model: string }` config field is REPLACED by `model: LanguageModelV2`.
-- The `c.registerProvider(name, provider)` API is GONE — providers self-register via `@concierge-mantle/agent`'s `ConciergeAgent` constructor reading from `@concierge-mantle/tools`.
+- The `c.registerProvider(name, provider)` API is GONE — providers self-register via `@mpilot/agent`'s `ConciergeAgent` constructor reading from `@mpilot/tools`.
 
 ---
 
@@ -124,29 +124,29 @@ Then the first event has type='plan-delta' or type='plan-done'
 ## User story
 
 **As a** Mantle developer using Concierge
-**I want to** `import { Concierge } from '@concierge-mantle/sdk'` and register providers in 5 lines
+**I want to** `import { Concierge } from '@mpilot/sdk'` and register providers in 5 lines
 **So that** I can ship my own agent without re-implementing the runtime contract
 
 ---
 
 ## File modification map
 
-- `packages/sdk/package.json` — NEW — `name: "@concierge-mantle/sdk"`, exports map, peer deps on `viem`, `zod`
+- `packages/sdk/package.json` — NEW — `name: "@mpilot/sdk"`, exports map, peer deps on `viem`, `zod`
 - `packages/sdk/src/index.ts` — NEW — barrel exports
 - `packages/sdk/src/Concierge.ts` — NEW — main `Concierge` class with `constructor(opts)`, `registerProvider(name, provider)`, `getProvider(name)`, `listProviders()`, `setGoal(goal)`, `activate()`, `deactivate()`, lifecycle events
 - `packages/sdk/src/types.ts` — NEW — `ConciergeOptions`, `ProviderInterface`, `ActionDefinition`, `AgentLifecycle`
 - `packages/sdk/src/provider.ts` — NEW — `defineProvider(name, actions)` helper for Mantle dev ergonomics
 - `packages/sdk/src/Concierge.test.ts` — NEW — unit tests covering: construction, provider registration, action lookup, lifecycle transitions, invalid-config errors
-- `packages/sdk/README.md` — NEW — quickstart: `npm install @concierge-mantle/sdk` + 5-line example
+- `packages/sdk/README.md` — NEW — quickstart: `npm install @mpilot/sdk` + 5-line example
 
 ---
 
 ## Acceptance criteria (BDD)
 
 ```
-Given `@concierge-mantle/sdk` package exists
+Given `@mpilot/sdk` package exists
 When `node -e "const pkg = require('./packages/sdk/package.json'); console.log(pkg.name)"` runs
-Then output is "@concierge-mantle/sdk"
+Then output is "@mpilot/sdk"
 
 Given a Concierge instance is constructed
 When `pnpm -e "import { Concierge } from './packages/sdk/src/index.ts'; const c = new Concierge({ chain: 'mantle-mainnet' }); console.log(c.listProviders())"` runs
@@ -184,7 +184,7 @@ test -f packages/sdk/README.md
 # Package name correct
 node -e "
   const pkg = require('./packages/sdk/package.json');
-  if (pkg.name !== '@concierge-mantle/sdk') process.exit(1);
+  if (pkg.name !== '@mpilot/sdk') process.exit(1);
 "
 
 # Tests pass with ≥ 15 cases
@@ -195,7 +195,7 @@ pnpm run typecheck
 test $? -eq 0
 
 # README has the 5-line example
-grep -q "npm install @concierge-mantle/sdk" packages/sdk/README.md
+grep -q "npm install @mpilot/sdk" packages/sdk/README.md
 grep -q "new Concierge" packages/sdk/README.md
 grep -q "registerProvider" packages/sdk/README.md
 ```

@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { ADDRESSES } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import { ADDRESSES } from '@mpilot/shared';
 import { describe, expect, it, vi } from 'vitest';
 import { executeAcquire } from '../../actions/acquire.ts';
 
@@ -86,7 +86,7 @@ describe('acquire — error propagation', () => {
   it('re-throws ConciergeError(SwapSlippageBreach) from dex provider unchanged', async () => {
     const slippageError = new ConciergeError(
       'SwapSlippageBreach',
-      '[@concierge-mantle/mantle-dex] swap: slippage breach',
+      '[@mpilot/mantle-dex] swap: slippage breach',
     );
     const swapSpy = vi.fn().mockRejectedValue(slippageError);
     const dexProvider = { actions: { swap: { invoke: swapSpy } } };

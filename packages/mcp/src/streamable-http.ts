@@ -47,7 +47,7 @@ function defaultSessionIdGenerator(): () => string {
   const cryptoApi = globalThis.crypto;
   if (cryptoApi === undefined || typeof cryptoApi.randomUUID !== 'function') {
     throw new Error(
-      '[@concierge-mantle/mcp] runtime lacks `globalThis.crypto.randomUUID` — pass `sessionIdGenerator` explicitly (must be cryptographically random; CWE-330).',
+      '[@mpilot/mcp] runtime lacks `globalThis.crypto.randomUUID` — pass `sessionIdGenerator` explicitly (must be cryptographically random; CWE-330).',
     );
   }
   return () => cryptoApi.randomUUID();

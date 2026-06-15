@@ -1,8 +1,8 @@
-# @concierge-mantle/mcp
+# @mpilot/mcp
 
 Transport-agnostic MCP server for Concierge, per ADR-011 amended.
 
-- **Default install path**: stdio bin — `npx -y @concierge-mantle/mcp`.
+- **Default install path**: stdio bin — `npx -y @mpilot/mcp`.
 - **Optional hosted variant**: Cloudflare Worker wrapping
   `createStreamableHttpHandler`. Lives in `apps/mcp/` (story-133).
 
@@ -14,7 +14,7 @@ supported provider — see "Environment" below) before launching the host.
 ### Claude Code
 
 ```bash
-claude mcp add concierge -- npx -y @concierge-mantle/mcp
+claude mcp add concierge -- npx -y @mpilot/mcp
 ```
 
 ### Claude Desktop
@@ -27,7 +27,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`
   "mcpServers": {
     "concierge": {
       "command": "npx",
-      "args": ["-y", "@concierge-mantle/mcp"],
+      "args": ["-y", "@mpilot/mcp"],
       "env": { "ANTHROPIC_API_KEY": "sk-ant-..." }
     }
   }
@@ -43,7 +43,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`
   "mcpServers": {
     "concierge": {
       "command": "npx",
-      "args": ["-y", "@concierge-mantle/mcp"]
+      "args": ["-y", "@mpilot/mcp"]
     }
   }
 }
@@ -52,7 +52,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`
 ### Windsurf
 
 Settings → MCP Servers → Add Server, command:
-`npx -y @concierge-mantle/mcp`.
+`npx -y @mpilot/mcp`.
 
 ### VS Code Copilot
 
@@ -61,7 +61,7 @@ Settings → MCP Servers → Add Server, command:
 ```json
 {
   "servers": {
-    "concierge": { "command": "npx", "args": ["-y", "@concierge-mantle/mcp"] }
+    "concierge": { "command": "npx", "args": ["-y", "@mpilot/mcp"] }
   }
 }
 ```
@@ -74,7 +74,7 @@ Settings → MCP Servers → Add Server, command:
 {
   "context_servers": {
     "concierge": {
-      "command": { "path": "npx", "args": ["-y", "@concierge-mantle/mcp"] }
+      "command": { "path": "npx", "args": ["-y", "@mpilot/mcp"] }
     }
   }
 }
@@ -82,7 +82,7 @@ Settings → MCP Servers → Add Server, command:
 
 ### Cline
 
-Cline settings → MCP Servers → add: command `npx`, args `-y @concierge-mantle/mcp`.
+Cline settings → MCP Servers → add: command `npx`, args `-y @mpilot/mcp`.
 
 ### Goose
 
@@ -93,7 +93,7 @@ extensions:
   concierge:
     type: stdio
     cmd: npx
-    args: [-y, '@concierge-mantle/mcp']
+    args: [-y, '@mpilot/mcp']
 ```
 
 ### OpenCode
@@ -103,7 +103,7 @@ extensions:
 ```json
 {
   "mcpServers": {
-    "concierge": { "command": "npx", "args": ["-y", "@concierge-mantle/mcp"] }
+    "concierge": { "command": "npx", "args": ["-y", "@mpilot/mcp"] }
   }
 }
 ```
@@ -115,7 +115,7 @@ extensions:
 ```toml
 [mcp_servers.concierge]
 command = "npx"
-args = ["-y", "@concierge-mantle/mcp"]
+args = ["-y", "@mpilot/mcp"]
 ```
 
 ## Environment
@@ -157,9 +157,9 @@ regenerating over a potentially imported real key.
 ## Library quickstart
 
 ```ts
-import { createConciergeMcpServer } from '@concierge-mantle/mcp';
+import { createConciergeMcpServer } from '@mpilot/mcp';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
-const server = createConciergeMcpServer({ tools: /* @concierge-mantle/tools */ [] });
+const server = createConciergeMcpServer({ tools: /* @mpilot/tools */ [] });
 await server.connect(new StdioServerTransport());
 ```

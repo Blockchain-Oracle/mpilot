@@ -11,7 +11,7 @@
 ## User story
 
 **As a** Concierge tick-loop runtime
-**I want to** an `@concierge-mantle/llm` package wraps `@anthropic-ai/sdk` + `@anthropic-ai/claude-agent-sdk` with phase-specific model routing (Sonnet 4.6 default, Opus 4.7 for hard reasoning, Haiku 4.5 for recap) and prompt caching enabled by default
+**I want to** an `@mpilot/llm` package wraps `@anthropic-ai/sdk` + `@anthropic-ai/claude-agent-sdk` with phase-specific model routing (Sonnet 4.6 default, Opus 4.7 for hard reasoning, Haiku 4.5 for recap) and prompt caching enabled by default
 **So that** per-tick LLM cost is minimized + reasoning quality scales with phase complexity without each tick-phase file re-implementing model selection logic
 
 ---
@@ -33,7 +33,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge-mantle/llm run build` runs
+When `pnpm --filter @mpilot/llm run build` runs
 Then exit code is 0
 
 Given createLlmClient is called with valid apiKey
@@ -87,7 +87,7 @@ test -f src/cache.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/llm run build
+pnpm --filter @mpilot/llm run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -107,7 +107,7 @@ grep -q "claude-opus-4-7" packages/llm/src/models.ts
 grep -q "claude-haiku-4-5-20251001" packages/llm/src/models.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/llm run test
+pnpm --filter @mpilot/llm run test
 test $? -eq 0
 
 bun scripts/check-file-loc.mjs

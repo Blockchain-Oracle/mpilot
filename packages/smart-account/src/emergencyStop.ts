@@ -1,5 +1,5 @@
-import { type DbClient, sessionKeys } from '@concierge-mantle/db';
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { type DbClient, sessionKeys } from '@mpilot/db';
+import { ConciergeError } from '@mpilot/sdk';
 import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import type {
@@ -60,7 +60,7 @@ export async function emergencyStop(config: EmergencyStopConfig): Promise<Emerge
   if (!uuidSchema.safeParse(config.agentId).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] emergencyStop: agentId is not a valid UUID.`,
+      `[@mpilot/smart-account] emergencyStop: agentId is not a valid UUID.`,
     );
   }
 
@@ -102,7 +102,7 @@ export async function emergencyStop(config: EmergencyStopConfig): Promise<Emerge
           // need a signal even if the caller never inspects this bucket.
           // biome-ignore lint/suspicious/noConsole: operational signal for unexpected revocation failure
           console.error(
-            `[@concierge-mantle/smart-account] emergencyStop: unexpected revocation failure for '${id}'`,
+            `[@mpilot/smart-account] emergencyStop: unexpected revocation failure for '${id}'`,
             { agentId: config.agentId, error: err },
           );
           unexpectedFailures.push({ sessionKeyId: id, cause: err });

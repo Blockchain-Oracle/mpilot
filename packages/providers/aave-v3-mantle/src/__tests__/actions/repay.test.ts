@@ -1,4 +1,4 @@
-import type { Address } from '@concierge-mantle/shared';
+import type { Address } from '@mpilot/shared';
 import { parseAbi } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAaveV3MantleProvider } from '../../provider.ts';

@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/openai` adapter (covers OpenAI Chat Completions AND Anthropic raw tool-use)
+# Story — `@mpilot/openai` adapter (covers OpenAI Chat Completions AND Anthropic raw tool-use)
 
 **ID:** story-303-openai-adapter
 **Epic:** Epic E13 — Composable Primitive
@@ -45,7 +45,7 @@ When the consumer passes the tools array to `{ tools: getOpenAITools(agent).tool
 Then the SAME JSON Schema works (cross-runtime — verified per AUDIT-2026-06-09 §7)
 
 Given typecheck + build + tests
-When `pnpm --filter @concierge-mantle/openai build && pnpm --filter @concierge-mantle/openai test` runs
+When `pnpm --filter @mpilot/openai build && pnpm --filter @mpilot/openai test` runs
 Then ≥ 6 cases pass and exit 0
 ```
 
@@ -63,8 +63,8 @@ test -f packages/openai/src/index.ts
 # Anti-regression: NO openai SDK dep (we emit raw JSON Schema; consumer brings their own client)
 ! node -e "const p = require('./packages/openai/package.json'); if (p.dependencies?.openai) process.exit(1);"
 
-pnpm --filter @concierge-mantle/openai build
-pnpm --filter @concierge-mantle/openai test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 6 {exit 0} {exit 1}'
+pnpm --filter @mpilot/openai build
+pnpm --filter @mpilot/openai test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 6 {exit 0} {exit 1}'
 ```
 
 ---
@@ -74,8 +74,8 @@ pnpm --filter @concierge-mantle/openai test 2>&1 | grep -cE "(✓|PASS)" | awk '
 Implementation (verbatim from architecture.md ADR-014):
 
 ```typescript
-import { createConciergeTools, toJsonSchema } from '@concierge-mantle/tools';
-import type { ConciergeAgent } from '@concierge-mantle/agent';
+import { createConciergeTools, toJsonSchema } from '@mpilot/tools';
+import type { ConciergeAgent } from '@mpilot/agent';
 
 export function getOpenAITools(agent: ConciergeAgent) {
   const conciergeTools = createConciergeTools(agent);

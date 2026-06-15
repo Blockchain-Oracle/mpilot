@@ -1,6 +1,6 @@
-import { loadAgentHistory } from '@concierge-mantle/attestation';
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { type ConciergeTool, tool } from '@concierge-mantle/tools';
+import { loadAgentHistory } from '@mpilot/attestation';
+import { ConciergeError } from '@mpilot/sdk';
+import { type ConciergeTool, tool } from '@mpilot/tools';
 import type { CreateReadToolsDeps } from './factoryDeps.ts';
 import { toEntry } from './getAgentState.ts';
 import { safeBigInt } from './safeBigInt.ts';
@@ -51,7 +51,7 @@ export function createGetAttestationTool(deps: CreateReadToolsDeps): ConciergeTo
           : `not found within ${String(result.totalCount)}-entry attestation list`;
         throw new ConciergeError(
           'AttestationFailed',
-          `[@concierge-mantle/mcp] get_attestation: feedbackHash ${feedbackHash} ${reason} for agent ${agentId}`,
+          `[@mpilot/mcp] get_attestation: feedbackHash ${feedbackHash} ${reason} for agent ${agentId}`,
         );
       }
       return { entry: toEntry(match) };

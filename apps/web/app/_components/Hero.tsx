@@ -1,7 +1,7 @@
 /**
  * Hero — top of the landing. Designer's prototype includes a live ticking
  * demo card here; engineering v1 ships the headline + CTA + a placeholder
- * card. The live tick demo wires up in story-115 when @concierge-mantle/react
+ * card. The live tick demo wires up in story-115 when @mpilot/react
  * exposes the SSE hooks against the worker.
  */
 import Link from 'next/link';
@@ -112,8 +112,8 @@ export function Hero() {
               lineHeight: 1.7,
             }}
           >
-            Wires up in story-115 — `@concierge-mantle/react` SSE hook against the worker. For now
-            this is the visual envelope so the page layout locks before the data does.
+            Wires up in story-115 — `@mpilot/react` SSE hook against the worker. For now this is the
+            visual envelope so the page layout locks before the data does.
           </p>
         </section>
       </div>

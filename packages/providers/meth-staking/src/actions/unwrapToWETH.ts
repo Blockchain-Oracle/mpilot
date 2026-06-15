@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { tool } from '@concierge-mantle/tools';
+import { ConciergeError } from '@mpilot/sdk';
+import { tool } from '@mpilot/tools';
 import { z } from 'zod';
 import { computeRateFromSqrt, fetchPoolState } from '../_agni.ts';
 import type { ActionContext } from '../_context.ts';
@@ -64,7 +64,7 @@ export async function executeGetUnwrapToWETH(
     if (err instanceof ConciergeError && err.type === 'OracleUnavailable') throw err;
     throw new ConciergeError(
       'OracleUnavailable',
-      '[@concierge-mantle/meth-staking] getUnwrapToWETH: oracle price read or rate computation failed before swap — no funds moved, safe to retry',
+      '[@mpilot/meth-staking] getUnwrapToWETH: oracle price read or rate computation failed before swap — no funds moved, safe to retry',
       err instanceof Error ? err : undefined,
     );
   }
@@ -83,7 +83,7 @@ export async function executeGetUnwrapToWETH(
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      '[@concierge-mantle/meth-staking] getUnwrapToWETH: DEX swap failed',
+      '[@mpilot/meth-staking] getUnwrapToWETH: DEX swap failed',
       err instanceof Error ? err : undefined,
     );
   }
@@ -92,7 +92,7 @@ export async function executeGetUnwrapToWETH(
   if (!/^0x[0-9a-fA-F]{64}$/.test(rawTxHash)) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/meth-staking] getUnwrapToWETH: DEX provider returned a malformed txHash: '${rawTxHash}' — swap may have executed; verify manually`,
+      `[@mpilot/meth-staking] getUnwrapToWETH: DEX provider returned a malformed txHash: '${rawTxHash}' — swap may have executed; verify manually`,
     );
   }
   const dexTxHash = rawTxHash as `0x${string}`;
@@ -114,7 +114,7 @@ export async function executeGetUnwrapToWETH(
   } catch (err) {
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge-mantle/meth-staking] getUnwrapToWETH: swap executed (txHash: ${dexTxHash}) but attestation payload validation failed — record the tx hash manually`,
+      `[@mpilot/meth-staking] getUnwrapToWETH: swap executed (txHash: ${dexTxHash}) but attestation payload validation failed — record the tx hash manually`,
       err instanceof Error ? err : undefined,
     );
   }

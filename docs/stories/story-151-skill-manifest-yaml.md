@@ -92,7 +92,7 @@ grep -q "5000" packages/skill-mantle-agent/SKILL.md
 grep -q "5003" packages/skill-mantle-agent/SKILL.md
 
 # Cross-check test passes
-pnpm --filter @concierge-mantle/skill-mantle-agent run test 2>&1 | grep "cross-check" | grep -q "PASS"
+pnpm --filter @mpilot/skill-mantle-agent run test 2>&1 | grep "cross-check" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

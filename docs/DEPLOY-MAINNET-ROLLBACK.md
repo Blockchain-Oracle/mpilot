@@ -131,7 +131,7 @@ admin loss).
    `docs/deployments/<date>-deprecated.md` AND in the README's
    "Live addresses" section.
 5. **Notify integration partners.** Anyone reading the old address from
-   `@concierge-mantle/shared` BEFORE the version bump is now hitting a dead
+   `@mpilot/shared` BEFORE the version bump is now hitting a dead
    address.
 
 ## Escalation

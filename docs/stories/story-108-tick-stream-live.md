@@ -84,7 +84,7 @@ test -f lib/hooks/useTickStream.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Four UI states represented
@@ -99,7 +99,7 @@ grep -qE "(return.*401|Response.*401)" apps/web/app/api/agent/\[id\]/tick-stream
 grep -q "prefers-reduced-motion" apps/web/components/dashboard/PhasePill.tsx
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep -E "(TickStream|PhasePill)" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep -E "(TickStream|PhasePill)" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

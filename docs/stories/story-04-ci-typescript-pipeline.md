@@ -29,7 +29,7 @@
 
 The test job is flat (no matrix) in story-04. Three reviewers in PR #4 converged on this: a matrix-of-one is decorative ("matrix.package is referenced only in a step name; the actual command ignores it") and a future-trap ("adding [sdk, shared] later runs the same `pnpm -r` command 3×, giving the false impression of sharding").
 
-Per-package shards re-introduce in the first story where a real `@concierge-mantle/*` package has a `test` script (story-20+). Example future shape:
+Per-package shards re-introduce in the first story where a real `@mpilot/*` package has a `test` script (story-20+). Example future shape:
 ```yaml
 test:
   strategy:
@@ -38,7 +38,7 @@ test:
       package: [sdk, shared, providers-aave-v3-mantle, ...]
   steps:
     ...
-    - run: pnpm --filter @concierge-mantle/${{ matrix.package }} run test --reporter=verbose --coverage
+    - run: pnpm --filter @mpilot/${{ matrix.package }} run test --reporter=verbose --coverage
 ```
 
 Today's test job is a single-shot `pnpm -r run test` with an explicit no-tests-wired-yet warning annotation — green is honest because nothing claims tests passed; it only claims "no tests exist yet to run." Per silent-failure-hunter PR #4: `--if-present` was DROPPED because it silently skips packages without test scripts (the existential silent-CI-failure mode).

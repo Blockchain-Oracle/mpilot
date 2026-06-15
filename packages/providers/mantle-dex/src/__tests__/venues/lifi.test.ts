@@ -1,6 +1,6 @@
 // Unit tests for createLifiVenue — fetch is mocked via vi.stubGlobal; no fork required.
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address } from '@mpilot/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createLifiVenue } from '../../venues/lifi.ts';
 

@@ -84,7 +84,7 @@ test -f app/docs/\[\[...slug\]\]/opengraph-image.tsx
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Sitemap includes docs routes
@@ -94,7 +94,7 @@ grep -q "docs" apps/web/app/sitemap.ts
 grep -q "/app" apps/web/app/robots.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "Footer" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "Footer" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

@@ -83,7 +83,7 @@ test -f src/tools/read/getAttestation.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/mcp run build
+pnpm --filter @mpilot/mcp run build
 test $? -eq 0
 
 # Tools registered
@@ -92,7 +92,7 @@ for tool in get_agent_state get_reputation get_attestation; do
 done
 
 # Tests pass
-pnpm --filter @concierge-mantle/mcp run test 2>&1 | grep "tools-read" | grep -q "PASS"
+pnpm --filter @mpilot/mcp run test 2>&1 | grep "tools-read" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```
@@ -114,6 +114,6 @@ bun scripts/check-file-loc.mjs
 
 ## ⚠️ Spec drift (2026-06-14, accepted by implementation)
 
-Original spec named `apps/mcp-server/` + `@concierge-mantle/mcp-server`; the as-built code lives at `packages/mcp/` + `@concierge-mantle/mcp` per ADR-011 amended (stdio-first packaging). Story rewritten in-place.
+Original spec named `apps/mcp-server/` + `@mpilot/mcp-server`; the as-built code lives at `packages/mcp/` + `@mpilot/mcp` per ADR-011 amended (stdio-first packaging). Story rewritten in-place.
 
 **`get_attestation` input also changed** from `{ uid }` to `{ agentId, feedbackHash }`. ERC-8004 ReputationRegistry has no by-UID index — lookup MUST scan the agent's feedback list and filter. Surfacing this required input makes the cost obvious to the caller.

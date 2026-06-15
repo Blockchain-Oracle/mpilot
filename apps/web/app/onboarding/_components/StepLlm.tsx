@@ -1,6 +1,6 @@
 'use client';
 
-import { BrandMark } from '@concierge-mantle/ui';
+import { BrandMark } from '@mpilot/ui';
 import { usePrivy } from '@privy-io/react-auth';
 import { useRef } from 'react';
 import type { KeyStatus, LlmProviderId, OnboardingData, StatePatcher } from '../_types';

@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address } from '@mpilot/shared';
 import type { PublicClient, WalletClient } from 'viem';
 import { BaseError, ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
@@ -46,7 +46,7 @@ export function createWooFiVenue(
     if (!walletClient) {
       throw new ConciergeError(
         'ConfigError',
-        '[@concierge-mantle/mantle-dex] woofi.swap: walletClient required',
+        '[@mpilot/mantle-dex] woofi.swap: walletClient required',
       );
     }
     const { tokenIn, tokenOut, amountIn, amountOutMin, recipient, account } = params;
@@ -77,7 +77,7 @@ export function createWooFiVenue(
     if (receipt.status === 'reverted') {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/mantle-dex] woofi.swap: tx ${txHash} reverted`,
+        `[@mpilot/mantle-dex] woofi.swap: tx ${txHash} reverted`,
       );
     }
     return { txHash, amountOut: simulatedAmountOut, spender: router };

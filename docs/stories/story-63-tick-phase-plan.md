@@ -73,7 +73,7 @@ test -f src/phases/planSchema.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/agent run build
+pnpm --filter @mpilot/agent run build
 test $? -eq 0
 
 # Tools in plan phase are read-only
@@ -92,7 +92,7 @@ grep -q "stepCountIs(3)" packages/runtime/src/phases/plan.ts
 grep -q "MODEL_SONNET" packages/runtime/src/phases/plan.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/agent run test 2>&1 | grep "plan" | grep -q "PASS"
+pnpm --filter @mpilot/agent run test 2>&1 | grep "plan" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

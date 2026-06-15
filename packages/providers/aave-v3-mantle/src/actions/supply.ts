@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { erc20Abi, ipoolAbi } from '@concierge-mantle/shared/abi';
-import { tool } from '@concierge-mantle/tools';
+import { ConciergeError } from '@mpilot/sdk';
+import { erc20Abi, ipoolAbi } from '@mpilot/shared/abi';
+import { tool } from '@mpilot/tools';
 import { maxUint256 } from 'viem';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
@@ -47,7 +47,7 @@ async function ensureApproval(
   if (approveReceipt.status === 'reverted') {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/aave-v3-mantle] supply: ERC-20 approve() for ${asset} was mined but REVERTED. Some tokens (e.g. USDT) require zeroing the allowance first: call approve(${poolAddress}, 0) then retry.`,
+      `[@mpilot/aave-v3-mantle] supply: ERC-20 approve() for ${asset} was mined but REVERTED. Some tokens (e.g. USDT) require zeroing the allowance first: call approve(${poolAddress}, 0) then retry.`,
       undefined,
       { asset, poolAddress },
     );
@@ -82,7 +82,7 @@ async function executeSupply(ctx: ActionContext, args: z.infer<typeof SupplyInpu
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/aave-v3-mantle] supply: Pool.supply() failed for asset ${asset}. Verify the asset is supported by the Aave V3 pool.`,
+      `[@mpilot/aave-v3-mantle] supply: Pool.supply() failed for asset ${asset}. Verify the asset is supported by the Aave V3 pool.`,
       err instanceof Error ? err : undefined,
       { asset, poolAddress },
     );
@@ -92,7 +92,7 @@ async function executeSupply(ctx: ActionContext, args: z.infer<typeof SupplyInpu
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/aave-v3-mantle] supply: tx ${txHash} was mined but REVERTED. Verify the ${asset} supply cap has not been reached.`,
+      `[@mpilot/aave-v3-mantle] supply: tx ${txHash} was mined but REVERTED. Verify the ${asset} supply cap has not been reached.`,
       undefined,
       { txHash, asset },
     );

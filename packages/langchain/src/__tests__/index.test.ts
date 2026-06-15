@@ -1,4 +1,4 @@
-// BDD coverage for the @concierge-mantle/langchain adapter: StructuredToolInterface
+// BDD coverage for the @mpilot/langchain adapter: StructuredToolInterface
 // shape, stringified invoke delegation (incl. rejection passthrough + unary
 // call), zod input validation + unknown-key stripping, schema reference
 // identity, multi-factory merging, empty-registry default, registry error
@@ -7,9 +7,9 @@
 // and fakeModel + bindTools integrations (ToolCall → ToolMessage happy path +
 // error propagation + invalid-args rejection).
 
-import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@concierge-mantle/tools';
 import { HumanMessage } from '@langchain/core/messages';
 import { fakeModel } from '@langchain/core/testing';
+import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@mpilot/tools';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { getLangChainTools, toLangChainTool } from '../index.ts';

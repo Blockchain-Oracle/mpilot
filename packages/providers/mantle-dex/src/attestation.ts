@@ -1,4 +1,4 @@
-import type { Address, EvmChainId, Hex } from '@concierge-mantle/shared';
+import type { Address, EvmChainId, Hex } from '@mpilot/shared';
 import { z } from 'zod';
 import type { VenueName } from './_types.ts';
 

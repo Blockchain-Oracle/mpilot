@@ -1,5 +1,5 @@
 /**
- * r2 — wires the onboarding flow to the production `@concierge-mantle/smart-account`
+ * r2 — wires the onboarding flow to the production `@mpilot/smart-account`
  * package (ZeroDev kernel + Pimlico paymaster).
  *
  * The wallet we get from Privy is an EIP-1193 provider (browser-side
@@ -10,7 +10,7 @@
  * Privy provider and pass `walletClient.account` through with a structural
  * cast at the type-system boundary.
  */
-import { type ConciergeAccount, createConciergeAccount } from '@concierge-mantle/smart-account/web';
+import { type ConciergeAccount, createConciergeAccount } from '@mpilot/smart-account/web';
 import type { WalletClient } from 'viem';
 
 export interface DeployArgs {

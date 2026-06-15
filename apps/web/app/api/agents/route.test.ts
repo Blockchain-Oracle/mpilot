@@ -1,4 +1,4 @@
-import { agents, llmKeys, notificationPrefs } from '@concierge-mantle/db';
+import { agents, llmKeys, notificationPrefs } from '@mpilot/db';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mocked at the module boundary so the test exercises the route's insert

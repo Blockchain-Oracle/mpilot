@@ -8,5 +8,5 @@ export default defineConfig({
   clean: true,
   target: 'node22',
   tsconfig: 'tsconfig.build.json',
-  external: ['@langchain/core', 'zod', '@concierge-mantle/tools'],
+  external: ['@langchain/core', 'zod', '@mpilot/tools'],
 });

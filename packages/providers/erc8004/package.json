@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/erc8004",
+  "name": "@mpilot/erc8004",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,10 +28,10 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge-mantle/attestation": "workspace:*",
-    "@concierge-mantle/shared": "workspace:*",
-    "@concierge-mantle/sdk": "workspace:*",
-    "@concierge-mantle/tools": "workspace:*"
+    "@mpilot/attestation": "workspace:*",
+    "@mpilot/shared": "workspace:*",
+    "@mpilot/sdk": "workspace:*",
+    "@mpilot/tools": "workspace:*"
   },
   "peerDependencies": {
     "viem": "^2.52.0",

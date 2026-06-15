@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/ondo-usdy",
+  "name": "@mpilot/ondo-usdy",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,9 +28,9 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge-mantle/shared": "workspace:*",
-    "@concierge-mantle/sdk": "workspace:*",
-    "@concierge-mantle/tools": "workspace:*"
+    "@mpilot/shared": "workspace:*",
+    "@mpilot/sdk": "workspace:*",
+    "@mpilot/tools": "workspace:*"
   },
   "peerDependencies": {
     "viem": "^2.52.0",

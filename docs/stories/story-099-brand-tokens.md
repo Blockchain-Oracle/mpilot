@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/ui` brand tokens package scaffold
+# Story — `@mpilot/ui` brand tokens package scaffold
 
 **ID:** story-099-brand-tokens
 **Epic:** Epic E14 — Composable UI
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** designer agent producing Concierge's visual identity per `docs/FRONTEND-BRIEF.md`
-**I want to** publish brand decisions (color, type, spacing, motion, radii, shadows) into a single tree-shakeable package at `@concierge-mantle/ui` that every styled UI consumer (`@concierge-mantle/react-ui`, `apps/web`, `apps/docs`) imports
+**I want to** publish brand decisions (color, type, spacing, motion, radii, shadows) into a single tree-shakeable package at `@mpilot/ui` that every styled UI consumer (`@mpilot/react-ui`, `apps/web`, `apps/docs`) imports
 **So that** there is ONE source of truth for brand tokens; visual choices live with the designer (per ADR-018), and code packages only enforce the export shape — never the values
 
 ---
 
 ## Context
 
-Per ADR-018 (designer handoff), this story scaffolds the export *shape* and *types* of `@concierge-mantle/ui`. **Visual choices are deferred to the designer agent** working from `docs/FRONTEND-BRIEF.md`. The token VALUES committed in this story are intentional placeholders; the designer agent overwrites them in a follow-on PR. This story's verification gate enforces tree-shakeability, type safety, and the public-export contract — NOT specific hex codes or font choices.
+Per ADR-018 (designer handoff), this story scaffolds the export *shape* and *types* of `@mpilot/ui`. **Visual choices are deferred to the designer agent** working from `docs/FRONTEND-BRIEF.md`. The token VALUES committed in this story are intentional placeholders; the designer agent overwrites them in a follow-on PR. This story's verification gate enforces tree-shakeability, type safety, and the public-export contract — NOT specific hex codes or font choices.
 
 ---
 
@@ -46,7 +46,7 @@ Per ADR-018 (designer handoff), this story scaffolds the export *shape* and *typ
 - `packages/ui/src/__tests__/exports.test.ts` — NEW — ≥ 8 cases: subpath imports resolve, types are `as const`-frozen literals, every TS token has a matching CSS custom property name, no token value is empty string, no token references `undefined`, tailwind preset shape valid.
 - `packages/ui/tsconfig.json` — NEW — extends base; `"declaration": true`, `"declarationMap": true`.
 - `packages/ui/tsup.config.ts` — NEW — multi-entry build (one entry per subpath), `format: ['esm']`, `dts: true`, `sourcemap: true`, `clean: true`.
-- `packages/ui/README.md` — NEW — quickstart for designer agent (where to edit), consumer snippet for `@concierge-mantle/react-ui`, and `tailwind.config.ts` integration.
+- `packages/ui/README.md` — NEW — quickstart for designer agent (where to edit), consumer snippet for `@mpilot/react-ui`, and `tailwind.config.ts` integration.
 
 ---
 
@@ -58,19 +58,19 @@ When `node -e "const p = require('./packages/ui/package.json'); console.log([p.t
 Then output is "module,false,>=22"
 
 Given the package has subpath exports
-When the consumer does `import { colors } from '@concierge-mantle/ui/colors'`
+When the consumer does `import { colors } from '@mpilot/ui/colors'`
 Then TypeScript resolves the module AND `colors` is typed as a deeply-readonly literal object (NOT widened to `Record<string, string>`)
 
 Given a consumer imports only one token subpath
 When the consumer bundles for production
-Then unused token modules are tree-shaken (verified by checking that `import '@concierge-mantle/ui/colors'` does NOT pull `motion.ts` into the bundle)
+Then unused token modules are tree-shaken (verified by checking that `import '@mpilot/ui/colors'` does NOT pull `motion.ts` into the bundle)
 
 Given the Tailwind preset is consumed
-When a downstream Tailwind v4 config does `import preset from '@concierge-mantle/ui/tailwind-preset'`
+When a downstream Tailwind v4 config does `import preset from '@mpilot/ui/tailwind-preset'`
 Then it returns an object compatible with Tailwind v4's `@theme` directive AND references the same token values as the TS exports
 
 Given the CSS export is consumed
-When a non-Tailwind app does `@import '@concierge-mantle/ui/css'`
+When a non-Tailwind app does `@import '@mpilot/ui/css'`
 Then every token defined in TS has a matching `--concierge-*` custom property declared on `:root`
 
 Given the token files are inspected
@@ -78,15 +78,15 @@ When grep runs for visual choices the designer has not yet made
 Then placeholder values DO appear (this story does NOT commit final brand values per ADR-018) AND the README explicitly flags the designer-handoff status
 
 Given typecheck + LOC + lint
-When `pnpm typecheck && pnpm check-file-loc && pnpm lint --filter @concierge-mantle/ui` runs
+When `pnpm typecheck && pnpm check-file-loc && pnpm lint --filter @mpilot/ui` runs
 Then all exit 0
 
 Given the package builds
-When `pnpm --filter @concierge-mantle/ui build` runs
+When `pnpm --filter @mpilot/ui build` runs
 Then `dist/index.js`, `dist/colors.js`, `dist/typography.js`, `dist/spacing.js`, `dist/motion.js`, `dist/radii.js`, `dist/shadows.js`, `dist/tailwind-preset.js`, `dist/tokens.css`, AND matching `.d.ts` files all exist
 
 Given the exports test
-When `pnpm --filter @concierge-mantle/ui test` runs
+When `pnpm --filter @mpilot/ui test` runs
 Then ≥ 8 cases pass
 ```
 
@@ -124,10 +124,10 @@ for f in colors typography spacing motion radii shadows; do
 done
 
 # Build + tests
-pnpm --filter @concierge-mantle/ui build
+pnpm --filter @mpilot/ui build
 test -f packages/ui/dist/colors.js
 test -f packages/ui/dist/tokens.css
-pnpm --filter @concierge-mantle/ui test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 8 {exit 0} {exit 1}'
+pnpm --filter @mpilot/ui test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 8 {exit 0} {exit 1}'
 
 # LOC budget + typecheck
 pnpm check-file-loc

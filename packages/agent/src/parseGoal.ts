@@ -1,5 +1,5 @@
 import type { LanguageModelV2 } from '@ai-sdk/provider';
-import type { GoalChip, GoalChipType } from '@concierge-mantle/shared';
+import type { GoalChip, GoalChipType } from '@mpilot/shared';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 

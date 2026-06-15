@@ -1,4 +1,4 @@
-// Adapter behavior for @concierge-mantle/agentkit. The shared-class registry hazard
+// Adapter behavior for @mpilot/agentkit. The shared-class registry hazard
 // (one provider per process: guard + upstream last-wins/union pins) lives in
 // registry-guard.test.ts.
 
@@ -14,7 +14,7 @@ import {
   type ConciergeAgentLike,
   type ProviderToolFactory,
   tool,
-} from '@concierge-mantle/tools';
+} from '@mpilot/tools';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { getConciergeActionProvider, toAgentKitAction } from '../index.ts';
@@ -270,7 +270,7 @@ describe('getConciergeActionProvider', () => {
     // Pin the registry's own message shape, not just the tool name — a
     // wrapper that re-worded the error would lose factory attribution.
     expect(() => getConciergeActionProvider(agent, [factory, factory])).toThrow(
-      /\[@concierge-mantle\/tools\] duplicate tool name "proposeAction"/,
+      /\[@mpilot\/tools\] duplicate tool name "proposeAction"/,
     );
   });
 });

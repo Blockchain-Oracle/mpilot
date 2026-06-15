@@ -1,4 +1,4 @@
-# @concierge-mantle/tools
+# @mpilot/tools
 
 Framework-agnostic Concierge tool registry. The single source of truth for
 the `ConciergeTool` interface — every adapter (Vercel AI SDK, OpenAI,
@@ -8,7 +8,7 @@ with one `inputSchema` + `outputSchema` definition feeding all surfaces.
 ## Quickstart
 
 ```ts
-import { createConciergeTools, tool } from '@concierge-mantle/tools';
+import { createConciergeTools, tool } from '@mpilot/tools';
 import { z } from 'zod';
 
 // 1. Define a tool — `tool()` is an identity helper that preserves type inference.
@@ -31,8 +31,8 @@ const tools = createConciergeTools({ chainId: 5000 }, [aaveTools]);
 ## Adapter pattern
 
 Each adapter package wraps `ConciergeTool[]` into the framework's native shape.
-See `@concierge-mantle/vercel-ai`, `@concierge-mantle/openai`, `@concierge-mantle/langchain`,
-`@concierge-mantle/agentkit`, `@concierge-mantle/mcp` for ~30-LOC reference implementations.
+See `@mpilot/vercel-ai`, `@mpilot/openai`, `@mpilot/langchain`,
+`@mpilot/agentkit`, `@mpilot/mcp` for ~30-LOC reference implementations.
 
 ## Card schemas
 
@@ -45,7 +45,7 @@ import {
   SerializableTickCardSchema,
   SerializablePortfolioCardSchema,
   SerializableReputationCardSchema,
-} from '@concierge-mantle/tools/serializable';
+} from '@mpilot/tools/serializable';
 ```
 
 A tool whose job is to emit one of these cards SHOULD use the schema as its

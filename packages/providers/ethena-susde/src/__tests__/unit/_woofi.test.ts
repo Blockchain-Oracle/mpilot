@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { encodeAbiParameters, encodeEventTopics, parseAbi } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';

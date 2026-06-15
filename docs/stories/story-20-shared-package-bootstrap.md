@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/shared` package bootstrap
+# Story — `@mpilot/shared` package bootstrap
 
 **ID:** story-20-shared-package-bootstrap
 **Epic:** Epic E2 — Shared SDK Core
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** Concierge package author
-**I want to** import addresses, ABI bindings, and shared types from a single `@concierge-mantle/shared` package
+**I want to** import addresses, ABI bindings, and shared types from a single `@mpilot/shared` package
 **So that** no contract address or ABI is duplicated across the codebase
 
 ---
 
 ## File modification map
 
-- `packages/shared/package.json` — NEW — `name: "@concierge-mantle/shared"`, version `0.0.0`, exports map, type `module`, `peerDependencies.viem` per ADR-018, `"files":["dist","src"]`, build script via tsup
+- `packages/shared/package.json` — NEW — `name: "@mpilot/shared"`, version `0.0.0`, exports map, type `module`, `peerDependencies.viem` per ADR-018, `"files":["dist","src"]`, build script via tsup
 - `packages/shared/tsconfig.json` — UPDATE (created in story-02) — declare `outDir: dist`, `composite: true`
 - `packages/shared/tsconfig.build.json` — NEW — separate build tsconfig (`composite: false`, `emitDeclarationOnly: true`, `ignoreDeprecations: "6.0"`) so tsup's dts pipeline doesn't trip on project-reference strictness
 - `packages/shared/tsup.config.ts` — NEW — ESM-only, `dts: { resolve: true }`, target `node22`, points at `tsconfig.build.json` per ADR-018
@@ -33,9 +33,9 @@
 ## Acceptance criteria (BDD)
 
 ```
-Given `@concierge-mantle/shared` package exists
+Given `@mpilot/shared` package exists
 When `node -e "const pkg = require('./packages/shared/package.json'); console.log(pkg.name)"` runs
-Then output is "@concierge-mantle/shared"
+Then output is "@mpilot/shared"
 
 Given addresses are exported
 When the test file runs via `pnpm test packages/shared/src/index.test.ts`
@@ -73,7 +73,7 @@ test -f packages/shared/src/index.test.ts
 # Package name correct
 node -e "
   const pkg = require('./packages/shared/package.json');
-  if (pkg.name !== '@concierge-mantle/shared') process.exit(1);
+  if (pkg.name !== '@mpilot/shared') process.exit(1);
 "
 
 # Tests pass with ≥ 12 cases
@@ -97,4 +97,4 @@ bun -e "
 - Sepolia mock addresses are filled in by `scripts/write-addresses.mjs` (story-190) after the deploy. Leave Sepolia values as `0x0000...0000` placeholders for now with a comment.
 - Mantle Sepolia chain id is `5003`; Mainnet is `5000`. The viem `mantle` chain ships with mainnet config; Sepolia needs a custom definition (use `defineChain` from viem).
 - Address constants are exported as `const` with `as const` for type narrowing. Use `Hex` and `Address` types from viem.
-- The barrel export in `index.ts` re-exports everything from `addresses.ts`, `chains.ts`, `types.ts` so consumers import as `from '@concierge-mantle/shared'` only.
+- The barrel export in `index.ts` re-exports everything from `addresses.ts`, `chains.ts`, `types.ts` so consumers import as `from '@mpilot/shared'` only.

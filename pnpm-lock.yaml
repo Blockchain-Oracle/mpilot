@@ -46,25 +46,25 @@ importers:
 
   apps/web:
     dependencies:
-      '@concierge-mantle/agent':
+      '@mpilot/agent':
         specifier: workspace:*
         version: link:../../packages/agent
-      '@concierge-mantle/db':
+      '@mpilot/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@concierge-mantle/erc8004':
+      '@mpilot/erc8004':
         specifier: workspace:*
         version: link:../../packages/providers/erc8004
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@concierge-mantle/smart-account':
+      '@mpilot/smart-account':
         specifier: workspace:*
         version: link:../../packages/smart-account
-      '@concierge-mantle/ui':
+      '@mpilot/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@privy-io/node':
@@ -128,10 +128,10 @@ importers:
 
   apps/worker:
     dependencies:
-      '@concierge-mantle/agent':
+      '@mpilot/agent':
         specifier: workspace:*
         version: link:../../packages/agent
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
       bullmq:
@@ -171,40 +171,40 @@ importers:
       '@ai-sdk/openai':
         specifier: ^3.0.69
         version: 3.0.69(zod@4.4.3)
-      '@concierge-mantle/aave-v3-mantle':
+      '@mpilot/aave-v3-mantle':
         specifier: workspace:*
         version: link:../../packages/providers/aave-v3-mantle
-      '@concierge-mantle/agent':
+      '@mpilot/agent':
         specifier: workspace:*
         version: link:../../packages/agent
-      '@concierge-mantle/erc8004':
+      '@mpilot/erc8004':
         specifier: workspace:*
         version: link:../../packages/providers/erc8004
-      '@concierge-mantle/ethena-susde':
+      '@mpilot/ethena-susde':
         specifier: workspace:*
         version: link:../../packages/providers/ethena-susde
-      '@concierge-mantle/lifi-bridge':
+      '@mpilot/lifi-bridge':
         specifier: workspace:*
         version: link:../../packages/providers/lifi-bridge
-      '@concierge-mantle/mantle-dex':
+      '@mpilot/mantle-dex':
         specifier: workspace:*
         version: link:../../packages/providers/mantle-dex
-      '@concierge-mantle/meth-staking':
+      '@mpilot/meth-staking':
         specifier: workspace:*
         version: link:../../packages/providers/meth-staking
-      '@concierge-mantle/ondo-usdy':
+      '@mpilot/ondo-usdy':
         specifier: workspace:*
         version: link:../../packages/providers/ondo-usdy
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../../packages/tools
-      '@concierge-mantle/vercel-ai':
+      '@mpilot/vercel-ai':
         specifier: workspace:*
         version: link:../../packages/vercel-ai
       ai:
@@ -219,7 +219,7 @@ importers:
 
   examples/sdk-smoke:
     dependencies:
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
 
@@ -228,19 +228,19 @@ importers:
       '@ai-sdk/provider':
         specifier: 3.0.10
         version: 3.0.10
-      '@concierge-mantle/llm':
+      '@mpilot/llm':
         specifier: workspace:*
         version: link:../llm
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../tools
-      '@concierge-mantle/vercel-ai':
+      '@mpilot/vercel-ai':
         specifier: workspace:*
         version: link:../vercel-ai
       ai:
@@ -271,7 +271,7 @@ importers:
 
   packages/agentkit:
     dependencies:
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../tools
     devDependencies:
@@ -290,7 +290,7 @@ importers:
 
   packages/attestation:
     dependencies:
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../sdk
       viem:
@@ -343,7 +343,7 @@ importers:
 
   packages/langchain:
     dependencies:
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../tools
     devDependencies:
@@ -365,7 +365,7 @@ importers:
       '@anthropic-ai/sdk':
         specifier: 0.104.1
         version: 0.104.1(zod@4.4.3)
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../sdk
     devDependencies:
@@ -384,21 +384,21 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@concierge-mantle/attestation':
-        specifier: workspace:*
-        version: link:../attestation
-      '@concierge-mantle/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-      '@concierge-mantle/shared':
-        specifier: workspace:*
-        version: link:../shared
-      '@concierge-mantle/tools':
-        specifier: workspace:*
-        version: link:../tools
       '@modelcontextprotocol/sdk':
         specifier: ^1.29.0
         version: 1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3)
+      '@mpilot/attestation':
+        specifier: workspace:*
+        version: link:../attestation
+      '@mpilot/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      '@mpilot/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@mpilot/tools':
+        specifier: workspace:*
+        version: link:../tools
       zod:
         specifier: ^4.1.0
         version: 4.4.3
@@ -415,7 +415,7 @@ importers:
 
   packages/openai:
     dependencies:
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../tools
     devDependencies:
@@ -434,13 +434,13 @@ importers:
 
   packages/providers/aave-v3-mantle:
     dependencies:
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -456,16 +456,16 @@ importers:
 
   packages/providers/erc8004:
     dependencies:
-      '@concierge-mantle/attestation':
+      '@mpilot/attestation':
         specifier: workspace:*
         version: link:../../attestation
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -484,13 +484,13 @@ importers:
 
   packages/providers/ethena-susde:
     dependencies:
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -509,13 +509,13 @@ importers:
 
   packages/providers/lifi-bridge:
     dependencies:
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -537,13 +537,13 @@ importers:
 
   packages/providers/mantle-dex:
     dependencies:
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -562,13 +562,13 @@ importers:
 
   packages/providers/meth-staking:
     dependencies:
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -587,13 +587,13 @@ importers:
 
   packages/providers/ondo-usdy:
     dependencies:
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../../tools
     devDependencies:
@@ -624,13 +624,13 @@ importers:
       '@ai-sdk/xai':
         specifier: ^3.0.93
         version: 3.0.93(zod@4.4.3)
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../shared
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../tools
-      '@concierge-mantle/vercel-ai':
+      '@mpilot/vercel-ai':
         specifier: workspace:*
         version: link:../vercel-ai
     devDependencies:
@@ -673,13 +673,13 @@ importers:
 
   packages/smart-account:
     dependencies:
-      '@concierge-mantle/db':
+      '@mpilot/db':
         specifier: workspace:*
         version: link:../db
-      '@concierge-mantle/sdk':
+      '@mpilot/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../shared
       '@zerodev/ecdsa-validator':
@@ -713,7 +713,7 @@ importers:
 
   packages/tools:
     dependencies:
-      '@concierge-mantle/shared':
+      '@mpilot/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:
@@ -744,7 +744,7 @@ importers:
 
   packages/vercel-ai:
     dependencies:
-      '@concierge-mantle/tools':
+      '@mpilot/tools':
         specifier: workspace:*
         version: link:../tools
     devDependencies:

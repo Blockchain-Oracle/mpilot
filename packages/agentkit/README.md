@@ -1,14 +1,14 @@
-# @concierge-mantle/agentkit
+# @mpilot/agentkit
 
 Coinbase AgentKit adapter for the framework-agnostic
-[`@concierge-mantle/tools`](../tools) registry, built on AgentKit's
+[`@mpilot/tools`](../tools) registry, built on AgentKit's
 **`customActionProvider` escape hatch** — not the documented
 `@CreateAction` decorator path. No class hierarchy, no decorator syntax, no
 `reflect-metadata` import, no `experimentalDecorators` in your tsconfig.
 
 ```ts
 import { AgentKit } from '@coinbase/agentkit';
-import { getConciergeActionProvider } from '@concierge-mantle/agentkit';
+import { getConciergeActionProvider } from '@mpilot/agentkit';
 
 // Any `(agent) => ConciergeTool[]` factory works — the @concierge provider
 // packages each export one (aave, dex, susde, usdy, meth, lifi, erc8004):

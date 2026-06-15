@@ -3,7 +3,7 @@
  * Nav → Hero → HowItWorks → DeveloperCTA → Footer.
  *
  * Deferred to follow-up PRs:
- * - Live tick demo wired to `@concierge-mantle/react` SSE hook (story-115).
+ * - Live tick demo wired to `@mpilot/react` SSE hook (story-115).
  * - Comparison / TrustSignals sections from the designer's prototype.
  * - i18n.
  */

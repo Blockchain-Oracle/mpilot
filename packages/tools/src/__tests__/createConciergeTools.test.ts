@@ -2,7 +2,7 @@
 // duplicate-name throws, malformed-factory throws, toInputJsonSchema.
 // bigintSafeStringify tests live in bigintSafeStringify.test.ts.
 
-import type { EvmChainId } from '@concierge-mantle/shared';
+import type { EvmChainId } from '@mpilot/shared';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { z } from 'zod';
 import { createConciergeTools } from '../createConciergeTools.ts';
@@ -65,7 +65,7 @@ describe('public type contracts', () => {
     expectTypeOf<UICardId>().toEqualTypeOf<'proposal' | 'tick' | 'portfolio' | 'reputation'>();
   });
 
-  it('TickPhase mirrors @concierge-mantle/shared TickLoopPhase', () => {
+  it('TickPhase mirrors @mpilot/shared TickLoopPhase', () => {
     expectTypeOf<TickPhase>().toEqualTypeOf<
       'plan' | 'simulate' | 'propose' | 'execute' | 'record'
     >();

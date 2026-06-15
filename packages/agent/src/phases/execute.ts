@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { sanitizeError } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome } from '../types.ts';
 import { defaultDriftLog, driftPct, eoaFallback, insertOrThrow } from './executeHelpers.ts';
@@ -46,7 +46,7 @@ export type UserOpReceipt =
 
 /**
  * DI'd execution client. Production wires ZeroDev kernel client + Pimlico
- * bundler from @concierge-mantle/smart-account; tests stub. Methods MUST throw
+ * bundler from @mpilot/smart-account; tests stub. Methods MUST throw
  * SessionKeyExpired / SessionKeyPolicyRejected via ConciergeError.type so the
  * orchestrator can distinguish typed failures from infra.
  */
@@ -126,13 +126,13 @@ export async function runExecute(
   if (!Number.isFinite(waitTimeoutMs) || waitTimeoutMs < MIN_WAIT_TIMEOUT_MS) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge-mantle/agent] runExecute: waitTimeoutMs must be finite and >= ${MIN_WAIT_TIMEOUT_MS}.`,
+      `[@mpilot/agent] runExecute: waitTimeoutMs must be finite and >= ${MIN_WAIT_TIMEOUT_MS}.`,
     );
   }
   if (inputs.proposal.txParams.length === 0) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge-mantle/agent] runExecute: proposal.txParams must be non-empty.`,
+      `[@mpilot/agent] runExecute: proposal.txParams must be non-empty.`,
     );
   }
 
@@ -146,7 +146,7 @@ export async function runExecute(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/agent] runExecute: sessionKey.load failed: ${safe.message}`,
+      `[@mpilot/agent] runExecute: sessionKey.load failed: ${safe.message}`,
       safe,
     );
   }
@@ -166,7 +166,7 @@ export async function runExecute(
       // CWE-117 boundary: reject malformed hash before any interpolation.
       throw new ConciergeError(
         'InvariantViolation',
-        `[@concierge-mantle/agent] runExecute: executor returned malformed userOpHash.`,
+        `[@mpilot/agent] runExecute: executor returned malformed userOpHash.`,
       );
     }
     // Normalize to lowercase so downstream log/DB dedup keys are case-stable.
@@ -188,7 +188,7 @@ export async function runExecute(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/agent] runExecute: bundler submit failed: ${safe.message}`,
+      `[@mpilot/agent] runExecute: bundler submit failed: ${safe.message}`,
       safe,
     );
   }
@@ -219,7 +219,7 @@ export async function runExecute(
     const safe = sanitizeError(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/agent] runExecute: waitForReceipt failed (userOpHash=${userOpHash}): ${safe.message}`,
+      `[@mpilot/agent] runExecute: waitForReceipt failed (userOpHash=${userOpHash}): ${safe.message}`,
       safe,
     );
   }

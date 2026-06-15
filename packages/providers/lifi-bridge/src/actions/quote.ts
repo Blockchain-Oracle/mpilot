@@ -1,4 +1,4 @@
-import { tool } from '@concierge-mantle/tools';
+import { tool } from '@mpilot/tools';
 import { z } from 'zod';
 import { fetchQuote, type GetQuoteParams } from '../_api.ts';
 import type { ActionContext } from '../_context.ts';

@@ -4,8 +4,8 @@ import {
   type AddressPath,
   type EvmChainId,
   ZERO_ADDRESS,
-} from '@concierge-mantle/shared';
-import type { ConciergeAgentLike } from '@concierge-mantle/tools';
+} from '@mpilot/shared';
+import type { ConciergeAgentLike } from '@mpilot/tools';
 import { ConciergeError } from './errors.ts';
 
 type MainnetAddresses = typeof ADDRESSES.mantleMainnet;
@@ -16,7 +16,7 @@ const ADDRESS_SHAPE = /^0x[0-9a-fA-F]{40}$/;
 /**
  * Bundled Mantle address registry per story-22 / ADR-019's quickstart:
  * `createConcierge({ registry: ConciergeRegistry.mainnet() })`. The
- * `addresses` field is the SAME frozen object `@concierge-mantle/shared` exports —
+ * `addresses` field is the SAME frozen object `@mpilot/shared` exports —
  * by reference, never a copy — so there is exactly one source of truth and
  * mutation is impossible (shared deep-freezes it; instances freeze too).
  *
@@ -24,7 +24,7 @@ const ADDRESS_SHAPE = /^0x[0-9a-fA-F]{40}$/;
  * `createConciergeTools` / any adapter factory as the agent context.
  *
  * Sepolia note: non-ERC-8004 Sepolia addresses are zero placeholders until
- * story-192's mock deploy lands — see `@concierge-mantle/shared/addresses.ts` and
+ * story-192's mock deploy lands — see `@mpilot/shared/addresses.ts` and
  * `SEPOLIA_PENDING_ADDRESS_SLOTS`. Use `requireAddress` instead of reading
  * `addresses` directly when an address is about to be CALLED or FUNDED.
  */
@@ -76,7 +76,7 @@ export class ConciergeRegistry implements ConciergeAgentLike {
     // string that is NOT the zero address and would otherwise leak through.
     if (typeof leaf !== 'string' || !ADDRESS_SHAPE.test(leaf)) {
       throw new TypeError(
-        `[@concierge-mantle/sdk] requireAddress: "${path}" is not a leaf address slot on chain ${this.chainId} — expected a dot-path like "aave.pool" (see AddressPath in @concierge-mantle/shared).`,
+        `[@mpilot/sdk] requireAddress: "${path}" is not a leaf address slot on chain ${this.chainId} — expected a dot-path like "aave.pool" (see AddressPath in @mpilot/shared).`,
       );
     }
     if (leaf === ZERO_ADDRESS) {
@@ -84,7 +84,7 @@ export class ConciergeRegistry implements ConciergeAgentLike {
         this.chainId === 5000 ? 'MAINNET_PENDING_ADDRESS_SLOTS' : 'SEPOLIA_PENDING_ADDRESS_SLOTS';
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge-mantle/sdk] address slot "${path}" is not deployed on chain ${this.chainId} — it is a pending zero-address placeholder (see ${pendingConst} in @concierge-mantle/shared).`,
+        `[@mpilot/sdk] address slot "${path}" is not deployed on chain ${this.chainId} — it is a pending zero-address placeholder (see ${pendingConst} in @mpilot/shared).`,
       );
     }
     return leaf as Address;

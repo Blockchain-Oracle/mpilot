@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 
 /**
  * Boundary BigInt parse. The Zod `BigIntString` schema already constrains
@@ -14,7 +14,7 @@ export function safeBigInt(value: string, fieldName: string): bigint {
   } catch (cause) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/mcp] ${fieldName}: invalid decimal-string input "${value.slice(0, 32)}" — expected /^\\d{1,78}$/`,
+      `[@mpilot/mcp] ${fieldName}: invalid decimal-string input "${value.slice(0, 32)}" — expected /^\\d{1,78}$/`,
       { cause },
     );
   }

@@ -10,7 +10,7 @@
 > spacing scales, motion language, iconography, illustration style,
 > elevation hierarchy, density choices, or any other visual decision.
 > Those are yours. Wherever the rest of the project refers to design
-> tokens (`@concierge-mantle/ui/tokens`), assume you own their values; the
+> tokens (`@mpilot/ui/tokens`), assume you own their values; the
 > engineering side only owns their *names* and *categories*.
 >
 > **How to read it.** Skim §1–§4 to understand the product and the
@@ -128,9 +128,9 @@ Concierge ships across four surfaces:
 | # | Surface | Owns |
 |---|---|---|
 | 1 | **Web app at concierge.xyz** — landing, app, docs | THIS BRIEF |
-| 2 | **npm SDK** — `@concierge-mantle/sdk` + 14 sibling packages | Engineering only |
+| 2 | **npm SDK** — `@mpilot/sdk` + 14 sibling packages | Engineering only |
 | 3 | **MCP server** — installs in Claude Code, Claude Desktop, Cursor, Windsurf, VS Code Copilot, Zed, Cline, Goose, OpenCode, Codex | Engineering owns transport; designer owns the embedded `ui://` HTML resources Claude Desktop renders inside the chat |
-| 4 | **RealClaw skill** — `npx skills add @concierge-mantle/mantle-agent` | Engineering only |
+| 4 | **RealClaw skill** — `npx skills add @mpilot/mantle-agent` | Engineering only |
 
 This brief covers Surface 1 in full and the embedded HTML resources
 within Surface 3 (described in §10 under "MCP UI Resources"). Surfaces
@@ -152,7 +152,7 @@ app, docs) and one public reputation viewer. Routes are locked.
 | `/agent/:id` | Public reputation viewer for any agent (shareable URL). |
 | `/docs` | Docs home + table of contents. |
 | `/docs/quickstart` | "Clone to running agent" in ~10 minutes. |
-| `/docs/sdk` | `@concierge-mantle/sdk` API reference. |
+| `/docs/sdk` | `@mpilot/sdk` API reference. |
 | `/docs/providers` | Per-protocol reference (Aave, DEX, sUSDe, USDY, mETH, Li.Fi, ERC-8004). |
 | `/docs/runtime` | Agent runtime concepts — tick loop, session keys, attestation. |
 | `/docs/skill` | RealClaw skill packaging + install guide. |
@@ -473,7 +473,7 @@ neutral with an explanatory tooltip. When negative, warning.
 **Content.**
 
 - A short copy line: "Drop Concierge into your agent stack."
-- A code block with the install command (`pnpm add @concierge-mantle/sdk`).
+- A code block with the install command (`pnpm add @mpilot/sdk`).
 - A 3-line example showing an agent being spun up.
 - A "Read the docs" CTA.
 
@@ -629,7 +629,7 @@ hidden).
 |---|---|---|
 | `/docs` | Overview + table of contents. | Section list. |
 | `/docs/quickstart` | "Clone to running agent in 10 minutes." | Prereq, install, first goal, first tick, what next. |
-| `/docs/sdk` | `@concierge-mantle/sdk` API reference. | `createConcierge`, `tick`, `propose`, `execute`, `record`, types. |
+| `/docs/sdk` | `@mpilot/sdk` API reference. | `createConcierge`, `tick`, `propose`, `execute`, `record`, types. |
 | `/docs/providers` | Per-protocol reference. | One section per protocol (7 total). |
 | `/docs/runtime` | Agent runtime concepts. | Tick loop, session keys, attestation, error model. |
 | `/docs/skill` | RealClaw skill packaging. | Frontmatter spec, install snippet per host. |
@@ -1346,9 +1346,9 @@ are:
 When you ship the design, the following are required for engineering
 to consume:
 
-- `@concierge-mantle/ui/tokens` — published design token module covering
+- `@mpilot/ui/tokens` — published design token module covering
   every category in §14.
-- `@concierge-mantle/ui/fonts` — font files (or CDN links) packaged.
+- `@mpilot/ui/fonts` — font files (or CDN links) packaged.
 - A Figma file (or your tool of choice) showing every component in
   §10 in every state, plus every page in §7–§9 in every breakpoint
   (mobile 375, tablet, desktop, wide).

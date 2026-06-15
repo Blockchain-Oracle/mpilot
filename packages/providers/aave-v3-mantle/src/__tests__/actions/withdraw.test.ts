@@ -1,4 +1,4 @@
-import type { Address } from '@concierge-mantle/shared';
+import type { Address } from '@mpilot/shared';
 import { createWalletClient, http, parseAbi } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAaveV3MantleProvider } from '../../provider.ts';
@@ -86,7 +86,7 @@ afterAll(async () => {
 
 describe('withdraw action', () => {
   it('throws InsufficientLiquidity when pre-withdraw HF < 1.5', async () => {
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     const { provider, addr } = await makeWithdrawer(0, true); // HF ≈ 1.14
 
     const err = await provider.actions.withdraw
@@ -136,7 +136,7 @@ describe('withdraw action', () => {
   });
 
   it('throws InsufficientLiquidity for amount=max when debt is outstanding', async () => {
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     // Small borrow keeps HF > 1.5, but max withdraw should still be rejected
     const addr = ANVIL_ACCOUNTS[2] as Address;
     const { walletClient, publicClient, chain } = anvil;

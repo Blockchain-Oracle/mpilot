@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { toFunctionSelector } from 'viem';
 import { LIFI_DIAMOND } from './_context.ts';
 
@@ -45,14 +45,14 @@ export function buildCallPolicy(routeCalldata: `0x${string}`): typeof callPolicy
   if (routeCalldata.length < 10) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge-mantle/lifi-bridge] buildCallPolicy: calldata too short to contain a function selector',
+      '[@mpilot/lifi-bridge] buildCallPolicy: calldata too short to contain a function selector',
     );
   }
   const selector = routeCalldata.slice(0, 10) as `0x${string}`;
   if (!SELECTOR_WHITELIST.has(selector)) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/lifi-bridge] buildCallPolicy: selector ${selector} is not in the known bridge function whitelist — refusing to create session-key policy`,
+      `[@mpilot/lifi-bridge] buildCallPolicy: selector ${selector} is not in the known bridge function whitelist — refusing to create session-key policy`,
     );
   }
   return { targets: [LIFI_DIAMOND], selectors: [selector] };

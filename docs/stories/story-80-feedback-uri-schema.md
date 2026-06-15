@@ -31,7 +31,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge-mantle/attestation run build` runs
+When `pnpm --filter @mpilot/attestation run build` runs
 Then exit code is 0
 
 Given a valid Aave supply envelope
@@ -83,12 +83,12 @@ test -f src/canonicalize.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/attestation run build
+pnpm --filter @mpilot/attestation run build
 test $? -eq 0
 pnpm run typecheck
 
 # Tests pass with the canonicalize-determinism case
-pnpm --filter @concierge-mantle/attestation run test --reporter=verbose 2>&1 | grep "canonicalize.*Determinism" | grep -q "✓"
+pnpm --filter @mpilot/attestation run test --reporter=verbose 2>&1 | grep "canonicalize.*Determinism" | grep -q "✓"
 
 # Discriminated union by schema
 grep -q "discriminatedUnion" packages/attestation/src/schema.ts

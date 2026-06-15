@@ -123,7 +123,7 @@ describe('bridge — stale route triggers re-quote (test_bridge_StaleRouteReQuot
 describe('bridge — wallet error paths', () => {
   it('throws ConciergeError(ConfigError) when walletClient is absent', async () => {
     const ctx = { ...BASE_CTX };
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     // biome-ignore lint/suspicious/noExplicitAny: intentionally passing incomplete ctx to test missing-walletClient guard
     await expect(executeBridge(ctx as any, BASE_INPUT)).rejects.toSatisfy(
       (e: unknown) =>
@@ -139,7 +139,7 @@ describe('bridge — wallet error paths', () => {
       // biome-ignore lint/suspicious/noExplicitAny: testing the no-account guard path
     } as any;
     const ctx = { ...BASE_CTX, walletClient };
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeBridge(ctx, BASE_INPUT)).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -155,7 +155,7 @@ describe('bridge — wallet error paths', () => {
       // biome-ignore lint/suspicious/noExplicitAny: minimal mock — WalletClient is a complex branded type
     } as any;
     const ctx = { ...BASE_CTX, walletClient };
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeBridge(ctx, BASE_INPUT)).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -169,7 +169,7 @@ describe('bridge — API error paths', () => {
     server.use(http.get(`${LIFI_API}/quote`, () => new HttpResponse(null, { status: 503 })));
     const walletClient = makeWalletClient();
     const ctx = { ...BASE_CTX, walletClient };
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeBridge(ctx, BASE_INPUT)).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -181,7 +181,7 @@ describe('bridge — API error paths', () => {
     server.use(http.get(`${LIFI_API}/quote`, () => new HttpResponse(null, { status: 422 })));
     const walletClient = makeWalletClient();
     const ctx = { ...BASE_CTX, walletClient };
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeBridge(ctx, BASE_INPUT)).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -201,7 +201,7 @@ describe('bridge — chain guard (test_bridge_ChainGuard)', () => {
     // biome-ignore lint/style/noNonNullAssertion: fixture always has at least 1 route
     const freshRoute: LifiBridgeRoute = { ...FIXTURE_ROUTES[0]!, _receivedAt: Date.now() };
     const ctx = { ...BASE_CTX, walletClient };
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeBridge(ctx, { ...BASE_INPUT, route: freshRoute })).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -219,7 +219,7 @@ describe('bridge — chain guard (test_bridge_ChainGuard)', () => {
     // biome-ignore lint/style/noNonNullAssertion: fixture always has 2 routes
     const freshRoute: LifiBridgeRoute = { ...FIXTURE_ROUTES[0]!, _receivedAt: Date.now() };
     const ctx = { ...BASE_CTX, walletClient };
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeBridge(ctx, { ...BASE_INPUT, route: freshRoute })).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -240,7 +240,7 @@ describe('bridge — chain guard (test_bridge_ChainGuard)', () => {
       },
     };
     const ctx = { ...BASE_CTX, walletClient };
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeBridge(ctx, { ...BASE_INPUT, route: maliciousRoute })).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&

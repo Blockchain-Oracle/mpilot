@@ -1,5 +1,5 @@
 // Unit tests for createMerchantMoeVenue — publicClient is mocked, no fork required.
-import type { Address } from '@concierge-mantle/shared';
+import type { Address } from '@mpilot/shared';
 import { ContractFunctionExecutionError, ContractFunctionRevertedError } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { createMerchantMoeVenue } from '../../venues/merchantMoe.ts';

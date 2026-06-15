@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import {
   type CallPolicyParams,
   CallPolicyVersion,
@@ -49,40 +49,40 @@ export function createCallPolicy(config: CreateCallPolicyConfig): ReturnType<typ
   if (!Array.isArray(config.permissions) || config.permissions.length === 0) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge-mantle/smart-account] createCallPolicy: InvalidPolicy: permissions must contain at least one entry — an empty call policy would deny all calls.',
+      '[@mpilot/smart-account] createCallPolicy: InvalidPolicy: permissions must contain at least one entry — an empty call policy would deny all calls.',
     );
   }
   const normalized = config.permissions.map((perm, i) => {
     if (!isAddress(perm.target)) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}].target is not a valid address: '${perm.target}'`,
+        `[@mpilot/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}].target is not a valid address: '${perm.target}'`,
       );
     }
     if (perm.selector !== undefined) {
       if (typeof perm.selector !== 'string') {
         throw new ConciergeError(
           'ConfigError',
-          `[@concierge-mantle/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}].selector must be a string, got ${typeof perm.selector}.`,
+          `[@mpilot/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}].selector must be a string, got ${typeof perm.selector}.`,
         );
       }
       if (!SELECTOR_REGEX.test(perm.selector)) {
         throw new ConciergeError(
           'ConfigError',
-          `[@concierge-mantle/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}].selector is not a 4-byte hex string (expected 0x-prefixed 8 hex chars): '${perm.selector}'`,
+          `[@mpilot/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}].selector is not a 4-byte hex string (expected 0x-prefixed 8 hex chars): '${perm.selector}'`,
         );
       }
       if (perm.selector.toLowerCase() === FALLBACK_SELECTOR) {
         throw new ConciergeError(
           'ConfigError',
-          `[@concierge-mantle/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}].selector '0x00000000' is the fallback/receive selector — refusing to grant it as a regular allowance.`,
+          `[@mpilot/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}].selector '0x00000000' is the fallback/receive selector — refusing to grant it as a regular allowance.`,
         );
       }
     }
     if (perm.rules !== undefined && perm.rules.length > 0 && perm.selector === undefined) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}] has rules but no selector — rules are calldata-offset-indexed and meaningless without a defined function selector.`,
+        `[@mpilot/smart-account] createCallPolicy: InvalidPolicy: permissions[${i}] has rules but no selector — rules are calldata-offset-indexed and meaningless without a defined function selector.`,
       );
     }
     return {

@@ -1,8 +1,8 @@
-import type { TickActionData, TickUpdateEnvelope } from '@concierge-mantle/shared';
+import type { TickActionData, TickUpdateEnvelope } from '@mpilot/shared';
 import { z } from 'zod';
 
 // Inlined runtime validator for `TickUpdateEnvelope`. The same Zod schema
-// exists in `@concierge-mantle/shared/uiTypes` but tsup's DTS pipeline can't
+// exists in `@mpilot/shared/uiTypes` but tsup's DTS pipeline can't
 // reliably re-export Zod schemas across package boundaries (emits `undefined`
 // in the .d.ts). Keep this local copy in sync with the shared definition —
 // adding a phase / proposal kind there requires updating here too.

@@ -1,5 +1,5 @@
-import { type DbClient, sessionKeys } from '@concierge-mantle/db';
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { type DbClient, sessionKeys } from '@mpilot/db';
+import { ConciergeError } from '@mpilot/sdk';
 import type { Address } from 'viem';
 import type { PolicyJson } from './crypto/policyJsonSchema.ts';
 import { assertEncryptionKey, encryptEnvelope, envelopeAad } from './crypto/sessionKeyEnvelope.ts';
@@ -76,7 +76,7 @@ export async function persistSessionKey(
   if (!row) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge-mantle/smart-account] persistSessionKey: insert returned no rows — DB driver invariant broken.',
+      '[@mpilot/smart-account] persistSessionKey: insert returned no rows — DB driver invariant broken.',
     );
   }
   return { sessionKeyId: row.id, persistedAt: row.createdAt };

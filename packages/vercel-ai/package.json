@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/vercel-ai",
+  "name": "@mpilot/vercel-ai",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,7 +28,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge-mantle/tools": "workspace:*"
+    "@mpilot/tools": "workspace:*"
   },
   "peerDependencies": {
     "ai": "^6.0.0",

@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/attestation",
+  "name": "@mpilot/attestation",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -29,7 +29,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge-mantle/sdk": "workspace:*",
+    "@mpilot/sdk": "workspace:*",
     "viem": "2.52.2",
     "zod": "4.1.13"
   },

@@ -78,7 +78,7 @@ done
 
 cd ../../../../../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Each phase doc mentions its load-bearing model + scoping
@@ -88,7 +88,7 @@ grep -q "read-only" apps/web/content/docs/concepts/phases/plan.mdx
 grep -q "ERC-8004" apps/web/content/docs/concepts/phases/record.mdx
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "PhaseStateMachine" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "PhaseStateMachine" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

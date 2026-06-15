@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/agentkit` adapter (Coinbase AgentKit, `customActionProvider` path)
+# Story — `@mpilot/agentkit` adapter (Coinbase AgentKit, `customActionProvider` path)
 
 **ID:** story-304-agentkit-adapter
 **Epic:** Epic E13 — Composable Primitive
@@ -34,14 +34,14 @@ Then it is a valid AgentKit ActionProvider with `getActions()` method returning 
 
 Given the returned ActionProvider is used in `agentKit.withActionProviders([conciergeProvider])`
 When the agent invokes a Concierge action by name
-Then the action's `invoke(args)` routes to `ConciergeTool.invoke()` from @concierge-mantle/tools
+Then the action's `invoke(args)` routes to `ConciergeTool.invoke()` from @mpilot/tools
 
 Given decorator anti-pattern check
 When grep runs against packages/agentkit/src/
 Then NO @CreateAction decorator usage AND NO `class extends ActionProvider` AND NO `reflect-metadata` import
 
 Given typecheck + build + tests
-When `pnpm --filter @concierge-mantle/agentkit build && pnpm --filter @concierge-mantle/agentkit test` runs
+When `pnpm --filter @mpilot/agentkit build && pnpm --filter @mpilot/agentkit test` runs
 Then ≥ 5 cases pass and exit 0
 ```
 
@@ -66,8 +66,8 @@ test -f packages/agentkit/src/index.ts
   }
 "
 
-pnpm --filter @concierge-mantle/agentkit build
-pnpm --filter @concierge-mantle/agentkit test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 5 {exit 0} {exit 1}'
+pnpm --filter @mpilot/agentkit build
+pnpm --filter @mpilot/agentkit test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 5 {exit 0} {exit 1}'
 ```
 
 ---
@@ -78,8 +78,8 @@ Implementation (verbatim from architecture.md ADR-014):
 
 ```typescript
 import { customActionProvider } from '@coinbase/agentkit';
-import { createConciergeTools } from '@concierge-mantle/tools';
-import type { ConciergeAgent } from '@concierge-mantle/agent';
+import { createConciergeTools } from '@mpilot/tools';
+import type { ConciergeAgent } from '@mpilot/agent';
 
 export function getConciergeActionProvider(agent: ConciergeAgent) {
   return customActionProvider(

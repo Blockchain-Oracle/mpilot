@@ -14,12 +14,12 @@ Retrospective end-to-end test of the 69 COMPLETE stories per `feedback_real_manu
 | Non-fork test suite | ✅ PASS | `apps/worker` 24/24, `packages/agent` 223/223, `packages/attestation` 146/146 |
 | MCP stdio JSON-RPC handshake | ✅ PASS | initialize → `{"protocolVersion":"2025-06-18","serverInfo":{"name":"concierge-mcp"}}` |
 | MCP BYOK enforcement (no key set) | ✅ PASS | exits with `FATAL: no AI model configured. Set one of ANTHROPIC_API_KEY / OPENAI_API_KEY / GOOGLE_GENERATIVE_AI_API_KEY / XAI_API_KEY` |
-| SDK consumer import | ✅ PASS | `import('@concierge-mantle/sdk')` returns all expected exports (`ConciergeError`, `CARD_SCHEMAS`, `CONCIERGE_ERROR_TYPES`, etc.) |
+| SDK consumer import | ✅ PASS | `import('@mpilot/sdk')` returns all expected exports (`ConciergeError`, `CARD_SCHEMAS`, `CONCIERGE_ERROR_TYPES`, etc.) |
 | Cast against Mantle Mainnet | ✅ PASS | Aave V3 / WMNT / sUSDe / mETH / ERC-8004 IdentityRegistry all respond |
 | Worker runnable in production | ❌ **REAL BUG** | `apps/worker/dist/` not emitted — `tsconfig.base.json` has `noEmit: true` which the worker inherits. Dockerfile's `CMD ["node", "/app/apps/worker/dist/index.js"]` would 404. |
 | ERC-8004 ReputationRegistry `name()` | ⚠️ note | function reverts; contract IS deployed (ERC-1967 proxy bytecode present). The Reputation contract doesn't implement `name()` — only IdentityRegistry does. Not a bug, just expectation. |
-| Publish-readiness across 21 packages | ⚠️ 20/21 OK | `@concierge-mantle/skill-mantle-agent` is intentionally non-ESM (SKILL.md publish target, not JS); documenting as known good. |
-| `examples/sdk-smoke/` consumer dogfood | ⚠️ partial | Direct dist import works; symbolic `@concierge-mantle/sdk` needs `examples/` in pnpm-workspace.yaml. Easy fix. |
+| Publish-readiness across 21 packages | ⚠️ 20/21 OK | `@mpilot/skill-mantle-agent` is intentionally non-ESM (SKILL.md publish target, not JS); documenting as known good. |
+| `examples/sdk-smoke/` consumer dogfood | ⚠️ partial | Direct dist import works; symbolic `@mpilot/sdk` needs `examples/` in pnpm-workspace.yaml. Easy fix. |
 
 **Net:** 1 real bug found (worker dist not emitted). Everything else green.
 
@@ -29,7 +29,7 @@ Retrospective end-to-end test of the 69 COMPLETE stories per `feedback_real_manu
 
 ```
 pnpm -r run build
-→ tsup builds for every @concierge-mantle/* package
+→ tsup builds for every @mpilot/* package
 → ESM + DTS emit succeeded
 → apps/worker build: tsc -b (silent emit suppressed by base config — see §G)
 ```
@@ -105,12 +105,12 @@ Anvil-fork providers (the 7 protocols) skipped because they hit the CI port-coll
 Verified every package.json declares:
 - `type: "module"`
 - `sideEffects: false`
-- name starts with `@concierge-mantle/`
+- name starts with `@mpilot/`
 - `publishConfig.access: "public"`
 
 **Result: 20 OK, 1 documented-exception.**
 
-The exception: `@concierge-mantle/skill-mantle-agent`. This is intentional — it's a SKILL.md + assets publish target for the RealClaw `npx skills add` ecosystem, not a JS module. Document as known.
+The exception: `@mpilot/skill-mantle-agent`. This is intentional — it's a SKILL.md + assets publish target for the RealClaw `npx skills add` ecosystem, not a JS module. Document as known.
 
 ---
 
@@ -141,7 +141,7 @@ ls dist/
 
 Added `examples/sdk-smoke/index.mjs`:
 ```js
-import { defaultModel, ConciergeError } from '@concierge-mantle/sdk';
+import { defaultModel, ConciergeError } from '@mpilot/sdk';
 // ...
 ```
 

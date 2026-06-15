@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/erc8004` action provider
+# Story — `@mpilot/erc8004` action provider
 
 **ID:** story-42-erc8004-provider
 **Epic:** Epic E3 — Action Providers
@@ -11,7 +11,7 @@
 ## User story
 
 **As a** Concierge agent runtime
-**I want to** an `@concierge-mantle/erc8004` package exposes `registerAgent`, `attestAction`, `readReputation`, `readFeedback` actions against the ERC-8004 Identity + Reputation registries on Mantle Mainnet (and Sepolia testnet) using canonical addresses + ABIs
+**I want to** an `@mpilot/erc8004` package exposes `registerAgent`, `attestAction`, `readReputation`, `readFeedback` actions against the ERC-8004 Identity + Reputation registries on Mantle Mainnet (and Sepolia testnet) using canonical addresses + ABIs
 **So that** every tick the agent runs produces an on-chain reputation attestation (the wedge's verifiability claim per ADR-004) without hand-rolling ABIs or address resolution
 
 ---
@@ -34,7 +34,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge-mantle/erc8004 run build` runs
+When `pnpm --filter @mpilot/erc8004 run build` runs
 Then exit code is 0
 
 Given the provider has 4 actions
@@ -102,7 +102,7 @@ test -f src/eip712.ts
 
 cd ../../..
 
-pnpm --filter @concierge-mantle/erc8004 run build
+pnpm --filter @mpilot/erc8004 run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -140,7 +140,7 @@ bun scripts/check-file-loc.mjs
 ## Notes for coding agent
 
 - **THIS PROVIDER IS THE WEDGE'S VERIFIABILITY CLAIM.** Per ADR-004. Without per-tick attestation, the "agent reputation lives on-chain" narrative breaks. CLAUDE.md load-bearing gotcha: every Mainnet `execute()` MUST be followed by `record()` calling this provider's `attest()`.
-- **ABIs come from `@concierge-mantle/shared`** (story-21) which fetched them from the canonical `erc-8004/erc-8004-contracts` repo via `gh api`. NEVER hand-type ABI signatures — they drift silently. Re-verify ABIs against the canonical source before any new attestation action.
+- **ABIs come from `@mpilot/shared`** (story-21) which fetched them from the canonical `erc-8004/erc-8004-contracts` repo via `gh api`. NEVER hand-type ABI signatures — they drift silently. Re-verify ABIs against the canonical source before any new attestation action.
 - **Schema IDs are `keccak256(schemaName)`** — deterministic, computed at module load. Pre-registered constants prevent typos at call sites (`schemaIdFor('concierge.aave.v3.borrwo.v1')` would silently produce a different ID than the correct typo-free name). Reference: `research/concierge/03-providers/erc8004.md` § Schema namespace conventions.
 - **`tokenId === agentId`** — the IdentityRegistry's NFT tokenId IS the agentId used by ReputationRegistry. They are the same number; there is no separate registration step on Reputation. Extract from the `Transfer(0x0, owner, tokenId)` event in the registerAgent receipt — DON'T try to compute it client-side (next-tokenId is contract storage; can race with concurrent registrations).
 - **EIP-712 hash determinism is critical.** Two calls to `hash(samePayload)` from separate processes MUST produce byte-equal output. Common bug: object key ordering in JSON canonicalization. Use a canonical typed-data encoder (viem's `hashTypedData` is correct; ad-hoc JSON.stringify is NOT). Reference: `research/concierge/03-providers/erc8004.md` § EIP-712 typed-data hash.

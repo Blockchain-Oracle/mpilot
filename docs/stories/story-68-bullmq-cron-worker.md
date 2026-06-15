@@ -18,10 +18,10 @@
 
 ## File modification map
 
-- `apps/worker/package.json` — NEW — Node process workspace package, deps on `@concierge-mantle/agent`, `bullmq`, `ioredis`, `pino`, `@sentry/node`
+- `apps/worker/package.json` — NEW — Node process workspace package, deps on `@mpilot/agent`, `bullmq`, `ioredis`, `pino`, `@sentry/node`
 - `apps/worker/src/index.ts` — NEW — entry point. Loads env (story-24 config), connects to Redis, spawns the Worker with concurrency=5, registers signal handlers (SIGTERM → drain → exit).
 - `apps/worker/src/scheduler.ts` — NEW — `scheduleAgentTicks(agentId, cadenceMs)` adds a BullMQ repeatable job. Reschedules if cadence changes (uses `repeat.key: 'tick-${agentId}'` so re-adding the same agent updates the schedule instead of duplicating per `research/concierge/04-agent-runtime.md` § 5).
-- `apps/worker/src/tickJob.ts` — NEW — the BullMQ Worker's job processor. Calls `tick(agentId)` from `@concierge-mantle/agent`, captures result, updates ticks table, handles errors via DLQ routing.
+- `apps/worker/src/tickJob.ts` — NEW — the BullMQ Worker's job processor. Calls `tick(agentId)` from `@mpilot/agent`, captures result, updates ticks table, handles errors via DLQ routing.
 - `apps/worker/src/dlq.ts` — NEW — dead-letter queue routing: ticks that fail 3 times go to a 'failed-ticks' queue for manual review.
 - `apps/worker/fly.toml` — NEW — Fly.io deploy config (per `research/concierge/04-agent-runtime.md` § 5 recommendation)
 - `apps/worker/Dockerfile` — NEW — multi-stage Bun build
@@ -32,7 +32,7 @@
 
 ```
 Given the worker starts
-When `pnpm --filter @concierge-mantle/worker dev` runs locally with Redis connected
+When `pnpm --filter @mpilot/worker dev` runs locally with Redis connected
 Then it logs "worker ready" and begins polling the BullMQ queue
 
 Given `scheduleAgentTicks(agentId, 60_000)` is called
@@ -80,7 +80,7 @@ test -f Dockerfile
 
 cd ../..
 
-pnpm --filter @concierge-mantle/worker run build
+pnpm --filter @mpilot/worker run build
 test $? -eq 0
 pnpm run typecheck
 

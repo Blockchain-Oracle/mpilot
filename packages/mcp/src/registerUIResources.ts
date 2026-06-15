@@ -9,8 +9,8 @@
  * Story-137. ADR-017 Rail 2. SDK 1.29 `registerResource` API.
  */
 
-import type { UICardId } from '@concierge-mantle/tools';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { UICardId } from '@mpilot/tools';
 import { MCP_APP_MIME } from './ui-resources/_shared.ts';
 import { portfolioSnapshot } from './ui-resources/portfolioSnapshot.ts';
 import { proposalCard } from './ui-resources/proposalCard.ts';

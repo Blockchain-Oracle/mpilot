@@ -1,7 +1,7 @@
 // Integration tests against a live Anvil fork of Mantle Mainnet.
 // Requires Foundry (anvil) to be installed. Set ANVIL_BIN=/path/to/anvil if not on PATH.
 
-import { ADDRESSES } from '@concierge-mantle/shared';
+import { ADDRESSES } from '@mpilot/shared';
 import { createPublicClient, http } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createMantleDexProvider } from '../../provider.ts';

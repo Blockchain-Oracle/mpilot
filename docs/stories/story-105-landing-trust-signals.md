@@ -73,7 +73,7 @@ test -f lib/explorer.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Mantlescan URL pattern
@@ -89,7 +89,7 @@ grep -qE "MIT" apps/web/components/landing/TrustSignals.tsx
 grep -q "rel=\"noopener" apps/web/components/landing/AddressLink.tsx
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "TrustSignals" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "TrustSignals" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```
@@ -100,7 +100,7 @@ bun scripts/check-file-loc.mjs
 
 - **NEVER show 0x0...0 placeholder addresses.** If a contract isn't deployed yet, show "pending" or hide the row entirely. Zero addresses on the landing immediately tank credibility (they signal "this is a demo, nothing real ships").
 - **`rel="noopener noreferrer"` on external links** is a security best-practice. Prevents the target site from accessing window.opener.
-- **Addresses come from `@concierge-mantle/shared/addresses.ts`** — single source of truth (story-20). Don't hardcode in the component.
+- **Addresses come from `@mpilot/shared/addresses.ts`** — single source of truth (story-20). Don't hardcode in the component.
 - **The repo URL is configurable via env** so it can be set per-deploy (preview vs main).
 - **Social-proof links** — until the social handles are claimed, use stable placeholders ("Concierge X — coming soon") rather than broken links. Broken links are worse than placeholders.
 - **Security disclosure link** points to `SECURITY.md` in the repo (created in story-200 README finalize).

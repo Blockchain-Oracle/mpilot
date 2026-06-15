@@ -5,7 +5,7 @@
  * Failures here are LOAD-BEARING — they identify a real production bug in
  * either the model's tool-picking, the tool's schema, or the on-chain target.
  */
-import { ADDRESSES } from '@concierge-mantle/shared';
+import { ADDRESSES } from '@mpilot/shared';
 import { erc20Abi, formatUnits, parseAbi, parseUnits } from 'viem';
 
 const IDENTITY_REGISTRY = ADDRESSES.mantleSepolia.erc8004.identityRegistry;

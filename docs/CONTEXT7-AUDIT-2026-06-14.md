@@ -46,7 +46,7 @@
 - **What we ship:** `EIP712_DOMAIN = { name: 'Concierge', version: '1' }` + `chainId` injected per-call. `verifyingContract` deliberately omitted.
 - **What EIP-712 best practice says:** `{name, version, chainId, verifyingContract}` is the canonical full domain. Wallets display all four; verifying-contract is what prevents cross-deployment replay.
 - **Risk:** A hash signed against the Mantle Mainnet Reputation contract is bit-identical to one against any fork of the same contract. If we ever sign these hashes (session-key flow), replay across deployments is possible.
-- **Fix:** Closes naturally with C2 — if we rip out EIP-712 (keccak wins), this issue disappears. If we keep EIP-712 anywhere, pull `verifyingContract` from `@concierge-mantle/shared/addresses.ts` per chain.
+- **Fix:** Closes naturally with C2 — if we rip out EIP-712 (keccak wins), this issue disappears. If we keep EIP-712 anywhere, pull `verifyingContract` from `@mpilot/shared/addresses.ts` per chain.
 
 #### H3. Paymaster wiring inconsistent — `createBundlerClient` hardcodes `paymasterClient: null` on mantle-mainnet, but `createKernelAccountClient` honors `paymaster: 'pimlico'` on either chain
 

@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address } from '@mpilot/shared';
 import { type PublicClient, parseAbi } from 'viem';
 import { computeRateFromSqrt, fetchPoolState, fetchYieldBps } from './_agni.ts';
 import type { MethAddresses } from './_context.ts';
@@ -35,7 +35,7 @@ export async function getMethBalance(
       .catch((err: unknown) => {
         throw new ConciergeError(
           'RpcError',
-          `[@concierge-mantle/meth-staking] selectors.getMethBalance: failed to read mETH balance for ${user}`,
+          `[@mpilot/meth-staking] selectors.getMethBalance: failed to read mETH balance for ${user}`,
           err instanceof Error ? err : undefined,
         );
       }),

@@ -75,7 +75,7 @@ test -f src/gasPrice.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/smart-account run build
+pnpm --filter @mpilot/smart-account run build
 test $? -eq 0
 
 # Endpoint URLs match Pimlico documented endpoints

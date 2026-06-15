@@ -1,6 +1,6 @@
 'use client';
 
-import { BrandMark } from '@concierge-mantle/ui';
+import { BrandMark } from '@mpilot/ui';
 import { usePrivy } from '@privy-io/react-auth';
 import { useEffect, useState } from 'react';
 import { Check } from '../../_lib/icons';

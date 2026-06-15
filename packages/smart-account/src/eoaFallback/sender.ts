@@ -1,5 +1,5 @@
-import { type DbClient, eoaTxQueue } from '@concierge-mantle/db';
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { type DbClient, eoaTxQueue } from '@mpilot/db';
+import { ConciergeError } from '@mpilot/sdk';
 import { and, eq } from 'drizzle-orm';
 import {
   type Address,
@@ -68,19 +68,19 @@ export async function sendSignedTx(config: SendSignedTxConfig): Promise<SendSign
   if (!uuidSchema.safeParse(config.queueId).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: queueId is not a valid UUID.`,
+      `[@mpilot/smart-account] sendSignedTx: queueId is not a valid UUID.`,
     );
   }
   if (!userIdSchema.safeParse(config.expectedUserId).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: expectedUserId must be 1-256 chars.`,
+      `[@mpilot/smart-account] sendSignedTx: expectedUserId must be 1-256 chars.`,
     );
   }
   if (!signedTxSchema.safeParse(config.signedTx).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: signedTx is not byte-aligned hex or exceeds 128 KB.`,
+      `[@mpilot/smart-account] sendSignedTx: signedTx is not byte-aligned hex or exceeds 128 KB.`,
     );
   }
 
@@ -106,7 +106,7 @@ export async function sendSignedTx(config: SendSignedTxConfig): Promise<SendSign
     // DB state disagrees about who owns the row. Throw, don't markFailed.
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: markSigned returned '${signedResult.kind}' for queueId '${config.queueId}' — chain broadcast already happened. Investigate.`,
+      `[@mpilot/smart-account] sendSignedTx: markSigned returned '${signedResult.kind}' for queueId '${config.queueId}' — chain broadcast already happened. Investigate.`,
     );
   }
   // lost-race here means a concurrent worker already wrote 'signed' for this
@@ -137,7 +137,7 @@ export async function sendSignedTx(config: SendSignedTxConfig): Promise<SendSign
     }
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: markConfirmed returned '${confirmed.kind}' for queueId '${config.queueId}' after chain receipt confirmed. Investigate.`,
+      `[@mpilot/smart-account] sendSignedTx: markConfirmed returned '${confirmed.kind}' for queueId '${config.queueId}' after chain receipt confirmed. Investigate.`,
     );
   } catch (err) {
     return await reconcileTimeout(config, txHash, signedRow, err);
@@ -153,13 +153,13 @@ async function assertSignedTxBindsProposal(config: SendSignedTxConfig): Promise<
   if (!row) {
     throw new ConciergeError(
       'NotAuthorized',
-      `[@concierge-mantle/smart-account] sendSignedTx: caller is not authorized to broadcast for queueId '${config.queueId}'.`,
+      `[@mpilot/smart-account] sendSignedTx: caller is not authorized to broadcast for queueId '${config.queueId}'.`,
     );
   }
   if (row.status !== 'pending') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: queue row '${config.queueId}' is in status '${row.status}' — only 'pending' rows can be broadcast.`,
+      `[@mpilot/smart-account] sendSignedTx: queue row '${config.queueId}' is in status '${row.status}' — only 'pending' rows can be broadcast.`,
     );
   }
 
@@ -169,7 +169,7 @@ async function assertSignedTxBindsProposal(config: SendSignedTxConfig): Promise<
   } catch (err) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: failed to parse signedTx as a transaction.`,
+      `[@mpilot/smart-account] sendSignedTx: failed to parse signedTx as a transaction.`,
       sanitizeError(err),
     );
   }
@@ -179,20 +179,20 @@ async function assertSignedTxBindsProposal(config: SendSignedTxConfig): Promise<
   if (parsed.type !== 'eip1559') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: only EIP-1559 transactions are accepted; got '${parsed.type}'.`,
+      `[@mpilot/smart-account] sendSignedTx: only EIP-1559 transactions are accepted; got '${parsed.type}'.`,
     );
   }
   // EIP-1559 also supports accessList — reject anything non-empty.
   if (parsed.accessList && parsed.accessList.length > 0) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: signedTx carries a non-empty accessList — not allowed for EOA-fallback proposals.`,
+      `[@mpilot/smart-account] sendSignedTx: signedTx carries a non-empty accessList — not allowed for EOA-fallback proposals.`,
     );
   }
   if ((parsed.chainId ?? 0) !== config.expectedChainId) {
     throw new ConciergeError(
       'NetworkUnsupported',
-      `[@concierge-mantle/smart-account] sendSignedTx: signedTx chainId ${parsed.chainId} != expected ${config.expectedChainId}.`,
+      `[@mpilot/smart-account] sendSignedTx: signedTx chainId ${parsed.chainId} != expected ${config.expectedChainId}.`,
     );
   }
   if (typeof parsed.to !== 'string') {
@@ -200,27 +200,27 @@ async function assertSignedTxBindsProposal(config: SendSignedTxConfig): Promise<
     // the audit row carries a `to` address; contract creation has none.
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: signedTx is a contract-creation tx (to=null) — not supported.`,
+      `[@mpilot/smart-account] sendSignedTx: signedTx is a contract-creation tx (to=null) — not supported.`,
     );
   }
   if (parsed.to.toLowerCase() !== row.to.toLowerCase()) {
     throw new ConciergeError(
       'NotAuthorized',
-      `[@concierge-mantle/smart-account] sendSignedTx: signedTx.to does not match queued proposal — refusing to broadcast.`,
+      `[@mpilot/smart-account] sendSignedTx: signedTx.to does not match queued proposal — refusing to broadcast.`,
     );
   }
   const parsedData = (parsed.data ?? '0x') as Hex;
   if (parsedData.toLowerCase() !== row.data.toLowerCase()) {
     throw new ConciergeError(
       'NotAuthorized',
-      `[@concierge-mantle/smart-account] sendSignedTx: signedTx.data does not match queued proposal — refusing to broadcast.`,
+      `[@mpilot/smart-account] sendSignedTx: signedTx.data does not match queued proposal — refusing to broadcast.`,
     );
   }
   const parsedValue = parsed.value ?? 0n;
   if (parsedValue !== BigInt(row.value)) {
     throw new ConciergeError(
       'NotAuthorized',
-      `[@concierge-mantle/smart-account] sendSignedTx: signedTx.value (${parsedValue.toString()}) != queued (${row.value}).`,
+      `[@mpilot/smart-account] sendSignedTx: signedTx.value (${parsedValue.toString()}) != queued (${row.value}).`,
     );
   }
 
@@ -232,14 +232,14 @@ async function assertSignedTxBindsProposal(config: SendSignedTxConfig): Promise<
   } catch (err) {
     throw new ConciergeError(
       'InvalidOwnerSignature',
-      `[@concierge-mantle/smart-account] sendSignedTx: could not recover signer from signedTx.`,
+      `[@mpilot/smart-account] sendSignedTx: could not recover signer from signedTx.`,
       sanitizeError(err),
     );
   }
   if (signer.toLowerCase() !== config.expectedSigner.toLowerCase()) {
     throw new ConciergeError(
       'InvalidOwnerSignature',
-      `[@concierge-mantle/smart-account] sendSignedTx: signedTx signer ${signer} != expected ${config.expectedSigner}.`,
+      `[@mpilot/smart-account] sendSignedTx: signedTx signer ${signer} != expected ${config.expectedSigner}.`,
     );
   }
 }
@@ -258,7 +258,7 @@ async function failTerminal(
   if (result.kind !== 'updated') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: markFailed returned '${result.kind}' while recording ${phase} failure for '${config.queueId}'.`,
+      `[@mpilot/smart-account] sendSignedTx: markFailed returned '${result.kind}' while recording ${phase} failure for '${config.queueId}'.`,
     );
   }
   return {
@@ -287,14 +287,14 @@ async function failPostBroadcast(
   ) {
     // biome-ignore lint/suspicious/noConsole: operator-visible divergence between local revert observation and chain-authoritative confirmation
     console.warn(
-      `[@concierge-mantle/smart-account] sendSignedTx: chain-confirmed result raced our markFailed for '${config.queueId}'. Discarding reason: ${reason}`,
+      `[@mpilot/smart-account] sendSignedTx: chain-confirmed result raced our markFailed for '${config.queueId}'. Discarding reason: ${reason}`,
     );
     return { kind: 'confirmed', row: result.current };
   }
   if (result.kind !== 'updated') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] sendSignedTx: markFailed returned '${result.kind}' for '${config.queueId}' after on-chain revert. Investigate.`,
+      `[@mpilot/smart-account] sendSignedTx: markFailed returned '${result.kind}' for '${config.queueId}' after on-chain revert. Investigate.`,
     );
   }
   return {
@@ -324,7 +324,7 @@ async function reconcileTimeout(
     if (!(probeErr instanceof TransactionNotFoundError)) {
       // biome-ignore lint/suspicious/noConsole: RPC probe outage must be observable for ops
       console.warn(
-        `[@concierge-mantle/smart-account] sendSignedTx: getTransaction probe failed for '${txHash}' — assuming pending. Error: ${sanitizeMessage(probeErr instanceof Error ? probeErr.message : String(probeErr))}`,
+        `[@mpilot/smart-account] sendSignedTx: getTransaction probe failed for '${txHash}' — assuming pending. Error: ${sanitizeMessage(probeErr instanceof Error ? probeErr.message : String(probeErr))}`,
       );
       return { kind: 'pending-confirmation', txHash, row: signedRow };
     }

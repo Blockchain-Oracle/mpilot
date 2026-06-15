@@ -1,5 +1,5 @@
-import type { Address } from '@concierge-mantle/shared';
-import { tool } from '@concierge-mantle/tools';
+import type { Address } from '@mpilot/shared';
+import { tool } from '@mpilot/tools';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 import { requireWallet } from '../_context.ts';
@@ -48,7 +48,7 @@ export async function executeUnwrapToUSDe(
     usde,
     amountSusde,
     slippageBps,
-    '[@concierge-mantle/ethena-susde] unwrapToUSDe',
+    '[@mpilot/ethena-susde] unwrapToUSDe',
   );
   await ensureApproval(
     ctx,
@@ -57,7 +57,7 @@ export async function executeUnwrapToUSDe(
     amountSusde,
     account,
     walletClient,
-    '[@concierge-mantle/ethena-susde] unwrapToUSDe',
+    '[@mpilot/ethena-susde] unwrapToUSDe',
   );
 
   const { txHash, amountOut: amountUsdeOut } = await executeWooFiSwap(
@@ -69,7 +69,7 @@ export async function executeUnwrapToUSDe(
     recipient as Address,
     account,
     walletClient,
-    '[@concierge-mantle/ethena-susde] unwrapToUSDe',
+    '[@mpilot/ethena-susde] unwrapToUSDe',
   );
 
   const attestationPayload = buildAttestationPayload({

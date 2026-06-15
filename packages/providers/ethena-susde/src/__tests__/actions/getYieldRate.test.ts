@@ -1,6 +1,6 @@
 // Integration tests for getYieldRate — exercises the full fetch → parse → bps pipeline.
 // Uses stubbed HTTP (not live Ethena API) for determinism; focuses on the tool invoke path.
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEthenaSusdeProvider } from '../../provider.ts';
 

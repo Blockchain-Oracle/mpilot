@@ -1,10 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import {
-  addressesFor,
-  type EvmChainId,
-  mantleMainnet,
-  ZERO_ADDRESS,
-} from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import { addressesFor, type EvmChainId, mantleMainnet, ZERO_ADDRESS } from '@mpilot/shared';
 import { type Chain, createPublicClient, http, type PublicClient } from 'viem';
 import type { ActionContext, OndoAddresses } from './_context.ts';
 import { createGetBalanceTool } from './actions/getBalance.ts';
@@ -48,7 +43,7 @@ function resolveChain(opts: OndoUsdyProviderOpts): { viemChain: Chain; chainId: 
     if (id !== SUPPORTED_CHAIN_ID) {
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge-mantle/ondo-usdy] expected Mantle Mainnet (5000), got chainId ${id}.`,
+        `[@mpilot/ondo-usdy] expected Mantle Mainnet (5000), got chainId ${id}.`,
         undefined,
         { chainId: id },
       );
@@ -69,7 +64,7 @@ export function createOndoUsdyProvider(opts: OndoUsdyProviderOpts = {}): OndoUsd
   } catch (err) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/ondo-usdy] failed to load shared addresses for chainId ${chainId}`,
+      `[@mpilot/ondo-usdy] failed to load shared addresses for chainId ${chainId}`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -89,7 +84,7 @@ export function createOndoUsdyProvider(opts: OndoUsdyProviderOpts = {}): OndoUsd
     if (addr === ZERO_ADDRESS) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/ondo-usdy] address '${name}' is the zero address. Pass addresses: { ${name} } for custom deployments.`,
+        `[@mpilot/ondo-usdy] address '${name}' is the zero address. Pass addresses: { ${name} } for custom deployments.`,
       );
     }
   }

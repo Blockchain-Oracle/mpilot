@@ -91,7 +91,7 @@ test -f app/api/agent/\[id\]/history/route.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Public access (no auth gate)
@@ -104,7 +104,7 @@ grep -qE "(notFound|404)" apps/web/app/agent/\[id\]/page.tsx
 grep -qE "(rate.*limit|429)" apps/web/app/api/agent/\[id\]/history/route.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep -E "(ReputationFeed|AttestationCard)" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep -E "(ReputationFeed|AttestationCard)" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

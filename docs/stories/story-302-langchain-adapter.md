@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/langchain` adapter
+# Story — `@mpilot/langchain` adapter
 
 **ID:** story-302-langchain-adapter
 **Epic:** Epic E13 — Composable Primitive
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** developer with a LangChain JS agent
-**I want to** `pnpm add @concierge-mantle/langchain @concierge-mantle/sdk` and call `getLangChainTools(agent)` to get `StructuredToolInterface[]`
+**I want to** `pnpm add @mpilot/langchain @mpilot/sdk` and call `getLangChainTools(agent)` to get `StructuredToolInterface[]`
 **So that** my LangChain agent has all Concierge actions composable into its existing toolset
 
 ---
 
 ## File modification map
 
-- `packages/langchain/package.json` — NEW — ESM-only; peer deps on `@langchain/core ^1`, `zod`; runtime dep on `@concierge-mantle/tools`
+- `packages/langchain/package.json` — NEW — ESM-only; peer deps on `@langchain/core ^1`, `zod`; runtime dep on `@mpilot/tools`
 - `packages/langchain/src/index.ts` — NEW — `getLangChainTools(agent: ConciergeAgent): StructuredToolInterface[]`
 - `packages/langchain/src/__tests__/index.test.ts` — NEW — ≥ 5 cases
 - `packages/langchain/README.md` — NEW — 3-line quickstart
@@ -30,18 +30,18 @@
 ```
 Given `getLangChainTools(mockAgent)` runs
 When the result is inspected
-Then it is `StructuredToolInterface[]` with one tool per @concierge-mantle/tools entry AND each has `name`, `description`, `schema` (zod), `invoke`/`call` method
+Then it is `StructuredToolInterface[]` with one tool per @mpilot/tools entry AND each has `name`, `description`, `schema` (zod), `invoke`/`call` method
 
 Given the result is passed to a LangChain `Runnable.bindTools(result)`
 When the model emits a tool call for `proposeAction`
-Then the LangChain runtime calls `invoke(args)` which routes to `t.invoke(args)` from @concierge-mantle/tools
+Then the LangChain runtime calls `invoke(args)` which routes to `t.invoke(args)` from @mpilot/tools
 
 Given a tool returns a JSON-serializable object
 When the LangChain tool's wrapper receives it
 Then the output is JSON-stringified (LangChain's contract is string-returning tool execs)
 
 Given typecheck + build + tests
-When `pnpm --filter @concierge-mantle/langchain build && pnpm --filter @concierge-mantle/langchain test` runs
+When `pnpm --filter @mpilot/langchain build && pnpm --filter @mpilot/langchain test` runs
 Then ≥ 5 cases pass and exit 0
 ```
 
@@ -59,8 +59,8 @@ node -e "
   if (!p.peerDependencies?.['@langchain/core']?.startsWith('^1')) process.exit(2);
 "
 
-pnpm --filter @concierge-mantle/langchain build
-pnpm --filter @concierge-mantle/langchain test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 5 {exit 0} {exit 1}'
+pnpm --filter @mpilot/langchain build
+pnpm --filter @mpilot/langchain test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 5 {exit 0} {exit 1}'
 ```
 
 ---
@@ -71,8 +71,8 @@ Implementation (verbatim from architecture.md ADR-014):
 
 ```typescript
 import { tool as lcTool } from '@langchain/core/tools';
-import { createConciergeTools } from '@concierge-mantle/tools';
-import type { ConciergeAgent } from '@concierge-mantle/agent';
+import { createConciergeTools } from '@mpilot/tools';
+import type { ConciergeAgent } from '@mpilot/agent';
 
 export function getLangChainTools(agent: ConciergeAgent) {
   return createConciergeTools(agent).map(t =>

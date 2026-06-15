@@ -11,14 +11,14 @@
 
 | Old understanding | New direction | Driving docs | Affected stories |
 |---|---|---|---|
-| MCP server is hosted-only Cloudflare Worker | **MCP stdio-first** (`npx -y @concierge-mantle/mcp`); hosted Worker is optional secondary | ADR-011 (amended), AUDIT §3 | story-130 (amended), story-133 (amended), story-136 (NEW), story-137 (NEW), story-138 (NEW) |
-| Components live in `apps/web/components/`; designer picks framework | Components ship as **`@concierge-mantle/react`** (headless) + **`@concierge-mantle/react-ui`** (styled) npm packages; tool-ui adopted as DESIGN reference only | ADR-013 (amended), ADR-015 (NEW), SPEC-REWORK-BRIEF Thread 5 | story-310, 311, 312, 313, 314 (all NEW); ux-spec.md amended |
+| MCP server is hosted-only Cloudflare Worker | **MCP stdio-first** (`npx -y @mpilot/mcp`); hosted Worker is optional secondary | ADR-011 (amended), AUDIT §3 | story-130 (amended), story-133 (amended), story-136 (NEW), story-137 (NEW), story-138 (NEW) |
+| Components live in `apps/web/components/`; designer picks framework | Components ship as **`@mpilot/react`** (headless) + **`@mpilot/react-ui`** (styled) npm packages; tool-ui adopted as DESIGN reference only | ADR-013 (amended), ADR-015 (NEW), SPEC-REWORK-BRIEF Thread 5 | story-310, 311, 312, 313, 314 (all NEW); ux-spec.md amended |
 | `Vercel AI SDK 5.x` + Anthropic-only LLM | `ai 6.x` + `@ai-sdk/react 3.x`; **`model: LanguageModelV2`** with `defaultModel()` env auto-detect across 4 providers; tick worker stays Anthropic | ADR-016 (NEW), AUDIT §1, SDK-DX-STUDY §A-B | story-61 (amended), story-22 (amended), story-320 (NEW) |
-| Tools defined per-runtime in each adapter | Single **`@concierge-mantle/tools`** framework-agnostic registry with `inputSchema` + `outputSchema` (load-bearing). Adapters (Vercel AI / OpenAI / LangChain / AgentKit / MCP) are 15-40 LOC each, wrap the same source | ADR-014 (NEW), CDR-Kit pattern, SDK-DX-STUDY §H | story-300, 301, 302, 303, 304 (all NEW) |
+| Tools defined per-runtime in each adapter | Single **`@mpilot/tools`** framework-agnostic registry with `inputSchema` + `outputSchema` (load-bearing). Adapters (Vercel AI / OpenAI / LangChain / AgentKit / MCP) are 15-40 LOC each, wrap the same source | ADR-014 (NEW), CDR-Kit pattern, SDK-DX-STUDY §H | story-300, 301, 302, 303, 304 (all NEW) |
 | Single rail for generative UI (tool cards in the web app) | **Three rails** on a structured-JSON `outputSchema` contract: Vercel AI SDK tool-parts (web) + MCP Apps `ui://` resources (Claude Desktop iframe) + MCP Elicitation (form + url modes for high-value confirms / wallet-connect) | ADR-017 (NEW), AUDIT §3, SEP-1865 merged 2026-01-28 | story-137 (NEW), story-138 (NEW) |
 | Bun workspaces + dual ESM/CJS | **pnpm workspaces + pure ESM + Node ≥22 + tree-shakeable** for every published package; tsup for builds; peer deps for `ai` / `zod` / framework SDKs | ADR-018 (NEW), SDK-DX-STUDY §D | every new + amended story |
 | Class hierarchy + Result<T, E> + goal-at-construction | **Factory functions** (`createConcierge`) + **typed error discriminator** (`ConciergeError` w/ `type`) + **AsyncIterable + `.on()`** events for streaming + `setGoal()` post-construction | ADR-019 (NEW), SDK-DX-STUDY §F-I | story-22 (amended), story-23 (DX-amended at impl time) |
-| `@concierge-mantle/goat` + `@coinbase/agentkit-vercel-ai-sdk` dependencies | **DROPPED** — GOAT SDK 4-15 months stale; AgentKit framework extensions 15 months stale (use `customActionProvider` escape hatch) | AUDIT §5, §6 | n/a (removed from package list) |
+| `@mpilot/goat` + `@coinbase/agentkit-vercel-ai-sdk` dependencies | **DROPPED** — GOAT SDK 4-15 months stale; AgentKit framework extensions 15 months stale (use `customActionProvider` escape hatch) | AUDIT §5, §6 | n/a (removed from package list) |
 | Tambo + Crayon as gen-UI candidates | **DROPPED** — model-driven, contradict "tool X always renders card X" contract | ADR-015, SPEC-REWORK-BRIEF Thread 5 | n/a |
 
 **Reference docs driving the rework:**
@@ -34,19 +34,19 @@
 |---|---|---|---|---|
 | E0 | Foundation — monorepo (pnpm), CI, biome, Foundry init, husky, security workflow | 8 | ~6.5h | None |
 | E1 | Smart Contracts — ConciergeRegistry + session-key validator + Sepolia mocks | 10 | ~15h | E0 |
-| E2 | Shared SDK Core — `@concierge-mantle/sdk` skeleton, `@concierge-mantle/shared` | 5 | ~6h | E0 |
-| E3 | Action Providers — 7 `@concierge-mantle/<provider>` packages | 14 | ~22h | E1, E2 |
+| E2 | Shared SDK Core — `@mpilot/sdk` skeleton, `@mpilot/shared` | 5 | ~6h | E0 |
+| E3 | Action Providers — 7 `@mpilot/<provider>` packages | 14 | ~22h | E1, E2 |
 | E4 | Smart Account Layer — ZeroDev Kernel + Pimlico + session keys + EOA fallback | 7 | ~10h | E2 |
 | E5 | Agent Runtime — tick loop, six phases, Postgres + Redis + BullMQ | 11 | ~16h | E3, E4 |
 | E6 | ERC-8004 Attestation Flow — IPFS pin, feedback hash, reputation read | 5 | ~7h | E3, E5 |
 | E7 | Web App — landing, onboarding, dashboard, tick stream, goal-set, settings | 16 | ~22h | E4, E5, E6, E14 (dogfoods react-ui) |
 | E8 | MCP Server — stdio-first + hosted Cloudflare Worker optional + Apps + Elicitation | 9 | ~13h | E2, E3, E5, **E13** |
-| E9 | Agent Skill Packaging — `@concierge-mantle/skill`, SKILL.md, `npx skills add` install | 5 | ~6h | E2, E8 |
+| E9 | Agent Skill Packaging — `@mpilot/skill`, SKILL.md, `npx skills add` install | 5 | ~6h | E2, E8 |
 | E10 | Docs Site — Fumadocs, quickstart, SDK + provider + runtime + skill + MCP + recipes | 8 | ~10h | E2, E3, E5, E8, E9 |
 | E11 | Mainnet Deployment + Sepolia Playground — `DeployAll.s.sol`, real Aave V3, MockAavePool + faucet | 6 | ~8h | E1, E5, E7, E8, E9 |
 | E12 | Submission Polish — README, demo video, X thread, DoraHacks, architecture diagram | 6 | ~6h | All previous |
-| **E13** | **Composable Primitive — `@concierge-mantle/tools` registry + 4 framework adapters + model-agnostic provider** | **6** | **~7h** | **E2, E3** |
-| **E14** | **Composable UI — `@concierge-mantle/react` (headless) + `@concierge-mantle/react-ui` (styled) + 2 adapters + web dogfood** | **5** | **~10h** | **E13, E7 (scaffold)** |
+| **E13** | **Composable Primitive — `@mpilot/tools` registry + 4 framework adapters + model-agnostic provider** | **6** | **~7h** | **E2, E3** |
+| **E14** | **Composable UI — `@mpilot/react` (headless) + `@mpilot/react-ui` (styled) + 2 adapters + web dogfood** | **5** | **~10h** | **E13, E7 (scaffold)** |
 | **E15** | **Distribution — `create-concierge-app` scaffolder with 5 templates** | **1** | **~2h** | **E13, E14** |
 
 **Total estimate:** ~160h of coding-agent work (was ~141h; +19h for E13/14/15). Parallelizable across the orchestrator.
@@ -99,7 +99,7 @@
 
 ## Epic E2 — Shared SDK Core
 
-**Business value:** All packages depend on `@concierge-mantle/shared` (addresses + ABIs + types) and `@concierge-mantle/sdk` skeleton. Without this, providers can't share an interface.
+**Business value:** All packages depend on `@mpilot/shared` (addresses + ABIs + types) and `@mpilot/sdk` skeleton. Without this, providers can't share an interface.
 
 **Dependencies:** E0.
 
@@ -203,12 +203,12 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 
 **Business value:** The user-facing surface. Where judges land. Where the demo happens. Where Community Voting + Best UI/UX prizes are won.
 
-**Dependencies:** E4 (smart account), E5 (tick loop), E6 (attestation), **designer agent's `@concierge-mantle/ui@1.0.0` published**.
+**Dependencies:** E4 (smart account), E5 (tick loop), E6 (attestation), **designer agent's `@mpilot/ui@1.0.0` published**.
 
 **Estimate:** ~22h.
 
 **Stories:**
-- `story-100-next-app-scaffold` — Next.js 15 App Router skeleton, Tailwind, `@concierge-mantle/ui` import, routing
+- `story-100-next-app-scaffold` — Next.js 15 App Router skeleton, Tailwind, `@mpilot/ui` import, routing
 - `story-101-landing-hero` — `/` page hero with embedded live tick demo
 - `story-102-landing-how-it-works` — 3-step explainer with live-rate API integration
 - `story-103-landing-klarna-comparison` — Live spread comparison block
@@ -257,14 +257,14 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 - `story-150-skill-manifest` — `packages/skill/SKILL.md` with frontmatter mirroring `byreal-git/byreal-agent-skills`
 - `story-151-skill-cli-bootstrap` — TypeScript Commander CLI exposing all 7 provider actions + tick controls
 - `story-152-skill-json-output-contract` — `-o json` JSON output format per Byreal convention for LLM consumption
-- `story-153-skill-npm-publish` — Publish `@concierge-mantle/mantle-agent` to npm; verify `npx skills add @concierge-mantle/mantle-agent` installs cleanly
+- `story-153-skill-npm-publish` — Publish `@mpilot/mantle-agent` to npm; verify `npx skills add @mpilot/mantle-agent` installs cleanly
 - `story-154-skill-distribution-prs` — PRs to `VoltAgent/awesome-openclaw-skills` + `LeoYeAI/openclaw-master-skills` (post-launch)
 
 ---
 
 ## Epic E10 — Docs Site
 
-**Business value:** Other Mantle developers `npm install @concierge-mantle/sdk` and ship their own agent. Docs convert builders into users. Critical for the "AgentKit for Mantle" positioning + Mantle Ecosystem Contribution score.
+**Business value:** Other Mantle developers `npm install @mpilot/sdk` and ship their own agent. Docs convert builders into users. Critical for the "AgentKit for Mantle" positioning + Mantle Ecosystem Contribution score.
 
 **Dependencies:** E2 (SDK), E3 (providers), E5 (runtime), E8 (MCP), E9 (skill).
 
@@ -273,7 +273,7 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 **Stories:**
 - `story-170-docs-framework-bootstrap` — Fumadocs (or equivalent) at `/docs/*`, same Next.js project
 - `story-171-docs-quickstart` — `git clone` to first running agent in ≤ 10 min
-- `story-172-docs-sdk-reference` — `@concierge-mantle/sdk` API reference (auto-generated from JSDoc + manual)
+- `story-172-docs-sdk-reference` — `@mpilot/sdk` API reference (auto-generated from JSDoc + manual)
 - `story-173-docs-providers-reference` — Per-provider docs mirroring `research/concierge/03-providers/*.md`
 - `story-174-docs-runtime-concepts` — Tick loop, session keys, attestation explained
 - `story-175-docs-skill-guide` — `npx skills add` install + customization
@@ -291,7 +291,7 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 **Estimate:** ~8h.
 
 **Stories:**
-- `story-190-sepolia-mock-deploy` — Deploy `MockAavePool` + mocks + `ConciergeRegistry` to Mantle Sepolia, write addresses to `@concierge-mantle/shared`
+- `story-190-sepolia-mock-deploy` — Deploy `MockAavePool` + mocks + `ConciergeRegistry` to Mantle Sepolia, write addresses to `@mpilot/shared`
 - `story-191-sepolia-faucet-page` — `/app/faucet` page that mints mock sUSDe + USDC + USDY + mETH to connected wallet
 - `story-192-mainnet-deploy-runbook` — `DEPLOY-MAINNET-RUNBOOK.md` + interactive `deploy-mainnet.sh` wrapper
 - `story-193-mainnet-deploy-execution` — Actual Mainnet deploy (one-off — runbook executed): `ConciergeRegistry` + session-key validator deployed + verified on MantleScan
@@ -320,7 +320,7 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 
 ## Implementation order (for orchestrator)
 
-The orchestrator dispatches stories in this order, respecting dependencies. **Designer agent runs in parallel from the start; coding-agent UI stories (E7) wait for `@concierge-mantle/ui@1.0.0` to publish.**
+The orchestrator dispatches stories in this order, respecting dependencies. **Designer agent runs in parallel from the start; coding-agent UI stories (E7) wait for `@mpilot/ui@1.0.0` to publish.**
 
 ```yaml
 dispatch_queue:
@@ -404,7 +404,7 @@ dispatch_queue:
   - story-152-skill-json-output-contract
   - story-153-skill-npm-publish
 
-  # Wave 6: Web App (BLOCKED until @concierge-mantle/ui@1.0.0 ships from designer)
+  # Wave 6: Web App (BLOCKED until @mpilot/ui@1.0.0 ships from designer)
   - story-100-next-app-scaffold
   - story-101-landing-hero
   - story-102-landing-how-it-works
@@ -461,46 +461,46 @@ E0 → E1 → E5 → E6 → E11 → E12
 (Foundation → Contracts → Runtime → Attestation → Deployment → Submission)
 ```
 
-Designer agent runs in parallel from the start. UI stories (E7) gate on `@concierge-mantle/ui@1.0.0`, but every non-UI surface (contracts, SDK, providers, runtime, MCP, skill, docs) is unblocked from Wave 2 onwards.
+Designer agent runs in parallel from the start. UI stories (E7) gate on `@mpilot/ui@1.0.0`, but every non-UI surface (contracts, SDK, providers, runtime, MCP, skill, docs) is unblocked from Wave 2 onwards.
 
 ---
 
 ## Epic E13 — Composable Primitive (NEW 2026-06-09)
 
-**Business value:** Concierge becomes a **composable primitive** — the single `@concierge-mantle/tools` registry feeds 4 framework adapters (Vercel AI SDK / OpenAI/Anthropic raw / LangChain / Coinbase AgentKit) + the MCP server. Any developer can `pnpm add @concierge-mantle/<adapter>` and drop our 30+ DeFi actions into their existing agent stack in 5 lines. This is the LARGEST single-cost-multiplier win: ~30-40 LOC per adapter × N runtimes = N distribution channels with marginal cost.
+**Business value:** Concierge becomes a **composable primitive** — the single `@mpilot/tools` registry feeds 4 framework adapters (Vercel AI SDK / OpenAI/Anthropic raw / LangChain / Coinbase AgentKit) + the MCP server. Any developer can `pnpm add @mpilot/<adapter>` and drop our 30+ DeFi actions into their existing agent stack in 5 lines. This is the LARGEST single-cost-multiplier win: ~30-40 LOC per adapter × N runtimes = N distribution channels with marginal cost.
 
-**Dependencies:** E2 (`@concierge-mantle/sdk` skeleton — amended), E3 (action providers expose `tools()` functions).
+**Dependencies:** E2 (`@mpilot/sdk` skeleton — amended), E3 (action providers expose `tools()` functions).
 
 **Estimate:** ~7h.
 
 **Stories:**
-- `story-300-tools-registry` — `@concierge-mantle/tools` framework-agnostic registry. `ConciergeTool<TIn, TOut>` interface with `inputSchema` + `outputSchema` (Zod, both mandatory) + `uiCardId`. `tool()` helper. `createConciergeTools(agent)` aggregator. Per-tool `SerializableConciergeXxxSchema` exports. (Reference: CDR-Kit's `@cdr-kit/tools` shape, code-verified per SDK-DX-STUDY §H.)
-- `story-301-vercel-ai-adapter` — `@concierge-mantle/vercel-ai` → AI SDK v6 `ToolSet` (~15 LOC wrapper around `aiTool()`)
-- `story-302-langchain-adapter` — `@concierge-mantle/langchain` → `@langchain/core/tools` `StructuredToolInterface[]` (~10 LOC)
-- `story-303-openai-adapter` — `@concierge-mantle/openai` → direct Chat Completions `tools: [{ type: 'function', function: { name, description, parameters } }]` + dispatch. Covers Anthropic raw tool-use too (same JSON Schema). NO `@openai/agents` dep.
-- `story-304-agentkit-adapter` — `@concierge-mantle/agentkit` → Coinbase AgentKit `customActionProvider` (escape hatch — NOT `@CreateAction` decorator) (~12 LOC)
-- `story-320-model-agnostic-provider` — `@concierge-mantle/sdk` accepts `model: LanguageModelV2` directly. `defaultModel()` helper auto-detects `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` / `XAI_API_KEY` with `AI_MODEL="provider:model"` override. Per-call model override per tick phase.
+- `story-300-tools-registry` — `@mpilot/tools` framework-agnostic registry. `ConciergeTool<TIn, TOut>` interface with `inputSchema` + `outputSchema` (Zod, both mandatory) + `uiCardId`. `tool()` helper. `createConciergeTools(agent)` aggregator. Per-tool `SerializableConciergeXxxSchema` exports. (Reference: CDR-Kit's `@cdr-kit/tools` shape, code-verified per SDK-DX-STUDY §H.)
+- `story-301-vercel-ai-adapter` — `@mpilot/vercel-ai` → AI SDK v6 `ToolSet` (~15 LOC wrapper around `aiTool()`)
+- `story-302-langchain-adapter` — `@mpilot/langchain` → `@langchain/core/tools` `StructuredToolInterface[]` (~10 LOC)
+- `story-303-openai-adapter` — `@mpilot/openai` → direct Chat Completions `tools: [{ type: 'function', function: { name, description, parameters } }]` + dispatch. Covers Anthropic raw tool-use too (same JSON Schema). NO `@openai/agents` dep.
+- `story-304-agentkit-adapter` — `@mpilot/agentkit` → Coinbase AgentKit `customActionProvider` (escape hatch — NOT `@CreateAction` decorator) (~12 LOC)
+- `story-320-model-agnostic-provider` — `@mpilot/sdk` accepts `model: LanguageModelV2` directly. `defaultModel()` helper auto-detects `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` / `XAI_API_KEY` with `AI_MODEL="provider:model"` override. Per-call model override per tick phase.
 
-**Acceptance criteria for the epic as a whole:** `pnpm add @concierge-mantle/langchain` in an external LangChain app + `getLangChainTools(agent)` returns ≥30 working Concierge tools. Same for Vercel AI SDK + OpenAI + AgentKit. End-to-end demo: a third-party LangChain agent supplies a USDC via Concierge tools, signed by the user's session key.
+**Acceptance criteria for the epic as a whole:** `pnpm add @mpilot/langchain` in an external LangChain app + `getLangChainTools(agent)` returns ≥30 working Concierge tools. Same for Vercel AI SDK + OpenAI + AgentKit. End-to-end demo: a third-party LangChain agent supplies a USDC via Concierge tools, signed by the user's session key.
 
 ---
 
 ## Epic E14 — Composable UI (NEW 2026-06-09)
 
-**Business value:** Concierge cards (proposal, tick, portfolio, reputation) ship as TWO npm packages — `@concierge-mantle/react` (headless: behavior + ARIA + state machines + parse-then-render) and `@concierge-mantle/react-ui` (styled drop-ins built on Radix + shadcn + brand tokens). The web app at `concierge.xyz/app` DOGFOODS the package (per ADR-015) — no duplicate components. External devs can `pnpm add @concierge-mantle/react-ui` and embed Concierge cards in THEIR dashboard / chat. Two thin adapter packages (`@concierge-mantle/react-assistant-ui`, `@concierge-mantle/react-copilotkit`) bridge to assistant-ui and CopilotKit — which transitively covers LangGraph / CrewAI / Mastra / Pydantic AI / AutoGen2 / MS Agent Framework users.
+**Business value:** Concierge cards (proposal, tick, portfolio, reputation) ship as TWO npm packages — `@mpilot/react` (headless: behavior + ARIA + state machines + parse-then-render) and `@mpilot/react-ui` (styled drop-ins built on Radix + shadcn + brand tokens). The web app at `concierge.xyz/app` DOGFOODS the package (per ADR-015) — no duplicate components. External devs can `pnpm add @mpilot/react-ui` and embed Concierge cards in THEIR dashboard / chat. Two thin adapter packages (`@mpilot/react-assistant-ui`, `@mpilot/react-copilotkit`) bridge to assistant-ui and CopilotKit — which transitively covers LangGraph / CrewAI / Mastra / Pydantic AI / AutoGen2 / MS Agent Framework users.
 
-**Dependencies:** E13 (`@concierge-mantle/tools` for schemas), E7 (Next.js + Tailwind scaffold).
+**Dependencies:** E13 (`@mpilot/tools` for schemas), E7 (Next.js + Tailwind scaffold).
 
 **Estimate:** ~10h.
 
 **Stories:**
-- `story-310-react-headless` — `@concierge-mantle/react`: `<ProposalPart>`, `<TickPart>`, `<PortfolioPart>`, `<ReputationPart>` taking typed `tool-${name}` parts as props + hooks (`useTickStream`, `useProposal`, `useReputation`) + `<ConciergeProvider>`. ARIA, keyboard nav, state machines. Zero CSS. Render-prop API for consumer's custom visual layer.
-- `story-311-react-ui-styled` — `@concierge-mantle/react-ui`: `<TickCard>`, `<ProposalCard>`, `<PortfolioCard>`, `<ReputationChart>`, `<EmergencyStop>`, `<GoalInput>`, `<MCPInstallSnippet>`, `<SimulationCard>`, `<TxConfirmationCard>`, `<AttestationCard>`, `<StatusPill>`. Tool-UI patterns as DESIGN REFERENCE only (not dep). 12-state TickCard lifecycle per `08-ux-component-intent.md`. Storybook with ≥12 stories. Axe-core a11y check.
-- `story-312-web-dogfood-react-ui` — Rewrite `apps/web/app/app/*` pages to consume `@concierge-mantle/react-ui` directly. Delete `apps/web/components/{TickCard,ProposalCard,PortfolioCard,...}.tsx`. NET LOC decreases in apps/web/.
-- `story-313-react-assistant-ui` — `@concierge-mantle/react-assistant-ui`: `getConciergeToolkit()` returns assistant-ui `defineToolkit({ proposeAction: { type: 'backend', render: ProposalPart }, ... })`. Covers assistant-ui + LangGraph + LangChain users transitively. ~15 LOC.
-- `story-314-react-copilotkit` — `@concierge-mantle/react-copilotkit`: `useConciergeActions()` hook calling `useCopilotAction` (or `useFrontendTool` v2, pinned at impl time). Covers AG-UI Protocol users transitively: LangGraph + CrewAI + Mastra + Pydantic AI + AutoGen2 + MS Agent Framework. ~30 LOC.
+- `story-310-react-headless` — `@mpilot/react`: `<ProposalPart>`, `<TickPart>`, `<PortfolioPart>`, `<ReputationPart>` taking typed `tool-${name}` parts as props + hooks (`useTickStream`, `useProposal`, `useReputation`) + `<ConciergeProvider>`. ARIA, keyboard nav, state machines. Zero CSS. Render-prop API for consumer's custom visual layer.
+- `story-311-react-ui-styled` — `@mpilot/react-ui`: `<TickCard>`, `<ProposalCard>`, `<PortfolioCard>`, `<ReputationChart>`, `<EmergencyStop>`, `<GoalInput>`, `<MCPInstallSnippet>`, `<SimulationCard>`, `<TxConfirmationCard>`, `<AttestationCard>`, `<StatusPill>`. Tool-UI patterns as DESIGN REFERENCE only (not dep). 12-state TickCard lifecycle per `08-ux-component-intent.md`. Storybook with ≥12 stories. Axe-core a11y check.
+- `story-312-web-dogfood-react-ui` — Rewrite `apps/web/app/app/*` pages to consume `@mpilot/react-ui` directly. Delete `apps/web/components/{TickCard,ProposalCard,PortfolioCard,...}.tsx`. NET LOC decreases in apps/web/.
+- `story-313-react-assistant-ui` — `@mpilot/react-assistant-ui`: `getConciergeToolkit()` returns assistant-ui `defineToolkit({ proposeAction: { type: 'backend', render: ProposalPart }, ... })`. Covers assistant-ui + LangGraph + LangChain users transitively. ~15 LOC.
+- `story-314-react-copilotkit` — `@mpilot/react-copilotkit`: `useConciergeActions()` hook calling `useCopilotAction` (or `useFrontendTool` v2, pinned at impl time). Covers AG-UI Protocol users transitively: LangGraph + CrewAI + Mastra + Pydantic AI + AutoGen2 + MS Agent Framework. ~30 LOC.
 
-**Acceptance criteria for the epic as a whole:** `pnpm add @concierge-mantle/react-ui` in an external Next.js app + render `<TickStream agentId="agt_..." />` shows live ticks. `apps/web/components/` is empty (everything moved to packages). axe-core: 0 critical violations across all cards. Storybook builds with 12+ stories.
+**Acceptance criteria for the epic as a whole:** `pnpm add @mpilot/react-ui` in an external Next.js app + render `<TickStream agentId="agt_..." />` shows live ticks. `apps/web/components/` is empty (everything moved to packages). axe-core: 0 critical violations across all cards. Storybook builds with 12+ stories.
 
 ---
 
@@ -513,7 +513,7 @@ Designer agent runs in parallel from the start. UI stories (E7) gate on `@concie
 **Estimate:** ~2h.
 
 **Stories:**
-- `story-330-scaffolder` — `packages/create-concierge-app/` with `@clack/prompts` CLI + 5 templates. Each template ships `package.json` w/ pinned `@concierge-mantle/*` deps + `.env.example` + working `pnpm dev` from clone-to-running in < 5 minutes. Pattern reference: CDR-Kit's `create-cdr-kit-app` with 9 templates.
+- `story-330-scaffolder` — `packages/create-concierge-app/` with `@clack/prompts` CLI + 5 templates. Each template ships `package.json` w/ pinned `@mpilot/*` deps + `.env.example` + working `pnpm dev` from clone-to-running in < 5 minutes. Pattern reference: CDR-Kit's `create-cdr-kit-app` with 9 templates.
 
 **Acceptance criteria for the epic as a whole:** `npm create concierge-app@latest my-app --template vercel-ai-agent` followed by `cd my-app && pnpm install && pnpm dev` opens a working chat at localhost:3000 with live Concierge tools rendered as cards. All 5 templates demonstrated working end-to-end.
 

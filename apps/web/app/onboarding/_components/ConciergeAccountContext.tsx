@@ -11,7 +11,7 @@
  * `OnboardingData` so the activate-step review + downstream Supabase write
  * have plain data.
  */
-import type { ConciergeAccount } from '@concierge-mantle/smart-account';
+import type { ConciergeAccount } from '@mpilot/smart-account';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
 

@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { EvmChainId } from '@concierge-mantle/shared';
-import { addressesFor, mantleMainnet, mantleSepolia } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { EvmChainId } from '@mpilot/shared';
+import { addressesFor, mantleMainnet, mantleSepolia } from '@mpilot/shared';
 import type { PublicClient, WalletClient } from 'viem';
 import { createPublicClient, http } from 'viem';
 import type { ActionContext } from './_context.ts';
@@ -34,7 +34,7 @@ function resolveChainId(opts: MantleDexProviderOptions): EvmChainId {
     if (!MANTLE_CHAIN_IDS.has(pcId)) {
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge-mantle/mantle-dex] publicClient chain id ${pcId} is not Mantle (5000 mainnet, 5003 sepolia).`,
+        `[@mpilot/mantle-dex] publicClient chain id ${pcId} is not Mantle (5000 mainnet, 5003 sepolia).`,
       );
     }
     return pcId as EvmChainId;
@@ -45,7 +45,7 @@ function resolveChainId(opts: MantleDexProviderOptions): EvmChainId {
     if (!MANTLE_CHAIN_IDS.has(wcId)) {
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge-mantle/mantle-dex] walletClient chain id ${wcId} is not Mantle (5000 mainnet, 5003 sepolia).`,
+        `[@mpilot/mantle-dex] walletClient chain id ${wcId} is not Mantle (5000 mainnet, 5003 sepolia).`,
       );
     }
     return wcId as EvmChainId;

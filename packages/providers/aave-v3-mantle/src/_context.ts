@@ -1,7 +1,7 @@
 // Internal shared context passed to every action factory — not part of the public API.
 
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address, EvmChainId } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address, EvmChainId } from '@mpilot/shared';
 import type { PublicClient, WalletClient } from 'viem';
 
 export interface ActionContext {
@@ -24,7 +24,7 @@ export async function requireWallet(
   if (!ctx.walletClient) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/aave-v3-mantle] ${action}: walletClient is required for write operations. Initialise AaveV3MantleProvider with a connected WalletClient.`,
+      `[@mpilot/aave-v3-mantle] ${action}: walletClient is required for write operations. Initialise AaveV3MantleProvider with a connected WalletClient.`,
     );
   }
   // Require the account to be explicitly bound to the wallet client.
@@ -34,7 +34,7 @@ export async function requireWallet(
   if (!account) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/aave-v3-mantle] ${action}: walletClient has no bound account. Pass an explicit account to createWalletClient({ account: privateKeyToAccount(...) }) or createWalletClient({ account: "0xaddr" }).`,
+      `[@mpilot/aave-v3-mantle] ${action}: walletClient has no bound account. Pass an explicit account to createWalletClient({ account: privateKeyToAccount(...) }) or createWalletClient({ account: "0xaddr" }).`,
     );
   }
   return { walletClient: ctx.walletClient, account };

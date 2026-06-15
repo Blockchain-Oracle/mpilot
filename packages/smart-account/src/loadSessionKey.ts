@@ -1,5 +1,5 @@
-import { type DbClient, sessionKeys } from '@concierge-mantle/db';
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { type DbClient, sessionKeys } from '@mpilot/db';
+import { ConciergeError } from '@mpilot/sdk';
 import { eq } from 'drizzle-orm';
 import type { Hex } from 'viem';
 import { policyJsonSchema } from './crypto/policyJsonSchema.ts';
@@ -56,20 +56,20 @@ export async function loadSessionKey(config: LoadSessionKeyConfig): Promise<Load
   if (!row) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] loadSessionKey: session key '${config.sessionKeyId}' not found.`,
+      `[@mpilot/smart-account] loadSessionKey: session key '${config.sessionKeyId}' not found.`,
     );
   }
   // Agent binding check BEFORE crypto (CWE-639 mitigation).
   if (row.agentId !== config.expectedAgentId) {
     throw new ConciergeError(
       'DecryptionFailed',
-      `[@concierge-mantle/smart-account] loadSessionKey: row agent binding mismatch for session key '${config.sessionKeyId}'.`,
+      `[@mpilot/smart-account] loadSessionKey: row agent binding mismatch for session key '${config.sessionKeyId}'.`,
     );
   }
   if (row.revokedAt !== null) {
     throw new ConciergeError(
       'SessionKeyRevoked',
-      `[@concierge-mantle/smart-account] loadSessionKey: session key was revoked at ${row.revokedAt.toISOString()}.`,
+      `[@mpilot/smart-account] loadSessionKey: session key was revoked at ${row.revokedAt.toISOString()}.`,
       undefined,
       { revokedAt: row.revokedAt.toISOString() },
     );
@@ -79,7 +79,7 @@ export async function loadSessionKey(config: LoadSessionKeyConfig): Promise<Load
   if (!parsed.success) {
     throw new ConciergeError(
       'DecryptionFailed',
-      `[@concierge-mantle/smart-account] loadSessionKey: policy_json shape drift — ${parsed.error.message}`,
+      `[@mpilot/smart-account] loadSessionKey: policy_json shape drift — ${parsed.error.message}`,
     );
   }
   const policy = parsed.data;
@@ -90,13 +90,13 @@ export async function loadSessionKey(config: LoadSessionKeyConfig): Promise<Load
   if (columnValidUntilSecs !== policy.validUntil) {
     throw new ConciergeError(
       'DecryptionFailed',
-      `[@concierge-mantle/smart-account] loadSessionKey: validUntil drift — column=${columnValidUntilSecs}s, policyJson=${policy.validUntil}s. The signature-covered policyJson is authoritative; the column has been mutated.`,
+      `[@mpilot/smart-account] loadSessionKey: validUntil drift — column=${columnValidUntilSecs}s, policyJson=${policy.validUntil}s. The signature-covered policyJson is authoritative; the column has been mutated.`,
     );
   }
   if (row.signature !== policy.signature) {
     throw new ConciergeError(
       'DecryptionFailed',
-      `[@concierge-mantle/smart-account] loadSessionKey: signature drift between column and policyJson — possible row tampering.`,
+      `[@mpilot/smart-account] loadSessionKey: signature drift between column and policyJson — possible row tampering.`,
     );
   }
   // Authoritative expiry from policyJson.
@@ -104,7 +104,7 @@ export async function loadSessionKey(config: LoadSessionKeyConfig): Promise<Load
   if (policy.validUntil <= nowSecs) {
     throw new ConciergeError(
       'SessionKeyExpired',
-      `[@concierge-mantle/smart-account] loadSessionKey: session key expired at ${policy.validUntil} (now=${nowSecs}).`,
+      `[@mpilot/smart-account] loadSessionKey: session key expired at ${policy.validUntil} (now=${nowSecs}).`,
       undefined,
       { expiredAt: policy.validUntil },
     );
@@ -112,7 +112,7 @@ export async function loadSessionKey(config: LoadSessionKeyConfig): Promise<Load
   if (policy.validAfter > nowSecs) {
     throw new ConciergeError(
       'SessionKeyExpired',
-      `[@concierge-mantle/smart-account] loadSessionKey: session key is not yet valid (validAfter=${policy.validAfter}, now=${nowSecs}).`,
+      `[@mpilot/smart-account] loadSessionKey: session key is not yet valid (validAfter=${policy.validAfter}, now=${nowSecs}).`,
       undefined,
       { notValidUntil: policy.validAfter },
     );

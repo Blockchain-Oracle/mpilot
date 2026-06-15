@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/langchain",
+  "name": "@mpilot/langchain",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -27,7 +27,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge-mantle/tools": "workspace:*"
+    "@mpilot/tools": "workspace:*"
   },
   "peerDependencies": {
     "@langchain/core": "^1.1.0",

@@ -1,4 +1,4 @@
-import type { Address } from '@concierge-mantle/shared';
+import type { Address } from '@mpilot/shared';
 import { z } from 'zod';
 
 export const HEX_ADDRESS = z.string().regex(/^0x[0-9a-fA-F]{40}$/) as z.ZodType<Address>;

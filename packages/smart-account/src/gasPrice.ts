@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { getUserOperationGasPrice } from 'permissionless/actions/pimlico';
 import { http } from 'viem';
 import { createBundlerClient } from 'viem/account-abstraction';
@@ -37,14 +37,14 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      "[@concierge-mantle/smart-account] getUserOpGasPrice: MissingEnvVar('PIMLICO_API_KEY') — set this env var before querying gas price.",
+      "[@mpilot/smart-account] getUserOpGasPrice: MissingEnvVar('PIMLICO_API_KEY') — set this env var before querying gas price.",
     );
   }
   const chainConfig = CHAIN_CONFIGS[config.chain];
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
+      `[@mpilot/smart-account] getUserOpGasPrice: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   const bundlerUrl = `${chainConfig.bundlerBaseUrl}?apikey=${encodeURIComponent(apiKey)}`;
@@ -65,7 +65,7 @@ export async function getUserOpGasPrice(config: GetUserOpGasPriceConfig): Promis
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico bundler RPC failed (chain: '${config.chain}')`,
+      `[@mpilot/smart-account] getUserOpGasPrice: Pimlico bundler RPC failed (chain: '${config.chain}')`,
       sanitizeCause(err, apiKey),
     );
   }
@@ -103,20 +103,20 @@ export function validatePimlicoStandardTier(
   ) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: Pimlico response missing or malformed 'standard' tier (chain: '${chain}'). Expected { standard: { maxFeePerGas: bigint, maxPriorityFeePerGas: bigint } }.`,
+      `[@mpilot/smart-account] getUserOpGasPrice: Pimlico response missing or malformed 'standard' tier (chain: '${chain}'). Expected { standard: { maxFeePerGas: bigint, maxPriorityFeePerGas: bigint } }.`,
     );
   }
   const { maxFeePerGas, maxPriorityFeePerGas } = standard;
   if (maxFeePerGas <= 0n || maxPriorityFeePerGas <= 0n) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: zero or negative gas price from Pimlico — maxFeePerGas=${maxFeePerGas} maxPriorityFeePerGas=${maxPriorityFeePerGas}`,
+      `[@mpilot/smart-account] getUserOpGasPrice: zero or negative gas price from Pimlico — maxFeePerGas=${maxFeePerGas} maxPriorityFeePerGas=${maxPriorityFeePerGas}`,
     );
   }
   if (maxPriorityFeePerGas > maxFeePerGas) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/smart-account] getUserOpGasPrice: EIP-1559 invariant violated — maxPriorityFeePerGas (${maxPriorityFeePerGas}) > maxFeePerGas (${maxFeePerGas})`,
+      `[@mpilot/smart-account] getUserOpGasPrice: EIP-1559 invariant violated — maxPriorityFeePerGas (${maxPriorityFeePerGas}) > maxFeePerGas (${maxFeePerGas})`,
     );
   }
   return { maxFeePerGas, maxPriorityFeePerGas };

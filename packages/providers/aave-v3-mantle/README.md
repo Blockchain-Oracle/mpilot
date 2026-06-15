@@ -1,11 +1,11 @@
-# @concierge-mantle/aave-v3-mantle
+# @mpilot/aave-v3-mantle
 
 Aave V3 Mantle action provider for the Concierge agent. Exposes 6 `ConciergeTool` actions with Zod schemas, viem-based execution, and ERC-8004 attestation hooks.
 
 ## Quickstart
 
 ```ts
-import { createAaveV3MantleProvider } from '@concierge-mantle/aave-v3-mantle';
+import { createAaveV3MantleProvider } from '@mpilot/aave-v3-mantle';
 
 const provider = createAaveV3MantleProvider({ walletClient, chain: 'mantle-mainnet' });
 // { txHash, attestationPayload }

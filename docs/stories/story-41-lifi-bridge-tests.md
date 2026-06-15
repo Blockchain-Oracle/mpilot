@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/lifi-bridge` integration tests
+# Story — `@mpilot/lifi-bridge` integration tests
 
 **ID:** story-41-lifi-bridge-tests
 **Epic:** Epic E3 — Action Providers
@@ -35,7 +35,7 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge-mantle/lifi-bridge run test` runs
+When `pnpm --filter @mpilot/lifi-bridge run test` runs
 Then exit code is 0 AND ≥ 18 test cases pass
 
 Given test_quote_HappyPath
@@ -79,7 +79,7 @@ When `pnpm scripts/check-file-loc.mjs` runs
 Then every test file ≤ 400 LOC
 
 Given coverage
-When `pnpm --filter @concierge-mantle/lifi-bridge run test --coverage` runs
+When `pnpm --filter @mpilot/lifi-bridge run test --coverage` runs
 Then line coverage on `src/` ≥ 85%
 ```
 
@@ -88,18 +88,18 @@ Then line coverage on `src/` ≥ 85%
 ## Shell verification
 
 ```bash
-pnpm --filter @concierge-mantle/lifi-bridge run test --reporter=verbose
+pnpm --filter @mpilot/lifi-bridge run test --reporter=verbose
 test $? -eq 0
 
-pnpm --filter @concierge-mantle/lifi-bridge run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 18 {exit 0} {exit 1}'
+pnpm --filter @mpilot/lifi-bridge run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 18 {exit 0} {exit 1}'
 
 # Critical tests present
 for tn in "StaleRouteRefresh" "two_stage_attestation_Linkage" "sessionKey_PolicyRestrictive" "FilteredBridges"; do
-  pnpm --filter @concierge-mantle/lifi-bridge run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
+  pnpm --filter @mpilot/lifi-bridge run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
 done
 
 # Coverage ≥ 85%
-cov=$(pnpm --filter @concierge-mantle/lifi-bridge run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @mpilot/lifi-bridge run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 85
 
 bun scripts/check-file-loc.mjs

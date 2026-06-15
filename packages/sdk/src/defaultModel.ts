@@ -83,19 +83,19 @@ export function defaultModel(spec = process.env['AI_MODEL']): LanguageModelV3 {
     // colon, and lands in THIS branch — unescaped it renders as `got ""`,
     // while an actually-empty spec falls back and never produces this error.
     throw new Error(
-      `[@concierge-mantle/sdk] defaultModel: expected a "provider:model" spec (e.g. "anthropic:claude-sonnet-4-6"), got "${escapeInvisibles(normalized)}".`,
+      `[@mpilot/sdk] defaultModel: expected a "provider:model" spec (e.g. "anthropic:claude-sonnet-4-6"), got "${escapeInvisibles(normalized)}".`,
     );
   }
   const provider = normalized.slice(0, splitAt);
   const model = normalized.slice(splitAt + 1);
   if (NON_PRINTABLE_ASCII.test(provider) || NON_PRINTABLE_ASCII.test(model)) {
     throw new Error(
-      `[@concierge-mantle/sdk] defaultModel: "provider:model" spec contains whitespace or non-printable characters — got "${escapeInvisibles(normalized)}". Check AI_MODEL for stray or invisible characters.`,
+      `[@mpilot/sdk] defaultModel: "provider:model" spec contains whitespace or non-printable characters — got "${escapeInvisibles(normalized)}". Check AI_MODEL for stray or invisible characters.`,
     );
   }
   if (!isSupportedProvider(provider)) {
     throw new Error(
-      `[@concierge-mantle/sdk] defaultModel: unknown provider "${provider}" — expected one of: ${SUPPORTED_PROVIDERS.join(', ')}.`,
+      `[@mpilot/sdk] defaultModel: unknown provider "${provider}" — expected one of: ${SUPPORTED_PROVIDERS.join(', ')}.`,
     );
   }
   switch (provider) {

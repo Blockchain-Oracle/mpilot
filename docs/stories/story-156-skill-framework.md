@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/skill` generic skill framework (SKILL.md generator + JSON output contract validator)
+# Story — `@mpilot/skill` generic skill framework (SKILL.md generator + JSON output contract validator)
 
 **ID:** story-156-skill-framework
 **Epic:** Epic E9 — RealClaw Skill
@@ -11,14 +11,14 @@
 ## User story
 
 **As a** developer integrating Concierge into a third-party agent skill (RealClaw, Claude Skills, OpenAI custom GPTs, or a custom in-house skill registry)
-**I want to** `pnpm add @concierge-mantle/skill` and call `generateSkillManifest({ tools, profile })` to emit a valid SKILL.md from any subset of `@concierge-mantle/tools`, plus `validateSkillOutput(skill, json)` to assert that a tool's JSON output conforms to its declared `outputSchema`
+**I want to** `pnpm add @mpilot/skill` and call `generateSkillManifest({ tools, profile })` to emit a valid SKILL.md from any subset of `@mpilot/tools`, plus `validateSkillOutput(skill, json)` to assert that a tool's JSON output conforms to its declared `outputSchema`
 **So that** any team can ship a Concierge-powered skill in under 30 LOC, the JSON output contract (per ADR-014 / 017) is enforced at the skill boundary, and `packages/skill-mantle-agent` becomes a thin caller of this framework rather than hand-authored YAML
 
 ---
 
 ## Context
 
-This story is **distinct from `@concierge-mantle/skill-mantle-agent`** (story-150). That package is the *concrete published RealClaw skill*. THIS package is the *generic framework* that builds such skills from a tool selection + profile. `skill-mantle-agent` becomes a thin consumer of `@concierge-mantle/skill` in a follow-up refactor — but this story does NOT modify `skill-mantle-agent`; it only ships the framework.
+This story is **distinct from `@mpilot/skill-mantle-agent`** (story-150). That package is the *concrete published RealClaw skill*. THIS package is the *generic framework* that builds such skills from a tool selection + profile. `skill-mantle-agent` becomes a thin consumer of `@mpilot/skill` in a follow-up refactor — but this story does NOT modify `skill-mantle-agent`; it only ships the framework.
 
 Per ADR-014, every `ConciergeTool` declares `inputSchema` AND `outputSchema`. The skill manifest must mirror these into the host registry's format (RealClaw frontmatter, Claude Skills YAML, etc.). The JSON output contract validator (`validateSkillOutput`) is the runtime gate that prevents schema drift at the skill→host boundary.
 
@@ -26,7 +26,7 @@ Per ADR-014, every `ConciergeTool` declares `inputSchema` AND `outputSchema`. Th
 
 ## File modification map
 
-- `packages/skill/package.json` — NEW — `"type": "module"`, `"sideEffects": false`, `"engines.node": ">=22"`, runtime deps on `@concierge-mantle/tools` + `zod-to-json-schema` + `yaml`, peer dep on `zod ^3.25 || ^4.1`. `tsup` build. Exports: `.` and `./profiles`.
+- `packages/skill/package.json` — NEW — `"type": "module"`, `"sideEffects": false`, `"engines.node": ">=22"`, runtime deps on `@mpilot/tools` + `zod-to-json-schema` + `yaml`, peer dep on `zod ^3.25 || ^4.1`. `tsup` build. Exports: `.` and `./profiles`.
 - `packages/skill/src/types.ts` — NEW — `SkillProfile` discriminated union: `'realclaw' | 'claude-skills' | 'openai-gpt' | 'custom'`; `SkillManifest` interface; `SkillManifestInput` interface (name, description, version, tools, profile, permissions). ~50 LOC.
 - `packages/skill/src/profiles/realclaw.ts` — NEW — `renderRealClawManifest(input): string` — emits SKILL.md with RealClaw frontmatter (per `research/concierge/06-realclaw-skill-pkg.md`). ~60 LOC.
 - `packages/skill/src/profiles/claude-skills.ts` — NEW — `renderClaudeSkillsManifest(input): string` — emits Claude Skills format. ~50 LOC.
@@ -87,15 +87,15 @@ When rendered with `{ name: 'x', tools: [{ name: 't1' }] }`
 Then output is `"Skill: x\nTools: t1"`
 
 Given typecheck + LOC + lint
-When `pnpm typecheck && pnpm check-file-loc && pnpm lint --filter @concierge-mantle/skill` runs
+When `pnpm typecheck && pnpm check-file-loc && pnpm lint --filter @mpilot/skill` runs
 Then all exit 0
 
 Given the package builds
-When `pnpm --filter @concierge-mantle/skill build` runs
+When `pnpm --filter @mpilot/skill build` runs
 Then `dist/index.js`, `dist/index.d.ts`, `dist/profiles/index.js` all exist
 
 Given tests
-When `pnpm --filter @concierge-mantle/skill test` runs
+When `pnpm --filter @mpilot/skill test` runs
 Then ≥ 18 cases pass across the three test files
 ```
 
@@ -130,12 +130,12 @@ grep -qE "BNPL|Buy.Now.Pay.Later" packages/skill/src/contaminationGuard.ts
 # Anti-regression: validator returns SafeParseResult shape, not throws
 ! grep -E "throw new (Schema|Validation)Error" packages/skill/src/validateSkillOutput.ts
 
-pnpm --filter @concierge-mantle/skill build
+pnpm --filter @mpilot/skill build
 test -f packages/skill/dist/index.js
 test -f packages/skill/dist/index.d.ts
 test -f packages/skill/dist/profiles/index.js
 
-pnpm --filter @concierge-mantle/skill test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 18 {exit 0} {exit 1}'
+pnpm --filter @mpilot/skill test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >= 18 {exit 0} {exit 1}'
 
 pnpm check-file-loc
 pnpm typecheck
@@ -145,11 +145,11 @@ pnpm typecheck
 
 ## Notes for coding agent
 
-- **NOT a replacement for `@concierge-mantle/skill-mantle-agent`.** That package (story-150) is the published RealClaw skill. THIS one is the generic framework. Refactoring `skill-mantle-agent` to consume this framework is a separate story; do NOT touch `skill-mantle-agent` here.
+- **NOT a replacement for `@mpilot/skill-mantle-agent`.** That package (story-150) is the published RealClaw skill. THIS one is the generic framework. Refactoring `skill-mantle-agent` to consume this framework is a separate story; do NOT touch `skill-mantle-agent` here.
 - **`outputSchema` is the contract.** Per ADR-014 + ADR-017, the JSON output of every tool call is the contract between the agent and the skill host. `validateSkillOutput` is the boundary enforcement. Without it, drift between tool implementation and skill manifest goes undetected until production.
 - **Contamination guard is non-negotiable.** Per CLAUDE.md + AUDIT-2026-06-04, the Patron BNPL language must NEVER appear in any shipped skill manifest. The guard runs at render time AND there's a unit test that asserts it throws.
 - **Profile registry is open-ended.** The `'custom'` profile lets in-house teams use their own template; the framework provides Mustache-style `{{name}}` / `{{toolNames}}` interpolation only (no Turing-complete logic).
-- **Bigint coercion** at the validator boundary: tools serialize bigints as strings (per `bigintSafeStringify` in `@concierge-mantle/tools`); the validator accepts `z.coerce.bigint()` to round-trip cleanly.
+- **Bigint coercion** at the validator boundary: tools serialize bigints as strings (per `bigintSafeStringify` in `@mpilot/tools`); the validator accepts `z.coerce.bigint()` to round-trip cleanly.
 - **Permissions inference** uses name-prefix matching (pause/resume/revoke/execute/propose → write+execute; everything else → read). Spec'd in `permissionsMap.ts`; tested explicitly.
 - **No runtime imports of any provider package.** This package operates on `ConciergeTool[]` only — it MUST work with any tool selection, including third-party tools that conform to the shape.
 - Cross-ref: ADR-014 (tools), ADR-017 (output contract = gen-UI contract), `research/concierge/06-realclaw-skill-pkg.md` (RealClaw frontmatter spec), story-150 (downstream consumer, NOT modified here).

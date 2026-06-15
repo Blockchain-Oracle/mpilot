@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { computeFeedbackPair } from './hash.ts';
 import { type PinFeedbackDeps, type PinFeedbackResult, pinFeedback } from './pin.ts';
 import { isValidCid } from './pinService.ts';
@@ -80,10 +80,7 @@ export interface WriteAttestationResult {
 }
 
 function configError(msg: string): ConciergeError {
-  return new ConciergeError(
-    'ConfigError',
-    `[@concierge-mantle/attestation] writeAttestation: ${msg}`,
-  );
+  return new ConciergeError('ConfigError', `[@mpilot/attestation] writeAttestation: ${msg}`);
 }
 
 /**
@@ -187,7 +184,7 @@ export async function writeAttestation(
     );
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge-mantle/attestation] writeAttestation: pinService returned a CID that failed isValidCid post-pin: '${stripCtrl(pin.cid).slice(0, 128)}'.`,
+      `[@mpilot/attestation] writeAttestation: pinService returned a CID that failed isValidCid post-pin: '${stripCtrl(pin.cid).slice(0, 128)}'.`,
     );
   }
   const dataURI = `${DATAURI_PREFIX}${pin.cid}`;
@@ -211,7 +208,7 @@ export async function writeAttestation(
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge-mantle/attestation] writeAttestation: giveFeedback failed AFTER successful pin (cid=${pin.cid}): ${safeErrMsg(err, 512)}`,
+      `[@mpilot/attestation] writeAttestation: giveFeedback failed AFTER successful pin (cid=${pin.cid}): ${safeErrMsg(err, 512)}`,
       err instanceof Error ? err : undefined,
       { agentId: inputs.agentId, hash, cid: pin.cid, dataURI },
     );

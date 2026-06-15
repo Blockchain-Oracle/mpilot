@@ -81,7 +81,7 @@ test -f src/auth/ownership.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/mcp-server run build
+pnpm --filter @mpilot/mcp-server run build
 test $? -eq 0
 
 # Ownership check used in every write tool
@@ -90,7 +90,7 @@ for tool in pauseAgent resumeAgent revokeSessionKey; do
 done
 
 # Tests pass
-pnpm --filter @concierge-mantle/mcp-server run test 2>&1 | grep "tools-write" | grep -q "PASS"
+pnpm --filter @mpilot/mcp-server run test 2>&1 | grep "tools-write" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

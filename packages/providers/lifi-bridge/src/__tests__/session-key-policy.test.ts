@@ -63,7 +63,7 @@ describe('buildCallPolicy — dynamic policy from route calldata', () => {
   it('throws ConciergeError(ConfigError) when selector is not in the whitelist', async () => {
     const nonWhitelistedCalldata =
       '0xdeadbeef0000000000000000000000000000000000000000000000000000000000000001' as `0x${string}`;
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     expect(() => buildCallPolicy(nonWhitelistedCalldata)).toThrow(ConciergeError);
     expect(() => buildCallPolicy(nonWhitelistedCalldata)).toSatisfy((fn: unknown) => {
       try {
@@ -79,7 +79,7 @@ describe('buildCallPolicy — dynamic policy from route calldata', () => {
   });
 
   it('throws ConciergeError(ConfigError) for calldata of exactly 9 chars (boundary)', async () => {
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     // 0x + 7 hex chars = 9 chars total — one char short of a valid selector
     expect(() => buildCallPolicy('0x1234567' as `0x${string}`)).toThrow(ConciergeError);
   });

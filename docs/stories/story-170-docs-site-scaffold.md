@@ -34,7 +34,7 @@
 
 ```
 Given Nextra v4 is configured
-When `pnpm --filter @concierge-mantle/web run build` runs
+When `pnpm --filter @mpilot/web run build` runs
 Then exit code is 0 AND the build output includes /docs/* routes
 
 Given the dev server runs
@@ -85,7 +85,7 @@ test -f components/docs/Callout.tsx
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -96,7 +96,7 @@ grep -qE "(nextra|withNextra)" apps/web/next.config.ts
 test -d apps/web/content/docs/
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "CodeExample" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "CodeExample" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

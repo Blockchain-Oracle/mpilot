@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address } from '@mpilot/shared';
 import { type PublicClient, parseAbi } from 'viem';
 
 const POOL_ABI = parseAbi([
@@ -18,7 +18,7 @@ export function computePriceFromSqrt(sqrtPriceX96: bigint): bigint {
   if (sqrtPriceX96 === 0n) {
     throw new ConciergeError(
       'RpcError',
-      '[@concierge-mantle/ondo-usdy] computePriceFromSqrt: sqrtPriceX96 is zero — pool may be uninitialized',
+      '[@mpilot/ondo-usdy] computePriceFromSqrt: sqrtPriceX96 is zero — pool may be uninitialized',
     );
   }
   const Q192 = 2n ** 192n;
@@ -27,7 +27,7 @@ export function computePriceFromSqrt(sqrtPriceX96: bigint): bigint {
     // sqrtPriceX96 < 2^96 — tick extreme (near min tick), integer truncation to zero
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/ondo-usdy] computePriceFromSqrt: sqrtPriceX96 (${sqrtPriceX96}) too small — price not representable`,
+      `[@mpilot/ondo-usdy] computePriceFromSqrt: sqrtPriceX96 (${sqrtPriceX96}) too small — price not representable`,
     );
   }
   // 10^30: compensates for 10^18 (USDY dec) / 10^6 (USDC dec) = 10^12 adjustment
@@ -37,7 +37,7 @@ export function computePriceFromSqrt(sqrtPriceX96: bigint): bigint {
     // sqrtPriceX96 near max tick — denominator exceeds 10^30, result underflows
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/ondo-usdy] computePriceFromSqrt: sqrtPriceX96 (${sqrtPriceX96}) too large — price underflows`,
+      `[@mpilot/ondo-usdy] computePriceFromSqrt: sqrtPriceX96 (${sqrtPriceX96}) too large — price underflows`,
     );
   }
   return price;
@@ -57,7 +57,7 @@ function computeYieldBps(
   if (diff > 9_007_199_254_740_991n) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/ondo-usdy] computeYieldBps: tick cumulative diff (${diff}) exceeds safe integer range`,
+      `[@mpilot/ondo-usdy] computeYieldBps: tick cumulative diff (${diff}) exceeds safe integer range`,
     );
   }
   const tickCumulativeDiff = Number(diff);
@@ -77,7 +77,7 @@ export async function fetchPoolState(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/ondo-usdy] ${tag}: failed to read USDY/USDC pool slot0`,
+        `[@mpilot/ondo-usdy] ${tag}: failed to read USDY/USDC pool slot0`,
         err instanceof Error ? err : undefined,
       );
     });
@@ -106,8 +106,8 @@ export async function fetchYieldBps(
     throw new ConciergeError(
       isOldRevert ? 'InsufficientLiquidity' : 'RpcError',
       isOldRevert
-        ? `[@concierge-mantle/ondo-usdy] ${tag}: USDY/USDC pool has fewer than 7 days of observations — yield calculation unavailable`
-        : `[@concierge-mantle/ondo-usdy] ${tag}: failed to call observe() on USDY/USDC pool`,
+        ? `[@mpilot/ondo-usdy] ${tag}: USDY/USDC pool has fewer than 7 days of observations — yield calculation unavailable`
+        : `[@mpilot/ondo-usdy] ${tag}: failed to call observe() on USDY/USDC pool`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -116,13 +116,13 @@ export async function fetchYieldBps(
   if (yieldBps <= 0) {
     throw new ConciergeError(
       'InsufficientLiquidity',
-      `[@concierge-mantle/ondo-usdy] ${tag}: computed USDY yield <= 0 bps (${yieldBps}) — pool may be too new or price feed unreliable`,
+      `[@mpilot/ondo-usdy] ${tag}: computed USDY yield <= 0 bps (${yieldBps}) — pool may be too new or price feed unreliable`,
     );
   }
   if (yieldBps > 10_000) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/ondo-usdy] ${tag}: computed yield ${yieldBps} bps exceeds sanity ceiling (10,000 bps / 100% APY) — pool state may be anomalous`,
+      `[@mpilot/ondo-usdy] ${tag}: computed yield ${yieldBps} bps exceeds sanity ceiling (10,000 bps / 100% APY) — pool state may be anomalous`,
     );
   }
   return yieldBps;

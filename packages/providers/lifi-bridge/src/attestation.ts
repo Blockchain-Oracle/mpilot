@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { z } from 'zod';
 import { NON_NEG_INT_STR, NON_ZERO_ADDR, TX_HASH } from './_zod.ts';
 
@@ -78,7 +78,7 @@ export function buildSentAttestation(raw: {
   } catch (err) {
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge-mantle/lifi-bridge] buildSentAttestation: validation failed for tx ${raw.sourceTxHash}`,
+      `[@mpilot/lifi-bridge] buildSentAttestation: validation failed for tx ${raw.sourceTxHash}`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -101,7 +101,7 @@ export function buildCompletedAttestation(raw: {
   } catch (err) {
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge-mantle/lifi-bridge] buildCompletedAttestation: validation failed for operation ${raw.lifiOperationId}`,
+      `[@mpilot/lifi-bridge] buildCompletedAttestation: validation failed for operation ${raw.lifiOperationId}`,
       err instanceof Error ? err : undefined,
     );
   }

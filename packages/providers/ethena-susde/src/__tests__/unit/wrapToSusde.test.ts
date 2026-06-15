@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';
 import { executeWrapToSusde } from '../../actions/wrapToSusde.ts';

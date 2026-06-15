@@ -54,8 +54,8 @@ Each item must exist + be public when we submit:
 - [ ] **Public app surface** at `concierge.xyz/app`
 - [ ] **Public docs** at `concierge.xyz/docs`
 - [ ] **MCP server** live at `mcp.concierge.xyz/api/sse`
-- [ ] **`npx skills add @concierge-mantle/mantle-agent`** installable + verified by demo install
-- [ ] **7 npm packages published** under `@concierge-mantle/*` scope
+- [ ] **`npx skills add @mpilot/mantle-agent`** installable + verified by demo install
+- [ ] **7 npm packages published** under `@mpilot/*` scope
 - [ ] **GitHub repo** public, MIT licensed, with full README (setup, architecture, addresses, screenshots)
 - [ ] **Demo video** ≥ 2 minutes, recorded, hosted (Vercel/YouTube/direct upload to DoraHacks)
 - [ ] **Demo video script** committed in repo (`docs/demo-video/script.md`)
@@ -94,7 +94,7 @@ These are the standards every ship must meet, regardless of any timing window:
 - **Every tick on Mainnet writes a real ERC-8004 attestation** (no demo-mode stubs in production)
 - **README ships with `bun install && bun dev` working in ≤ 10 minutes** for a clean clone
 - **The demo video walks through a real scenario** (not a scripted toy case) — Sepolia playground or small-amount Mainnet
-- **Open-source quality** — others can `npm install @concierge-mantle/sdk` and ship their own agent within an hour of reading docs
+- **Open-source quality** — others can `npm install @mpilot/sdk` and ship their own agent within an hour of reading docs
 - **No silent failures** — every error has a typed shape, surfaces to the user, and writes to history
 - **The agent is observable** — every tick logs structured to Pino + Postgres; user can replay any tick
 

@@ -78,7 +78,7 @@ test -f app/\(landing\)/page.tsx
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Hero copy does NOT contain BNPL/Patron-era language
@@ -90,7 +90,7 @@ for phase in plan simulate propose execute record; do
 done
 
 # RTL test passes
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "HeroSection" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "HeroSection" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

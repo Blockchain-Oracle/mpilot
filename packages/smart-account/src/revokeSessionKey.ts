@@ -1,5 +1,5 @@
-import { type DbClient, sessionKeys } from '@concierge-mantle/db';
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { type DbClient, sessionKeys } from '@mpilot/db';
+import { ConciergeError } from '@mpilot/sdk';
 import { and, eq, isNull } from 'drizzle-orm';
 import type { Address, Hex } from 'viem';
 import { z } from 'zod';
@@ -99,13 +99,13 @@ export async function revokeSessionKey(
   if (!uuidSchema.safeParse(config.sessionKeyId).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] revokeSessionKey: sessionKeyId is not a valid UUID.`,
+      `[@mpilot/smart-account] revokeSessionKey: sessionKeyId is not a valid UUID.`,
     );
   }
   if (!uuidSchema.safeParse(config.expectedAgentId).success) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] revokeSessionKey: expectedAgentId is not a valid UUID.`,
+      `[@mpilot/smart-account] revokeSessionKey: expectedAgentId is not a valid UUID.`,
     );
   }
 
@@ -135,7 +135,7 @@ export async function revokeSessionKey(
     if (winner.revokedAt === null) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/smart-account] revokeSessionKey: UPDATE returned null revokedAt for session key '${winner.id}'. Schema or driver mismatch.`,
+        `[@mpilot/smart-account] revokeSessionKey: UPDATE returned null revokedAt for session key '${winner.id}'. Schema or driver mismatch.`,
       );
     }
     const revokedAt = winner.revokedAt;
@@ -168,20 +168,20 @@ export async function revokeSessionKey(
   if (!found) {
     throw new ConciergeError(
       'SessionKeyNotFound',
-      `[@concierge-mantle/smart-account] revokeSessionKey: session key not found.`,
+      `[@mpilot/smart-account] revokeSessionKey: session key not found.`,
     );
   }
   if (found.agentId !== config.expectedAgentId) {
     throw new ConciergeError(
       'NotAuthorized',
-      `[@concierge-mantle/smart-account] revokeSessionKey: caller is not authorized to revoke this session key.`,
+      `[@mpilot/smart-account] revokeSessionKey: caller is not authorized to revoke this session key.`,
     );
   }
   if (found.revokedAt === null) {
     // Replication lag or torn write. Don't fabricate a timestamp.
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] revokeSessionKey: UPDATE returned zero rows but row is unrevoked. Retry from primary.`,
+      `[@mpilot/smart-account] revokeSessionKey: UPDATE returned zero rows but row is unrevoked. Retry from primary.`,
     );
   }
   return {
@@ -201,7 +201,7 @@ async function runOnChainWithRetry(
   if (!Number.isInteger(max) || max < 1) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] revokeSessionKey: onChainMaxAttempts must be a positive integer (got ${max}).`,
+      `[@mpilot/smart-account] revokeSessionKey: onChainMaxAttempts must be a positive integer (got ${max}).`,
     );
   }
   const errors: unknown[] = [];
@@ -221,7 +221,7 @@ async function runOnChainWithRetry(
   );
   throw new ConciergeError(
     'RevocationPartialFailure',
-    `[@concierge-mantle/smart-account] revokeSessionKey: DB revoked but on-chain uninstall failed after ${max} attempt(s). Caller MUST retry the on-chain step — do NOT re-issue a key.`,
+    `[@mpilot/smart-account] revokeSessionKey: DB revoked but on-chain uninstall failed after ${max} attempt(s). Caller MUST retry the on-chain step — do NOT re-issue a key.`,
     aggregate,
     { dbRevoked: true, onChainRevoked: false },
   );
@@ -238,7 +238,7 @@ async function emitRevokedEvent(
     // Non-fatal but NEVER silent. stderr is MCP-safe per ADR-011.
     // biome-ignore lint/suspicious/noConsole: revocation event drop must be observable
     console.error(
-      `[@concierge-mantle/smart-account] revokeSessionKey: agent.revoked emit failed (non-fatal)`,
+      `[@mpilot/smart-account] revokeSessionKey: agent.revoked emit failed (non-fatal)`,
       { sessionKeyId: payload.sessionKeyId, agentId: payload.agentId, error: err },
     );
   }

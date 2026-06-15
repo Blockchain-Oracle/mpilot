@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address, Hex } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address, Hex } from '@mpilot/shared';
 import type { WalletClient } from 'viem';
 import { ContractFunctionExecutionError, parseAbi, parseEventLogs } from 'viem';
 import type { ActionContext } from './_context.ts';

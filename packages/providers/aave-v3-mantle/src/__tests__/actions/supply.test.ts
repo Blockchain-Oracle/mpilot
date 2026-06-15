@@ -62,7 +62,7 @@ describe('supply action', () => {
   });
 
   it('throws RpcError when pool reverts for an unsupported asset', async () => {
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     // Address not initialized in MockAavePool → AssetNotSupported revert
     const fakeAsset = '0x1111111111111111111111111111111111111111';
     const err = await supply.invoke({ asset: fakeAsset, amount: '1000000' }).catch((e) => e);
@@ -78,7 +78,7 @@ describe('supply action', () => {
   });
 
   it('throws ConfigError when no walletClient is configured', async () => {
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     const readOnlyProvider = createAaveV3MantleProvider({
       publicClient: anvil.publicClient,
       chain: anvil.chain,

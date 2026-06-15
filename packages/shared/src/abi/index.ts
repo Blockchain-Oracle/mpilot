@@ -1,4 +1,4 @@
-// Barrel exports for canonical ABIs consumed by all @concierge-mantle/* packages.
+// Barrel exports for canonical ABIs consumed by all @mpilot/* packages.
 
 export { iaaveOracleAbi, ipoolAbi } from './aave-v3.ts';
 export { erc20Abi } from './erc20.ts';

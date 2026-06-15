@@ -143,7 +143,7 @@ concierge-skill/                                  ← repo: ajweb3dev/concierge-
 │   └── concierge/
 │       └── SKILL.md                              ← Byreal pattern: skills/<name>/SKILL.md
 ├── README.md
-├── package.json                                  ← publishes @concierge-mantle/cli
+├── package.json                                  ← publishes @mpilot/cli
 ├── scripts/
 │   ├── tick.ts                                   ← invoke the agent runtime locally
 │   ├── status.ts                                 ← read agent state
@@ -175,7 +175,7 @@ metadata:
         - ~/.config/concierge/
     install:
       - kind: node
-        package: "@concierge-mantle/cli"
+        package: "@mpilot/cli"
         global: true
 ---
 
@@ -282,7 +282,7 @@ Errors:
 npx skills add ajweb3dev/concierge-skill
 
 # Option B — CLI-only install (for power users)
-npm install -g @concierge-mantle/cli
+npm install -g @mpilot/cli
 
 # Option C — Mantle Active Trader pattern (Python users)
 # We do NOT ship Python; we are TypeScript-first for the npm SDK lane.
@@ -311,7 +311,7 @@ The Mantle hackathon Track 6 ("AI/Agent Infrastructure") explicitly rewards skil
 
 - [ ] **`SKILL.md` published in a public repo** under the `skills/<name>/` convention.
 - [ ] **Repo installable via `npx skills add <owner>/<repo>`** (works because the skills CLI just clones + reads SKILL.md).
-- [ ] **npm package published** (`@concierge-mantle/cli`) — gives us the SDK surface.
+- [ ] **npm package published** (`@mpilot/cli`) — gives us the SDK surface.
 - [ ] **CLI supports `-o json`** on every command (LLM-parseable).
 - [ ] **CLI exposes `skill` and `catalog` commands** for LLM bootstrapping.
 - [ ] **README has the install one-liner** at the top.
@@ -327,7 +327,7 @@ The Mantle hackathon Track 6 ("AI/Agent Infrastructure") explicitly rewards skil
 | `skills` CLI's exact behavior / install paths are undocumented | Mirror the Byreal repo structure 1:1 — they shipped, we follow.   |
 | Skill description doesn't trigger on intended phrases         | Include 4–6 verbatim trigger phrases in the description string.    |
 | LLM bypasses `concierge-cli` and tries to hand-encode calldata | Bold rule in SKILL.md "Hard Rules": "Never hand-encode calldata."  |
-| npm package name `@concierge-mantle/cli` taken                       | Fallback `@concierge-mantle/cli` or `@ajweb3dev/concierge`.        |
+| npm package name `@mpilot/cli` taken                       | Fallback `@mpilot/cli` or `@ajweb3dev/concierge`.        |
 | CLI ships with private keys in env                            | `setup` writes to `~/.config/concierge/` with `chmod 600`.         |
 | Sessions / state leak between users in shared agent installs  | State file path includes wallet address hash; CLI refuses cross-key reads. |
 
@@ -335,8 +335,8 @@ The Mantle hackathon Track 6 ("AI/Agent Infrastructure") explicitly rewards skil
 
 ## 11. Open questions for spec writer
 
-1. **Skill name** — `concierge`? `concierge-mantle`? `mantle-agent`? Pick before publishing (frontmatter `name` is stable). Per ADR-013 + tracks doc, the install command is locked as `npx skills add @concierge-mantle/mantle-agent`.
-2. **npm package scope** — `@concierge-mantle/cli`, `@ajweb3dev/concierge`, or unscoped `concierge-cli`? Check availability now.
+1. **Skill name** — `concierge`? `concierge-mantle`? `mantle-agent`? Pick before publishing (frontmatter `name` is stable). Per ADR-013 + tracks doc, the install command is locked as `npx skills add @mpilot/mantle-agent`.
+2. **npm package scope** — `@mpilot/cli`, `@ajweb3dev/concierge`, or unscoped `concierge-cli`? Check availability now.
 3. **Should we wrap or write?** — The Mantle Active Trader skill wraps `mantle-cli` (an existing CLI). Do we wrap that too, or write our own CLI from scratch? Recommend write from scratch since Concierge needs ZeroDev session-key + ERC-8004 attest, neither of which `mantle-cli` does.
 4. **Python parity?** — Mantle Active Trader is Python. Some RealClaw users may prefer Python. Recommend TypeScript-only for hackathon, document "Python wrapper coming" if asked.
 5. **Where does the agent runtime live when installed via skill?** — Local node process spawned by the skill, or a hosted agent the CLI talks to over API? Recommend: local-process default ("self-custody" framing), with a flag `--remote https://api.concierge.app` for hosted mode.

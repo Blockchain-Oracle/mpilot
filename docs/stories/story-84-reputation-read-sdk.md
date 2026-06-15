@@ -76,14 +76,14 @@ cd ../..
 test -f packages/db/src/schema/ipfsCache.ts
 test -f packages/db/migrations/0003_ipfs_cache.sql
 
-pnpm --filter @concierge-mantle/attestation run build
+pnpm --filter @mpilot/attestation run build
 test $? -eq 0
 
 # Integration test passes
-pnpm --filter @concierge-mantle/attestation run test 2>&1 | grep "loadAgentHistory" | grep -q "PASS"
+pnpm --filter @mpilot/attestation run test 2>&1 | grep "loadAgentHistory" | grep -q "PASS"
 
 # Cache hit avoids IPFS calls
-pnpm --filter @concierge-mantle/attestation run test --reporter=verbose 2>&1 | grep "cache.*hit" | grep -q "✓"
+pnpm --filter @mpilot/attestation run test --reporter=verbose 2>&1 | grep "cache.*hit" | grep -q "✓"
 
 bun scripts/check-file-loc.mjs
 ```

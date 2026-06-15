@@ -11,16 +11,16 @@
 Per AUDIT-2026-06-09 §1 + architecture.md ADR-016/017:
 
 - `ai` is on **v6**, not v5. `@ai-sdk/react` is on **v3**. Verified npm latest 2026-06-08.
-- Tool definitions require **`outputSchema`** (load-bearing for `tool-${name}` UI parts + MCP `structuredContent` + `@concierge-mantle/react-ui` parse-then-render).
+- Tool definitions require **`outputSchema`** (load-bearing for `tool-${name}` UI parts + MCP `structuredContent` + `@mpilot/react-ui` parse-then-render).
 - Model is supplied via `model: LanguageModelV2` from `defaultModel()` (story-320) — NOT a hardcoded Anthropic client.
-- Tools sourced from `@concierge-mantle/vercel-ai`'s `getVercelAITools(agent)` (story-301), NOT hand-registered per-provider in `apps/web/lib/chat/tools.ts`.
+- Tools sourced from `@mpilot/vercel-ai`'s `getVercelAITools(agent)` (story-301), NOT hand-registered per-provider in `apps/web/lib/chat/tools.ts`.
 - The original story's per-provider `tools: { actionName: tool({...}) }` aggregation is OBSOLETE — replace with `tools: getVercelAITools(agent)`.
 - Cross-ref: stories 300, 301, 320; ADRs 014, 016, 017.
 
 ### Updated file modification map
 
 - `apps/web/app/api/chat/route.ts` — UPDATE — `model: defaultModel()` + `tools: getVercelAITools(agent)` + `stopWhen: stepCountIs(8)`. ~15 LOC total.
-- `apps/web/lib/chat/tools.ts` — DELETE — replaced by `@concierge-mantle/vercel-ai`'s exported function.
+- `apps/web/lib/chat/tools.ts` — DELETE — replaced by `@mpilot/vercel-ai`'s exported function.
 
 ---
 
@@ -40,7 +40,7 @@ Per AUDIT-2026-06-09 §1 + architecture.md ADR-016/017:
 ## File modification map
 
 - `apps/web/app/api/chat/route.ts` — NEW — Next.js App Router POST handler. Uses Vercel AI SDK `streamText` + `tool()` definitions + `convertToModelMessages` + `stopWhen: stepCountIs(8)` (multi-step tool loop cap)
-- `apps/web/lib/chat/tools.ts` — NEW — registers all 7 providers' actions as Vercel AI SDK tools. Imports each provider's `tool()` definitions from `@concierge-mantle/<provider>` packages and combines into a single `ChatTools` ToolSet. Type via `InferUITools<typeof tools>` so the React side gets typed tool-part rendering.
+- `apps/web/lib/chat/tools.ts` — NEW — registers all 7 providers' actions as Vercel AI SDK tools. Imports each provider's `tool()` definitions from `@mpilot/<provider>` packages and combines into a single `ChatTools` ToolSet. Type via `InferUITools<typeof tools>` so the React side gets typed tool-part rendering.
 - `apps/web/lib/chat/systemPrompt.ts` — NEW — exports the Concierge system prompt template per `research/concierge/04-agent-runtime.md` § 2.3 system prompt skeleton, with the hard rules + tool availability injected dynamically per user/agent
 - `apps/web/lib/chat/types.ts` — NEW — `ChatMessage` typed via `UIMessage<never, UIDataTypes, ChatTools>`
 - `apps/web/lib/chat/auth.ts` — NEW — bearer-token + Privy session auth for the chat endpoint (reuses Privy server SDK from the app's existing setup)
@@ -96,7 +96,7 @@ test -f lib/chat/systemPrompt.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -105,14 +105,14 @@ grep -q "stepCountIs(8)" apps/web/app/api/chat/route.ts
 
 # All 7 providers registered
 for prov in aave-v3-mantle mantle-dex ethena-susde ondo-usdy meth-staking lifi-bridge erc8004; do
-  grep -q "@concierge-mantle/$prov" apps/web/lib/chat/tools.ts || { echo "missing provider import: $prov"; exit 1; }
+  grep -q "@mpilot/$prov" apps/web/lib/chat/tools.ts || { echo "missing provider import: $prov"; exit 1; }
 done
 
 # Auth gate
 grep -qE "(return new Response|status: 401)" apps/web/app/api/chat/route.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "chat" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "chat" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```
@@ -140,8 +140,8 @@ Per autonomous-mode research: the original spec puts the chat handler in `apps/w
 When story-100 lands, `apps/web/app/api/chat/route.ts` is a 5-line import:
 
 ```ts
-import { createChatHandler } from '@concierge-mantle/agent';
-import { defaultModel } from '@concierge-mantle/sdk';
+import { createChatHandler } from '@mpilot/agent';
+import { defaultModel } from '@mpilot/sdk';
 const handler = createChatHandler({ model: defaultModel(), agent, systemPromptContext: {...} });
 export const POST = handler;
 ```

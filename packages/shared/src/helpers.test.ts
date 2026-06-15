@@ -191,15 +191,15 @@ describe('AgentId hex conversion', () => {
     expect(agentIdToHex(id)).not.toMatch(/[A-F]/);
   });
 
-  it('agentIdFromHex rejects malformed input with [@concierge-mantle/shared] prefix', () => {
+  it('agentIdFromHex rejects malformed input with [@mpilot/shared] prefix', () => {
     expect(() => agentIdFromHex('0x' as `0x${string}`)).toThrow(
-      /\[@concierge-mantle\/shared\] agentIdFromHex/,
+      /\[@mpilot\/shared\] agentIdFromHex/,
     );
     expect(() => agentIdFromHex('0xZZ' as `0x${string}`)).toThrow(
-      /\[@concierge-mantle\/shared\] agentIdFromHex/,
+      /\[@mpilot\/shared\] agentIdFromHex/,
     );
     expect(() => agentIdFromHex('not-hex' as `0x${string}`)).toThrow(
-      /\[@concierge-mantle\/shared\] agentIdFromHex/,
+      /\[@mpilot\/shared\] agentIdFromHex/,
     );
   });
 

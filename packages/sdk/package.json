@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/sdk",
+  "name": "@mpilot/sdk",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -32,9 +32,9 @@
     "@ai-sdk/google": "^3.0.80",
     "@ai-sdk/openai": "^3.0.69",
     "@ai-sdk/xai": "^3.0.93",
-    "@concierge-mantle/shared": "workspace:*",
-    "@concierge-mantle/tools": "workspace:*",
-    "@concierge-mantle/vercel-ai": "workspace:*"
+    "@mpilot/shared": "workspace:*",
+    "@mpilot/tools": "workspace:*",
+    "@mpilot/vercel-ai": "workspace:*"
   },
   "peerDependencies": {
     "@ai-sdk/provider": "^3.0.0",

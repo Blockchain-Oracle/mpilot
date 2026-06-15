@@ -135,7 +135,7 @@ describe('bigintSafeStringify', () => {
   it('decorates the error when toJSON() itself throws (cause-rewrap branch)', () => {
     // Different branch: a throwing toJSON propagates synchronously out of
     // JSON.stringify and the cause-rewrap catch decorates it with the
-    // `[@concierge-mantle/tools]` prefix + the original cause attached. Locks the
+    // `[@mpilot/tools]` prefix + the original cause attached. Locks the
     // contract that THIS path stays distinct from the post-stringify guard.
     const boom = new Error('toJSON sentinel boom');
     const throwingRoot = {
@@ -150,9 +150,7 @@ describe('bigintSafeStringify', () => {
       caught = e as Error;
     }
     expect(caught).toBeInstanceOf(Error);
-    expect(caught?.message).toMatch(
-      /\[@concierge-mantle\/tools\] bigintSafeStringify: toJSON sentinel boom/,
-    );
+    expect(caught?.message).toMatch(/\[@mpilot\/tools\] bigintSafeStringify: toJSON sentinel boom/);
     expect(caught?.cause).toBe(boom);
   });
 });

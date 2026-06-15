@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { isValidCid } from './pinService.ts';
 import { type FeedbackEnvelope, parseFeedbackEnvelope } from './schema.ts';
 
@@ -182,7 +182,7 @@ function gatewayBaseOrigin(label: string, base: string): string {
   if (v.ok) return v.origin;
   throw new ConciergeError(
     'ConfigError',
-    `[@concierge-mantle/attestation] ${label} URL ${URL_VALIDATION_MESSAGES[v.code]} (got '${stripCtrl(base).slice(0, 128)}').`,
+    `[@mpilot/attestation] ${label} URL ${URL_VALIDATION_MESSAGES[v.code]} (got '${stripCtrl(base).slice(0, 128)}').`,
   );
 }
 

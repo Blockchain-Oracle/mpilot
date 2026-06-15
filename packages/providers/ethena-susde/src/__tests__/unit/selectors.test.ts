@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { getBalanceSusde, getBalanceUSDe, getPriceUSD } from '../../selectors.ts';
 

@@ -1,5 +1,5 @@
-import type { EvmChainId } from '@concierge-mantle/shared';
-import { mantleMainnet } from '@concierge-mantle/shared';
+import type { EvmChainId } from '@mpilot/shared';
+import { mantleMainnet } from '@mpilot/shared';
 import { createPublicClient, http, type PublicClient, type WalletClient } from 'viem';
 import { type ActionContext, LIFI_DIAMOND } from './_context.ts';
 import { createBridgeTool } from './actions/bridge.ts';

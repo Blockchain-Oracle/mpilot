@@ -8,7 +8,7 @@ Total prize pool: **$100K cash + ~$110K credits.** Submission deadline: **2026-0
 
 **Path:** DeFi Deep Dive — *"Use Byreal Agent Skills / Byreal Perps CLI / RealClaw to explore advanced on-chain trading strategies."*
 
-**How Concierge qualifies:** RealClaw skill packaging (NOT Byreal Skills CLI which is Solana-only, NOT Byreal Perps CLI which is Hyperliquid-only). Concierge ships as `npx skills add @concierge-mantle/mantle-agent` — a TypeScript skill installable into Claude Code / Claude Desktop / OpenClaw / RealClaw. Pattern verified via `byreal-git/byreal-agent-skills` itself (TS MIT, distributable via `npx skills add`) and `Magicianhax/mantle-active-trader` (Python RealClaw skill for Mantle).
+**How Concierge qualifies:** RealClaw skill packaging (NOT Byreal Skills CLI which is Solana-only, NOT Byreal Perps CLI which is Hyperliquid-only). Concierge ships as `npx skills add @mpilot/mantle-agent` — a TypeScript skill installable into Claude Code / Claude Desktop / OpenClaw / RealClaw. Pattern verified via `byreal-git/byreal-agent-skills` itself (TS MIT, distributable via `npx skills add`) and `Magicianhax/mantle-active-trader` (Python RealClaw skill for Mantle).
 
 **Scoring (this track):**
 - General (70%): Byreal integration depth · Agent autonomy · Technical completeness · Sustainability
@@ -22,7 +22,7 @@ Total prize pool: **$100K cash + ~$110K credits.** Submission deadline: **2026-0
 - **Strategy Alpha** = autonomous yield optimization with verifiable on-chain track record (every tick = ERC-8004 attestation = backtestable forever)
 
 **Submission answer to "Which Byreal on-chain capabilities does your project use?":**
-> *"Concierge ships as a RealClaw-compatible skill installable via `npx skills add @concierge-mantle/mantle-agent` — packaging Concierge's autonomous DeFi agent into the official Byreal/RealClaw distribution channel. The skill exposes 7 Mantle-native action providers (Aave V3, Mantle DEX aggregation, Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridging, ERC-8004 identity/reputation) callable from any RealClaw-compatible client. Every action the agent takes is signed via an ERC-4337 session key the user controls and recorded as a permanent ERC-8004 reputation attestation on Mantle."*
+> *"Concierge ships as a RealClaw-compatible skill installable via `npx skills add @mpilot/mantle-agent` — packaging Concierge's autonomous DeFi agent into the official Byreal/RealClaw distribution channel. The skill exposes 7 Mantle-native action providers (Aave V3, Mantle DEX aggregation, Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridging, ERC-8004 identity/reputation) callable from any RealClaw-compatible client. Every action the agent takes is signed via an ERC-4337 session key the user controls and recorded as a permanent ERC-8004 reputation attestation on Mantle."*
 
 ### Stacked track: Grand Champion (any track, weighted across dimensions)
 
@@ -98,7 +98,7 @@ First-come-first-served, 20 spots — submission timing matters because the awar
 
 ## What each judge sees on Demo Day
 
-A judge clicks `concierge.xyz` → sees the landing → clicks "Try on Sepolia" → lands in `/app` → faucet mints them mock sUSDe + USDC → they set a goal → click activate → watch the agent tick → approve actions → see ERC-8004 receipts on Sepolia → can `npx skills add @concierge-mantle/mantle-agent` in their own Claude Code → drive the same agent from there. They `npm install @concierge-mantle/sdk` in a sample app → build their own agent in 5 minutes. They visit `concierge.xyz/agent/:id` and see a public reputation page for a real-money Mainnet agent.
+A judge clicks `concierge.xyz` → sees the landing → clicks "Try on Sepolia" → lands in `/app` → faucet mints them mock sUSDe + USDC → they set a goal → click activate → watch the agent tick → approve actions → see ERC-8004 receipts on Sepolia → can `npx skills add @mpilot/mantle-agent` in their own Claude Code → drive the same agent from there. They `npm install @mpilot/sdk` in a sample app → build their own agent in 5 minutes. They visit `concierge.xyz/agent/:id` and see a public reputation page for a real-money Mainnet agent.
 
 Every judge thesis touched. Every track requirement hit. Every demo step is clickable.
 

@@ -1,9 +1,5 @@
-import type {
-  ConciergeAgentLike,
-  ConciergeTool,
-  ProviderToolFactory,
-} from '@concierge-mantle/tools';
-import { tool } from '@concierge-mantle/tools';
+import type { ConciergeAgentLike, ConciergeTool, ProviderToolFactory } from '@mpilot/tools';
+import { tool } from '@mpilot/tools';
 import type { LanguageModelV2 } from 'ai';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';

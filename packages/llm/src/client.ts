@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 
 /**
  * Anthropic prompt-caching beta header. Anthropic accepts unknown beta
@@ -54,7 +54,7 @@ export function mergeBetaHeader(callerValue: string | undefined): string {
   if (raw.length > MAX_BETA_HEADER_LENGTH) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/llm] mergeBetaHeader: value exceeds ${MAX_BETA_HEADER_LENGTH} chars.`,
+      `[@mpilot/llm] mergeBetaHeader: value exceeds ${MAX_BETA_HEADER_LENGTH} chars.`,
     );
   }
   const parts = raw
@@ -64,14 +64,14 @@ export function mergeBetaHeader(callerValue: string | undefined): string {
   if (parts.length > MAX_BETA_TOKEN_COUNT) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/llm] mergeBetaHeader: too many beta tokens (${parts.length} > ${MAX_BETA_TOKEN_COUNT}).`,
+      `[@mpilot/llm] mergeBetaHeader: too many beta tokens (${parts.length} > ${MAX_BETA_TOKEN_COUNT}).`,
     );
   }
   for (const p of parts) {
     if (!HEADER_TOKEN_RE.test(p)) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/llm] mergeBetaHeader: token contains forbidden chars (CRLF / control / non-ASCII).`,
+        `[@mpilot/llm] mergeBetaHeader: token contains forbidden chars (CRLF / control / non-ASCII).`,
       );
     }
   }
@@ -86,19 +86,19 @@ function assertHeadersAllowed(headers: Record<string, string>): void {
     if ((RESERVED_HEADER_KEYS as readonly string[]).includes(kLower)) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/llm] createLlmClient: defaultHeaders may not contain reserved key '${k}' (RESERVED_HEADER_KEYS: ${RESERVED_HEADER_KEYS.join(', ')}).`,
+        `[@mpilot/llm] createLlmClient: defaultHeaders may not contain reserved key '${k}' (RESERVED_HEADER_KEYS: ${RESERVED_HEADER_KEYS.join(', ')}).`,
       );
     }
     if (!HEADER_TOKEN_RE.test(k)) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/llm] createLlmClient: header key '${k}' contains forbidden chars (must be RFC 7230 token).`,
+        `[@mpilot/llm] createLlmClient: header key '${k}' contains forbidden chars (must be RFC 7230 token).`,
       );
     }
     if (!HEADER_VALUE_RE.test(v)) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/llm] createLlmClient: header value for '${k}' contains forbidden chars (CRLF / control / non-ASCII).`,
+        `[@mpilot/llm] createLlmClient: header value for '${k}' contains forbidden chars (CRLF / control / non-ASCII).`,
       );
     }
   }
@@ -127,13 +127,13 @@ function assertBaseURL(baseURL: string, allowPrivate: boolean): void {
   } catch {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/llm] createLlmClient: baseURL is not a valid URL.`,
+      `[@mpilot/llm] createLlmClient: baseURL is not a valid URL.`,
     );
   }
   if (url.protocol !== 'https:') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/llm] createLlmClient: baseURL must use https: (got '${url.protocol}').`,
+      `[@mpilot/llm] createLlmClient: baseURL must use https: (got '${url.protocol}').`,
     );
   }
   if (allowPrivate) return;
@@ -147,13 +147,13 @@ function assertBaseURL(baseURL: string, allowPrivate: boolean): void {
   ) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/llm] createLlmClient: baseURL host '${url.hostname}' is loopback/private/link-local. Pass allowPrivateBaseURL: true to override.`,
+      `[@mpilot/llm] createLlmClient: baseURL host '${url.hostname}' is loopback/private/link-local. Pass allowPrivateBaseURL: true to override.`,
     );
   }
   if (url.port !== '' && url.port !== '443') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/llm] createLlmClient: baseURL port '${url.port}' is not 443. Pass allowPrivateBaseURL: true to override.`,
+      `[@mpilot/llm] createLlmClient: baseURL port '${url.port}' is not 443. Pass allowPrivateBaseURL: true to override.`,
     );
   }
 }
@@ -166,7 +166,7 @@ export function createLlmClient(config: CreateLlmClientConfig): Anthropic {
   if (typeof config.apiKey !== 'string' || config.apiKey.trim() === '') {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/llm] createLlmClient: apiKey is required (set ANTHROPIC_API_KEY).`,
+      `[@mpilot/llm] createLlmClient: apiKey is required (set ANTHROPIC_API_KEY).`,
     );
   }
   if (config.baseURL !== undefined) {

@@ -44,7 +44,7 @@ export function chainFor(chainId: EvmChainId): Chain {
   if (chainId === 5000) return mantleMainnet;
   if (chainId === 5003) return mantleSepolia;
   throw new Error(
-    `[@concierge-mantle/shared] chainFor: unsupported Mantle chain id ${chainId satisfies never} (expected 5000 mainnet or 5003 sepolia)`,
+    `[@mpilot/shared] chainFor: unsupported Mantle chain id ${chainId satisfies never} (expected 5000 mainnet or 5003 sepolia)`,
   );
 }
 
@@ -61,7 +61,7 @@ export function assertNumericChainId(value: unknown, fnName: string): asserts va
     value > Number.MAX_SAFE_INTEGER
   ) {
     throw new TypeError(
-      `[@concierge-mantle/shared] ${fnName}: chainId must be a positive safe integer, got ${typeof value} (${JSON.stringify(String(value))}). ` +
+      `[@mpilot/shared] ${fnName}: chainId must be a positive safe integer, got ${typeof value} (${JSON.stringify(String(value))}). ` +
         'If reading from env / JSON / CLI, parse with Number() first.',
     );
   }

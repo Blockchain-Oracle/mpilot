@@ -65,4 +65,4 @@ export function parseGoal(text: string): readonly GoalChip[] {
 // Re-export the canonical SDK list so the wizard, dashboard's edit-goal page,
 // docs site, and skill all show the same 6 personas. Local examples were
 // drifting; SDK is the source of truth.
-export { GOAL_EXAMPLES } from '@concierge-mantle/sdk';
+export { GOAL_EXAMPLES } from '@mpilot/sdk';

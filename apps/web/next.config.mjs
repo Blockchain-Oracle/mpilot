@@ -3,9 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   // Workspace packages ship as ESM-only per ADR-018. Allow Next.js to
   // transpile their TS sources directly without requiring a prebuild step.
-  transpilePackages: ['@concierge-mantle/ui'],
+  transpilePackages: ['@mpilot/ui'],
   experimental: {
-    optimizePackageImports: ['@concierge-mantle/ui'],
+    optimizePackageImports: ['@mpilot/ui'],
   },
   webpack: (config, { isServer }) => {
     // @wagmi/connectors → @metamask/sdk pulls in a React-Native-only module
@@ -15,7 +15,7 @@ const nextConfig = {
     // get the same treatment for the same reason (Node worker-thread paths
     // we never hit in Next.js).
     //
-    // `@concierge-mantle/smart-account`'s barrel exports session-key
+    // `@mpilot/smart-account`'s barrel exports session-key
     // persistence + EOA-fallback code that pulls in `pg`, `bullmq`, and
     // `ioredis` — Node-only. The web client only calls `createConciergeAccount`
     // (creates the kernel client + paymaster), which never reaches those

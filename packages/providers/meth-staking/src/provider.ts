@@ -1,10 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import {
-  addressesFor,
-  type EvmChainId,
-  mantleMainnet,
-  ZERO_ADDRESS,
-} from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import { addressesFor, type EvmChainId, mantleMainnet, ZERO_ADDRESS } from '@mpilot/shared';
 import { type Chain, createPublicClient, http, type PublicClient } from 'viem';
 import type { ActionContext, DexProviderLike, MethAddresses } from './_context.ts';
 import { createAcquireTool } from './actions/acquire.ts';
@@ -51,7 +46,7 @@ function resolveChain(opts: MethStakingProviderOpts): { viemChain: Chain; chainI
     if (id !== SUPPORTED_CHAIN_ID) {
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge-mantle/meth-staking] expected Mantle Mainnet (5000), got chainId ${id}.`,
+        `[@mpilot/meth-staking] expected Mantle Mainnet (5000), got chainId ${id}.`,
         undefined,
         { chainId: id },
       );
@@ -69,7 +64,7 @@ export function createMethStakingProvider(
   if (!deps?.dexProvider) {
     throw new ConciergeError(
       'ConfigError',
-      'MissingDependency(@concierge-mantle/mantle-dex): dexProvider is required for @concierge-mantle/meth-staking. ' +
+      'MissingDependency(@mpilot/mantle-dex): dexProvider is required for @mpilot/meth-staking. ' +
         'Pass { dexProvider: createMantleDexProvider(...) } as the second argument.',
     );
   }
@@ -84,7 +79,7 @@ export function createMethStakingProvider(
   } catch (err) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/meth-staking] failed to load shared addresses for chainId ${chainId}`,
+      `[@mpilot/meth-staking] failed to load shared addresses for chainId ${chainId}`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -104,7 +99,7 @@ export function createMethStakingProvider(
     if (addr === ZERO_ADDRESS) {
       throw new ConciergeError(
         'ConfigError',
-        `[@concierge-mantle/meth-staking] address '${name}' is the zero address. Pass addresses: { ${name} } for custom deployments.`,
+        `[@mpilot/meth-staking] address '${name}' is the zero address. Pass addresses: { ${name} } for custom deployments.`,
       );
     }
   }

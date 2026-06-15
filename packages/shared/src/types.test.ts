@@ -1,4 +1,4 @@
-// Type-level contracts for @concierge-mantle/shared public surface.
+// Type-level contracts for @mpilot/shared public surface.
 //
 // Tested via tsc — vitest's expectTypeOf assertions are no-op at runtime, but
 // `pnpm typecheck` (CI gate) compiles this file. The canary test at the bottom

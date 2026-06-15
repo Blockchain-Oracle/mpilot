@@ -43,7 +43,7 @@ export function DeveloperCTA() {
               wordBreak: 'break-all',
             }}
           >
-            claude mcp add concierge -- npx @concierge-mantle/mcp
+            claude mcp add concierge -- npx @mpilot/mcp
           </code>
           <Link href="/docs/mcp" className="btn btn-primary btn-sm">
             All 10 hosts →

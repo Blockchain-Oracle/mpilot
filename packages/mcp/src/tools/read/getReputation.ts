@@ -1,5 +1,5 @@
-import { loadAgentHistory } from '@concierge-mantle/attestation';
-import { type ConciergeTool, tool } from '@concierge-mantle/tools';
+import { loadAgentHistory } from '@mpilot/attestation';
+import { type ConciergeTool, tool } from '@mpilot/tools';
 import type { CreateReadToolsDeps } from './factoryDeps.ts';
 import { toEntry } from './getAgentState.ts';
 import { safeBigInt } from './safeBigInt.ts';

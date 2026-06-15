@@ -83,7 +83,7 @@ done
 
 cd ../..
 
-pnpm --filter @concierge-mantle/db run build
+pnpm --filter @mpilot/db run build
 test $? -eq 0
 pnpm run typecheck
 

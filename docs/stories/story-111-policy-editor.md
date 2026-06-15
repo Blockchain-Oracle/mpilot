@@ -84,14 +84,14 @@ test -f lib/policy/diff.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Material change classification logic present
 grep -qE "(isMaterial|material.*change)" apps/web/lib/policy/diff.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep -E "(PolicyEditor|diff)" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep -E "(PolicyEditor|diff)" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

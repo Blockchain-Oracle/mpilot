@@ -77,14 +77,14 @@ test -f components/dashboard/SidePanel.tsx
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Redirect when no agent
 grep -qE "(redirect.*onboarding|/app/onboarding)" apps/web/app/app/page.tsx
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "Shell" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "Shell" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

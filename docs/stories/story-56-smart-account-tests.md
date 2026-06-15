@@ -31,7 +31,7 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge-mantle/smart-account run test:e2e` runs
+When `pnpm --filter @mpilot/smart-account run test:e2e` runs
 Then exit code is 0 AND ≥ 12 e2e test cases pass
 
 Given test_e2e_createAndUseAccount
@@ -75,7 +75,7 @@ When `pnpm scripts/check-file-loc.mjs` runs
 Then every e2e test file ≤ 400 LOC
 
 Given coverage gate
-When `pnpm --filter @concierge-mantle/smart-account run test --coverage` runs
+When `pnpm --filter @mpilot/smart-account run test --coverage` runs
 Then line coverage on `src/` ≥ 80%
 ```
 
@@ -84,18 +84,18 @@ Then line coverage on `src/` ≥ 80%
 ## Shell verification
 
 ```bash
-pnpm --filter @concierge-mantle/smart-account run test:e2e --reporter=verbose
+pnpm --filter @mpilot/smart-account run test:e2e --reporter=verbose
 test $? -eq 0
 
-pnpm --filter @concierge-mantle/smart-account run test:e2e --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 12 {exit 0} {exit 1}'
+pnpm --filter @mpilot/smart-account run test:e2e --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 12 {exit 0} {exit 1}'
 
 # Critical load-bearing tests
 for tn in PolicyTargetEnforcement PolicySelectorEnforcement SpendingLimitEnforcement Revocation PaymasterSponsorship; do
-  pnpm --filter @concierge-mantle/smart-account run test:e2e --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
+  pnpm --filter @mpilot/smart-account run test:e2e --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
 done
 
 # Coverage ≥ 80%
-cov=$(pnpm --filter @concierge-mantle/smart-account run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @mpilot/smart-account run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 80
 
 bun scripts/check-file-loc.mjs

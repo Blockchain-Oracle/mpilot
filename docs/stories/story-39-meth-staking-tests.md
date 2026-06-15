@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/meth-staking` integration tests
+# Story — `@mpilot/meth-staking` integration tests
 
 **ID:** story-39-meth-staking-tests
 **Epic:** Epic E3 — Action Providers
@@ -33,12 +33,12 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge-mantle/meth-staking run test` runs
+When `pnpm --filter @mpilot/meth-staking run test` runs
 Then exit code is 0 AND ≥ 14 test cases pass
 
 Given test_constructor_MissingDexProvider
 When `createMethStakingProvider({rpcUrl})` runs without `{dexProvider}`
-Then it throws `MissingDependency('@concierge-mantle/mantle-dex')` IMMEDIATELY (no lazy late binding)
+Then it throws `MissingDependency('@mpilot/mantle-dex')` IMMEDIATELY (no lazy late binding)
 
 Given test_NoL1Actions
 When iterating Object.keys(provider.actions)
@@ -77,7 +77,7 @@ When `pnpm scripts/check-file-loc.mjs` runs
 Then every test file ≤ 400 LOC
 
 Given coverage
-When `pnpm --filter @concierge-mantle/meth-staking run test --coverage` runs
+When `pnpm --filter @mpilot/meth-staking run test --coverage` runs
 Then line coverage on `src/` ≥ 80%
 ```
 
@@ -86,18 +86,18 @@ Then line coverage on `src/` ≥ 80%
 ## Shell verification
 
 ```bash
-pnpm --filter @concierge-mantle/meth-staking run test --reporter=verbose
+pnpm --filter @mpilot/meth-staking run test --reporter=verbose
 test $? -eq 0
 
-pnpm --filter @concierge-mantle/meth-staking run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 14 {exit 0} {exit 1}'
+pnpm --filter @mpilot/meth-staking run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 14 {exit 0} {exit 1}'
 
 # Critical load-bearing tests
 for tn in "MissingDexProvider" "NoL1Actions" "RoutesThroughDexProvider"; do
-  pnpm --filter @concierge-mantle/meth-staking run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
+  pnpm --filter @mpilot/meth-staking run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
 done
 
 # Coverage ≥ 80%
-cov=$(pnpm --filter @concierge-mantle/meth-staking run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @mpilot/meth-staking run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 80
 
 bun scripts/check-file-loc.mjs

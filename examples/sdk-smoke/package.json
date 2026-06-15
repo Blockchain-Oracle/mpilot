@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/sdk-smoke",
+  "name": "@mpilot/sdk-smoke",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,6 @@
     "smoke": "node index.mjs"
   },
   "dependencies": {
-    "@concierge-mantle/sdk": "workspace:*"
+    "@mpilot/sdk": "workspace:*"
   }
 }

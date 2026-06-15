@@ -148,7 +148,7 @@ Returns `{transactionRequest: {to, data, value, gasLimit}}` — Concierge passes
 
 ## Integration pattern for Concierge
 
-### Package: `@concierge-mantle/mantle-dex`
+### Package: `@mpilot/mantle-dex`
 Aggregator strategy — every swap intent runs through `quoteAllVenues()`:
 
 ```ts

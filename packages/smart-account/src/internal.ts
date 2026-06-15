@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { CHAIN_CONFIGS } from './constants.ts';
 import type { SupportedChain } from './types.ts';
 
@@ -250,13 +250,13 @@ export function rpcCatch(op: string, chain: SupportedChain, apiKey: string) {
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] rpcCatch('${op}'): empty apiKey would silently disable redaction. Use rpcCatchNoRedact if no secret is in scope.`,
+      `[@mpilot/smart-account] rpcCatch('${op}'): empty apiKey would silently disable redaction. Use rpcCatchNoRedact if no secret is in scope.`,
     );
   }
   return (err: unknown): never => {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/smart-account] ${op} (chain: '${chain}')`,
+      `[@mpilot/smart-account] ${op} (chain: '${chain}')`,
       sanitizeCause(err, apiKey),
     );
   };
@@ -268,11 +268,7 @@ export function rpcCatch(op: string, chain: SupportedChain, apiKey: string) {
  */
 export function rpcCatchNoRedact(op: string, chain: SupportedChain) {
   return (err: unknown): never => {
-    throw new ConciergeError(
-      'RpcError',
-      `[@concierge-mantle/smart-account] ${op} (chain: '${chain}')`,
-      err,
-    );
+    throw new ConciergeError('RpcError', `[@mpilot/smart-account] ${op} (chain: '${chain}')`, err);
   };
 }
 
@@ -312,13 +308,13 @@ export function resolveChainConfig(
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] ${callerName}: UnsupportedChain('${chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
+      `[@mpilot/smart-account] ${callerName}: UnsupportedChain('${chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] ${callerName}: MissingEnvVar('PIMLICO_API_KEY') — set this env var or pass apiKey in config.`,
+      `[@mpilot/smart-account] ${callerName}: MissingEnvVar('PIMLICO_API_KEY') — set this env var or pass apiKey in config.`,
     );
   }
   return {

@@ -32,7 +32,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge-mantle/smart-account run build` runs
+When `pnpm --filter @mpilot/smart-account run build` runs
 Then exit code is 0
 
 Given createConciergeAccount on Sepolia
@@ -82,7 +82,7 @@ test -f src/constants.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/smart-account run build
+pnpm --filter @mpilot/smart-account run build
 test $? -eq 0
 pnpm run typecheck
 
@@ -100,7 +100,7 @@ node -e "
 grep -q "0x0000000071727De22E5E9d8BAf0edAc6f37da032" packages/smart-account/src/constants.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/smart-account run test
+pnpm --filter @mpilot/smart-account run test
 test $? -eq 0
 
 bun scripts/check-file-loc.mjs

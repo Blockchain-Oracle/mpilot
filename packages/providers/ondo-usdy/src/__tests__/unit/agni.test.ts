@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { computePriceFromSqrt, fetchPoolState, fetchYieldBps } from '../../_agni.ts';
 

@@ -85,7 +85,7 @@ describe('quote — no available routes (test_quote_NoRoute)', () => {
 describe('quote — error paths', () => {
   it('throws ConciergeError(RpcError) on network failure', async () => {
     server.use(http.get(`${LIFI_API}/quote`, () => HttpResponse.error()));
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeQuote(ctx, BASE_INPUT)).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -95,7 +95,7 @@ describe('quote — error paths', () => {
 
   it('throws ConciergeError(RpcError) on HTTP 429', async () => {
     server.use(http.get(`${LIFI_API}/quote`, () => new HttpResponse(null, { status: 429 })));
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeQuote(ctx, BASE_INPUT)).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&
@@ -116,7 +116,7 @@ describe('quote — error paths', () => {
       },
     };
     server.use(http.get(`${LIFI_API}/quote`, () => HttpResponse.json(malformed)));
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
     await expect(executeQuote(ctx, BASE_INPUT)).rejects.toSatisfy(
       (e: unknown) =>
         e instanceof ConciergeError &&

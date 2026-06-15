@@ -78,7 +78,7 @@ test -f lib/chain.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # Sepolia explicitly named (not just "testnet")
@@ -88,7 +88,7 @@ grep -q "Sepolia" apps/web/components/dashboard/TestModeBanner.tsx
 grep -q "faucet.sepolia.mantle.xyz" apps/web/lib/chain.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep "TestModeBanner" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep "TestModeBanner" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

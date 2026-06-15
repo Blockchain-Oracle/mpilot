@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { EvmChainId } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { EvmChainId } from '@mpilot/shared';
 import { describe, expect, it } from 'vitest';
 import { ATTESTATION_SCHEMAS, buildAttestationPayload } from '../attestation.ts';
 import { createMantleDexProvider } from '../provider.ts';

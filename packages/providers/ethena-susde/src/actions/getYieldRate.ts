@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { tool } from '@concierge-mantle/tools';
+import { ConciergeError } from '@mpilot/sdk';
+import { tool } from '@mpilot/tools';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 import type { YieldRateResult } from '../_types.ts';
@@ -45,7 +45,7 @@ export async function executeGetYieldRate(_ctx: ActionContext): Promise<YieldRat
     if (!res.ok) {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/ethena-susde] getYieldRate: Ethena API returned ${res.status}`,
+        `[@mpilot/ethena-susde] getYieldRate: Ethena API returned ${res.status}`,
       );
     }
     rawJson = await res.json();
@@ -53,7 +53,7 @@ export async function executeGetYieldRate(_ctx: ActionContext): Promise<YieldRat
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      '[@concierge-mantle/ethena-susde] getYieldRate: failed to fetch Ethena yields API',
+      '[@mpilot/ethena-susde] getYieldRate: failed to fetch Ethena yields API',
       err instanceof Error ? err : undefined,
     );
   }
@@ -62,7 +62,7 @@ export async function executeGetYieldRate(_ctx: ActionContext): Promise<YieldRat
   if (!parsed.success) {
     throw new ConciergeError(
       'RpcError',
-      '[@concierge-mantle/ethena-susde] getYieldRate: malformed Ethena API response',
+      '[@mpilot/ethena-susde] getYieldRate: malformed Ethena API response',
       parsed.error,
       { zodIssues: parsed.error.issues },
     );
@@ -78,7 +78,7 @@ export async function executeGetYieldRate(_ctx: ActionContext): Promise<YieldRat
   if (protocolYieldBps < 0 || stakingYieldBps < 0) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/ethena-susde] getYieldRate: negative yield from Ethena API (protocolYieldBps=${protocolYieldBps}, stakingYieldBps=${stakingYieldBps})`,
+      `[@mpilot/ethena-susde] getYieldRate: negative yield from Ethena API (protocolYieldBps=${protocolYieldBps}, stakingYieldBps=${stakingYieldBps})`,
     );
   }
 
@@ -88,7 +88,7 @@ export async function executeGetYieldRate(_ctx: ActionContext): Promise<YieldRat
   if (susdeYieldBps === 0) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/ethena-susde] getYieldRate: extracted yield is zero (protocolYieldBps=${protocolYieldBps}, stakingYieldBps=${stakingYieldBps}) — Ethena API may be returning genuine zero or field names changed`,
+      `[@mpilot/ethena-susde] getYieldRate: extracted yield is zero (protocolYieldBps=${protocolYieldBps}, stakingYieldBps=${stakingYieldBps}) — Ethena API may be returning genuine zero or field names changed`,
     );
   }
 

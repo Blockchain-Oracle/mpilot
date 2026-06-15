@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import type { Queue } from 'bullmq';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createDlq, type DlqRecord } from '../dlq.ts';

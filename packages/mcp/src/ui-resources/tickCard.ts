@@ -2,7 +2,7 @@ import { buildReadOnlyCardHtml } from './_renderOnly.ts';
 import type { ConciergeUiResource } from './_shared.ts';
 
 // Renders the 6-phase tick state — plan/simulate/propose/execute/record +
-// timing. Shape matches `SerializableTickCard` in @concierge-mantle/tools.
+// timing. Shape matches `SerializableTickCard` in @mpilot/tools.
 const RENDER_BODY = `
     var rows = '';
     var phases = ['plan','simulate','propose','execute','record'];

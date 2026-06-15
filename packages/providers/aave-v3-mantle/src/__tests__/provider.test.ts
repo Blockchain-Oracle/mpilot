@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { mantleSepolia } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import { mantleSepolia } from '@mpilot/shared';
 import { createPublicClient, http } from 'viem';
 import { describe, expect, it } from 'vitest';
 import { createAaveV3MantleProvider } from '../provider.ts';

@@ -5,7 +5,7 @@ This walks you from a fresh `npx skills add` to your first agent tick.
 ## 1. Install the skill
 
 ```bash
-npx skills add @concierge-mantle/mantle-agent
+npx skills add @mpilot/mantle-agent
 ```
 
 The installer drops the skill into your client's skill directory (Claude

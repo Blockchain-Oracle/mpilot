@@ -1,6 +1,6 @@
 # UX Spec — Concierge
 
-**Anchor source:** Component intent + states + flows are fully specified at `research/concierge/08-ux-component-intent.md` (the designer's brief). This file documents the **structural locks** + **route shape** + **demo shape rule** + **visual loop validation gate**. **Visual design tokens (color, type, motion language, iconography) are owned by the designer agent** — coding agent reads `@concierge-mantle/ui/tokens` (the published design-tokens module from the designer) at build time.
+**Anchor source:** Component intent + states + flows are fully specified at `research/concierge/08-ux-component-intent.md` (the designer's brief). This file documents the **structural locks** + **route shape** + **demo shape rule** + **visual loop validation gate**. **Visual design tokens (color, type, motion language, iconography) are owned by the designer agent** — coding agent reads `@mpilot/ui/tokens` (the published design-tokens module from the designer) at build time.
 **Last updated:** 2026-06-09 (amended; previous 2026-06-03)
 **Status:** DRAFT (amended)
 
@@ -8,12 +8,12 @@
 
 ## ⚠️ 2026-06-09 AMENDMENT
 
-Per architecture.md ADR-013 (amended) + ADR-015 (new), the visual implementation layer ships as **`@concierge-mantle/react-ui`** — NOT scattered across `apps/web/components/`. Designer owns the visual layer of that package; coding agents consume the package; the web app at `concierge.xyz/app` DOGFOODS the package per the web-app-dogfood requirement.
+Per architecture.md ADR-013 (amended) + ADR-015 (new), the visual implementation layer ships as **`@mpilot/react-ui`** — NOT scattered across `apps/web/components/`. Designer owns the visual layer of that package; coding agents consume the package; the web app at `concierge.xyz/app` DOGFOODS the package per the web-app-dogfood requirement.
 
-- **Headless behavior + ARIA + state machines** → `@concierge-mantle/react` (story-310)
-- **Styled drop-in cards** (Radix + shadcn + `@concierge-mantle/ui` tokens) → `@concierge-mantle/react-ui` (story-311)
+- **Headless behavior + ARIA + state machines** → `@mpilot/react` (story-310)
+- **Styled drop-in cards** (Radix + shadcn + `@mpilot/ui` tokens) → `@mpilot/react-ui` (story-311)
 - **Designer no longer picks Tambo / Crayon** — both dropped (model-driven, contradict per-tool card contract)
-- **Component intent in `08-ux-component-intent.md` is preserved as-is** — that's still the BRIEF. The implementation venue is now `@concierge-mantle/react-ui`, not the web app.
+- **Component intent in `08-ux-component-intent.md` is preserved as-is** — that's still the BRIEF. The implementation venue is now `@mpilot/react-ui`, not the web app.
 
 Cross-refs: ADR-015 (Epic E14 — Composable UI), story-310, story-311, story-312 (web dogfood).
 
@@ -21,7 +21,7 @@ Cross-refs: ADR-015 (Epic E14 — Composable UI), story-310, story-311, story-31
 
 ## Anchor product
 
-**Anchor:** **Designer's choice.** Concierge's visual direction is not pinned to a specific competitor or reference site. The designer agent picks the anchor (likely from the Linear / Stripe / Vercel / Granola / v0.dev quality band, but the specific anchor is theirs to choose) and publishes the resulting design tokens + component library back to `@concierge-mantle/ui`.
+**Anchor:** **Designer's choice.** Concierge's visual direction is not pinned to a specific competitor or reference site. The designer agent picks the anchor (likely from the Linear / Stripe / Vercel / Granola / v0.dev quality band, but the specific anchor is theirs to choose) and publishes the resulting design tokens + component library back to `@mpilot/ui`.
 
 **Why no pinned anchor:** Per Abu's pacing preference and `08-ux-component-intent.md`, the designer is expert and does not need a reference-app catalog from the spec writer. The component intent file describes *what each component must do*; the designer translates that into visual implementation with whatever anchor they find most aligned with the brand they're designing.
 
@@ -31,7 +31,7 @@ Cross-refs: ADR-015 (Epic E14 — Composable UI), story-310, story-311, story-31
 
 ## Design tokens
 
-Owned by the designer agent. Coding agent does NOT make color/font/motion decisions — it imports from `@concierge-mantle/ui/tokens`.
+Owned by the designer agent. Coding agent does NOT make color/font/motion decisions — it imports from `@mpilot/ui/tokens`.
 
 ```typescript
 // packages/ui/src/tokens.ts — populated by designer agent, consumed by coding agents
@@ -56,7 +56,7 @@ export const tokens = {
 | Motion | `motion.fast` (150ms), `motion.medium` (250ms), `motion.slow` (400ms), easing curves |
 | Container widths | `container.sm`, `container.md`, `container.lg`, `container.xl` |
 
-**Lock contract:** Once the designer publishes `@concierge-mantle/ui@1.0.0`, the tokens are LOCKED. Coding agents read them via import, never override inline.
+**Lock contract:** Once the designer publishes `@mpilot/ui@1.0.0`, the tokens are LOCKED. Coding agents read them via import, never override inline.
 
 ---
 
@@ -134,7 +134,7 @@ The 90-second judge walkthrough (per `PRD.md` § Demo moment) lives on these rou
 1. `/` (hero) — judge sees live tick streaming on Sepolia
 2. `/app/onboarding/*` — sponsored connect → smart account → identity → goal → activate (Concierge sponsors gas; judge pays nothing)
 3. `/app` — judge watches first tick stream in real time, approves manually
-4. Judge runs `npx skills add @concierge-mantle/mantle-agent` in their terminal, then drives Concierge from Claude Code via `mcp.concierge.xyz/api/sse`
+4. Judge runs `npx skills add @mpilot/mantle-agent` in their terminal, then drives Concierge from Claude Code via `mcp.concierge.xyz/api/sse`
 
 **The wow moment:** judge sees the same agent (same `agentId` in ERC-8004 reputation) operating across two surfaces (web + MCP-driven Claude Code) within 90 seconds.
 
@@ -178,9 +178,9 @@ In addition to the global bans listed in `docs/architecture.md` § Banned patter
 - ❌ `rounded-full` on cards — only on buttons and avatars
 - ❌ `rounded-xl` on cards — use the designer's card radius token (likely `rounded-md` or `rounded-lg` depending on brand)
 - ❌ `shadow-lg` everywhere — sparingly, per designer's elevation hierarchy
-- ❌ Hardcoded hex colors in components — import from `@concierge-mantle/ui/tokens`
+- ❌ Hardcoded hex colors in components — import from `@mpilot/ui/tokens`
 - ❌ Inline `style={{ ... }}` for non-dynamic values — use Tailwind utilities or token-driven CSS variables
-- ❌ Custom font loading via raw `<link>` — fonts ship through `@concierge-mantle/ui/fonts` per designer
+- ❌ Custom font loading via raw `<link>` — fonts ship through `@mpilot/ui/fonts` per designer
 - ❌ Status-pill backgrounds at full color saturation — designer's pill tokens use subtle tinted backgrounds (10-15% opacity)
 
 ---
@@ -247,4 +247,4 @@ Designer agent outputs:
 4. `screenshots/anchor/*.png` — visual baselines for the validation loop
 5. `packages/ui/README.md` — component library documentation
 
-Once `@concierge-mantle/ui@1.0.0` is published, coding agents pick up UI stories (Epic 5 onwards).
+Once `@mpilot/ui@1.0.0` is published, coding agents pick up UI stories (Epic 5 onwards).

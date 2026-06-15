@@ -466,7 +466,7 @@ stories:
     merged_at: "2026-06-13"
 
   # ─────────────────────────────────────────────────────────────────
-  # Epic E7 — Web App  (BLOCKED until designer publishes @concierge-mantle/ui@1.0.0)
+  # Epic E7 — Web App  (BLOCKED until designer publishes @mpilot/ui@1.0.0)
   # ─────────────────────────────────────────────────────────────────
   - id: story-100-next-app-scaffold
     epic: "Epic E7 — Web App"

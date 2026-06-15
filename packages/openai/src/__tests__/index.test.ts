@@ -1,4 +1,4 @@
-// BDD coverage for the @concierge-mantle/openai adapter: raw Chat Completions
+// BDD coverage for the @mpilot/openai adapter: raw Chat Completions
 // function-tool shape (no SDK wrapped), OpenAPI-3 `parameters` emission
 // (incl. near-exact wire content for defaults/optionals/enums — the coverage
 // of record until packages/tools grows a toJsonSchema.test.ts), dispatch with
@@ -13,7 +13,7 @@
 // re-exported bigintSafeStringify for wei-scale tool results.
 
 import type Anthropic from '@anthropic-ai/sdk';
-import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@concierge-mantle/tools';
+import { type ConciergeAgentLike, type ProviderToolFactory, tool } from '@mpilot/tools';
 import type { ChatCompletionFunctionTool } from 'openai/resources/chat/completions';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
@@ -309,7 +309,7 @@ describe('toOpenAITool', () => {
       invoke: async () => ({ ok: true }),
     });
     // Slips past isZodPipe/isZodObject (both inspect only the root) and fails
-    // inside z.toJSONSchema — the @concierge-mantle/tools wrapper must name the tool
+    // inside z.toJSONSchema — the @mpilot/tools wrapper must name the tool
     // and field so a multi-tool registry build is debuggable.
     expect(() => toOpenAITool(nestedTransform)).toThrow(
       /cannot convert inputSchema for tool "nestedTransform"/,

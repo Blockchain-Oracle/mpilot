@@ -1,7 +1,7 @@
 // Fork integration tests for getCarryVsAave — reads real Aave USDC borrow rate from
 // a Mantle Mainnet fork; stubs the Ethena API for deterministic carry math.
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { ADDRESSES } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import { ADDRESSES } from '@mpilot/shared';
 import { createPublicClient, http } from 'viem';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEthenaSusdeProvider } from '../../provider.ts';

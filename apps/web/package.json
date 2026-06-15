@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/web",
+  "name": "@mpilot/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,13 +14,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@concierge-mantle/agent": "workspace:*",
-    "@concierge-mantle/db": "workspace:*",
-    "@concierge-mantle/erc8004": "workspace:*",
-    "@concierge-mantle/sdk": "workspace:*",
-    "@concierge-mantle/shared": "workspace:*",
-    "@concierge-mantle/smart-account": "workspace:*",
-    "@concierge-mantle/ui": "workspace:*",
+    "@mpilot/agent": "workspace:*",
+    "@mpilot/db": "workspace:*",
+    "@mpilot/erc8004": "workspace:*",
+    "@mpilot/sdk": "workspace:*",
+    "@mpilot/shared": "workspace:*",
+    "@mpilot/smart-account": "workspace:*",
+    "@mpilot/ui": "workspace:*",
     "@privy-io/node": "^0.21.0",
     "@privy-io/react-auth": "^3.30.0",
     "@privy-io/wagmi": "^4.0.12",

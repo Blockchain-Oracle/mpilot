@@ -83,14 +83,14 @@ test -f app/api/portfolio/route.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 
 # No hardcoded HF colors — uses design tokens
 ! grep -qE "#FF0000|#00FF00" apps/web/components/dashboard/HealthFactorGauge.tsx
 
 # Tests pass
-pnpm --filter @concierge-mantle/web run test 2>&1 | grep -E "(Portfolio|HealthFactor)" | grep -q "PASS"
+pnpm --filter @mpilot/web run test 2>&1 | grep -E "(Portfolio|HealthFactor)" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

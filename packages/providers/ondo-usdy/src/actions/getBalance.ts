@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { tool } from '@concierge-mantle/tools';
+import { ConciergeError } from '@mpilot/sdk';
+import { tool } from '@mpilot/tools';
 import { type PublicClient, parseAbi } from 'viem';
 import { z } from 'zod';
 import { computePriceFromSqrt, fetchPoolState } from '../_agni.ts';
@@ -37,7 +37,7 @@ async function readBalance(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/ondo-usdy] getBalance: failed to read USDY balance for ${user}`,
+        `[@mpilot/ondo-usdy] getBalance: failed to read USDY balance for ${user}`,
         err instanceof Error ? err : undefined,
       );
     });
@@ -53,7 +53,7 @@ export async function executeGetBalance(
     ctx.publicClient.getBlockNumber().catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        '[@concierge-mantle/ondo-usdy] getBalance: failed to fetch block number for attestation',
+        '[@mpilot/ondo-usdy] getBalance: failed to fetch block number for attestation',
         err instanceof Error ? err : undefined,
       );
     }),

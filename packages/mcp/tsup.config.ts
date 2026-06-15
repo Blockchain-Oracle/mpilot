@@ -15,7 +15,7 @@ export default defineConfig({
     '@modelcontextprotocol/sdk/server/mcp.js',
     '@modelcontextprotocol/sdk/server/stdio.js',
     '@modelcontextprotocol/sdk/server/streamableHttp.js',
-    '@concierge-mantle/shared',
-    '@concierge-mantle/tools',
+    '@mpilot/shared',
+    '@mpilot/tools',
   ],
 });

@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address, EvmChainId } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address, EvmChainId } from '@mpilot/shared';
 import { z } from 'zod';
 import { NON_NEG_INT_STR, NON_ZERO_ADDRESS, POSITIVE_INT_STR } from './_validators.ts';
 
@@ -29,13 +29,13 @@ export function buildAttestationPayload(ctx: AttestationContext): AttestationPay
   if (ctx.balance < 0n) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge-mantle/ondo-usdy] attestation: balance must be non-negative',
+      '[@mpilot/ondo-usdy] attestation: balance must be non-negative',
     );
   }
   if (ctx.multiplier <= 0n) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge-mantle/ondo-usdy] attestation: multiplier must be positive (zero means pool price is invalid)',
+      '[@mpilot/ondo-usdy] attestation: multiplier must be positive (zero means pool price is invalid)',
     );
   }
   const raw = {
@@ -52,7 +52,7 @@ export function buildAttestationPayload(ctx: AttestationContext): AttestationPay
   } catch (err) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/ondo-usdy] attestation: payload validation failed — ${err instanceof Error ? err.message : String(err)}`,
+      `[@mpilot/ondo-usdy] attestation: payload validation failed — ${err instanceof Error ? err.message : String(err)}`,
       err instanceof Error ? err : undefined,
     );
   }

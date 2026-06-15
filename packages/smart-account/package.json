@@ -1,5 +1,5 @@
 {
-  "name": "@concierge-mantle/smart-account",
+  "name": "@mpilot/smart-account",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -32,9 +32,9 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@concierge-mantle/db": "workspace:*",
-    "@concierge-mantle/sdk": "workspace:*",
-    "@concierge-mantle/shared": "workspace:*",
+    "@mpilot/db": "workspace:*",
+    "@mpilot/sdk": "workspace:*",
+    "@mpilot/shared": "workspace:*",
     "@zerodev/ecdsa-validator": "5.4.9",
     "@zerodev/permissions": "5.6.3",
     "@zerodev/sdk": "5.5.10",

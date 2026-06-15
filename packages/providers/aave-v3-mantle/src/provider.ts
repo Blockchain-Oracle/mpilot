@@ -1,11 +1,11 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import {
   type Address,
   addressesFor,
   type EvmChainId,
   mantleMainnet,
   mantleSepolia,
-} from '@concierge-mantle/shared';
+} from '@mpilot/shared';
 import { type Chain, createPublicClient, http, type PublicClient, type WalletClient } from 'viem';
 import type { ActionContext } from './_context.ts';
 import { createBorrowTool } from './actions/borrow.ts';
@@ -55,7 +55,7 @@ function resolveChain(opts: AaveV3MantleProviderOpts): { viemChain: Chain; chain
     if (!SUPPORTED_CHAIN_IDS.has(id)) {
       throw new ConciergeError(
         'NetworkUnsupported',
-        `[@concierge-mantle/aave-v3-mantle] expected Mantle Mainnet (5000) or Mantle Sepolia (5003), got chainId ${id}. Connect a Mantle wallet or pass chain: "mantle-mainnet".`,
+        `[@mpilot/aave-v3-mantle] expected Mantle Mainnet (5000) or Mantle Sepolia (5003), got chainId ${id}. Connect a Mantle wallet or pass chain: "mantle-mainnet".`,
         undefined,
         { chainId: id },
       );
@@ -91,7 +91,7 @@ export function createAaveV3MantleProvider(
   if (!poolAddress || !oracleAddress) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/aave-v3-mantle] pool and oracle addresses are required for custom chains. Pass addresses: { pool, oracle } in AaveV3MantleProviderOpts.`,
+      `[@mpilot/aave-v3-mantle] pool and oracle addresses are required for custom chains. Pass addresses: { pool, oracle } in AaveV3MantleProviderOpts.`,
     );
   }
   // Sepolia: incentives controller not deployed — claimRewards will throw NetworkUnsupported.
@@ -101,7 +101,7 @@ export function createAaveV3MantleProvider(
   if (!sUsdeAddress) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/aave-v3-mantle] sUsde address is required for custom chains. Pass addresses: { sUsde } in AaveV3MantleProviderOpts.`,
+      `[@mpilot/aave-v3-mantle] sUsde address is required for custom chains. Pass addresses: { sUsde } in AaveV3MantleProviderOpts.`,
     );
   }
 

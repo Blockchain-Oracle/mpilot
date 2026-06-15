@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address } from '@mpilot/shared';
 import { type PublicClient, parseAbi } from 'viem';
 
 const erc20Abi = parseAbi(['function balanceOf(address owner) view returns (uint256)']);
@@ -16,7 +16,7 @@ export async function getBalanceUSDe(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/ethena-susde] getBalanceUSDe: failed to read balance for ${user}`,
+        `[@mpilot/ethena-susde] getBalanceUSDe: failed to read balance for ${user}`,
         err instanceof Error ? err : undefined,
       );
     });
@@ -37,7 +37,7 @@ export async function getBalanceSusde(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/ethena-susde] getBalanceSusde: failed to read balance for ${user}`,
+        `[@mpilot/ethena-susde] getBalanceSusde: failed to read balance for ${user}`,
         err instanceof Error ? err : undefined,
       );
     });
@@ -63,7 +63,7 @@ export async function getPriceUSD(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/ethena-susde] getPriceUSD: failed to read oracle price for ${susdeAddress}`,
+        `[@mpilot/ethena-susde] getPriceUSD: failed to read oracle price for ${susdeAddress}`,
         err instanceof Error ? err : undefined,
       );
     });

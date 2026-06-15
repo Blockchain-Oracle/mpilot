@@ -15,7 +15,7 @@ Per architecture.md ADR-011 amendment, this story is now about the **HOSTED vari
 ### What changes
 
 1. **Files move from `apps/mcp-server/` to `apps/mcp/`** (no `-server` suffix). The "server" lives in `packages/mcp/` (per story-130 amendment); `apps/mcp/` is just the Worker wrapper.
-2. **`apps/mcp/src/index.ts` is THIN** — imports `createStreamableHttpHandler` from `@concierge-mantle/mcp` and wraps it in a Hono app with Workers-specific bindings (KV / D1 / secrets / custom domain).
+2. **`apps/mcp/src/index.ts` is THIN** — imports `createStreamableHttpHandler` from `@mpilot/mcp` and wraps it in a Hono app with Workers-specific bindings (KV / D1 / secrets / custom domain).
 3. **Auth:** bearer token v0 (read from `c.env.CONCIERGE_BEARER_TOKEN_HASH` map). OAuth (PKCE) is v1 follow-up.
 4. **NEVER overwrite the stdio path.** The hosted Worker is a CONVENIENCE, not THE MCP. README defaults to stdio per ADR-011.
 5. **Demo URL:** Still useful for judges who don't want to install Node tools. `https://mcp.concierge.xyz/mcp` is the demo URL — but the README's primary install line is the stdio command.
@@ -23,7 +23,7 @@ Per architecture.md ADR-011 amendment, this story is now about the **HOSTED vari
 ### Updated file modification map (replaces below)
 
 - `apps/mcp/wrangler.toml` — NEW — Workers config + custom domain `mcp.concierge.xyz`
-- `apps/mcp/src/index.ts` — NEW — Hono app, imports `createStreamableHttpHandler` from `@concierge-mantle/mcp`, wires bearer-token middleware reading from `c.env.CONCIERGE_BEARER_TOKEN_HASH_MAP` (KV) and `c.env.MAINNET_RPC_URL` (secret)
+- `apps/mcp/src/index.ts` — NEW — Hono app, imports `createStreamableHttpHandler` from `@mpilot/mcp`, wires bearer-token middleware reading from `c.env.CONCIERGE_BEARER_TOKEN_HASH_MAP` (KV) and `c.env.MAINNET_RPC_URL` (secret)
 - `apps/mcp/src/env.ts` — NEW — Workers env types
 - `apps/mcp/src/auth.ts` — NEW — bearer-token validation middleware (constant-time compare, agentId binding via KV lookup)
 - `.github/workflows/deploy-mcp.yml` — NEW — Workers deploy on push to main
@@ -42,16 +42,16 @@ Then response is 401 with JSON-RPC error code -32000 and message hints at bearer
 
 Given a request to /mcp with a valid bearer token bound to agent agt_xyz
 When the request body is `tools/list`
-Then response includes all @concierge-mantle/tools tools AND the response context references agt_xyz
+Then response includes all @mpilot/tools tools AND the response context references agt_xyz
 
 Given the same code path runs locally and on Workers
-When `pnpm --filter @concierge-mantle/mcp test` runs the StreamableHTTP transport in a unit test
+When `pnpm --filter @mpilot/mcp test` runs the StreamableHTTP transport in a unit test
 Then the same handler works (the factory is environment-agnostic)
 ```
 
 ### Updated notes
 
-- **DO NOT re-implement tool registration here.** Import `createStreamableHttpHandler` from `@concierge-mantle/mcp` (built in story-130 amended).
+- **DO NOT re-implement tool registration here.** Import `createStreamableHttpHandler` from `@mpilot/mcp` (built in story-130 amended).
 - **The 10s Vercel limit is irrelevant** — we're on Workers. But document the bundle size constraint (1MB free tier) so the orchestrator doesn't push deps that blow it.
 - **OAuth is v1.1 — bearer token is fine for hackathon demo.** README "hosted install" instruction includes the bearer-token paste line.
 - **Custom domain `mcp.concierge.xyz`** can be added later if DNS isn't ready. `workers.dev` subdomain is fine for v0 demo.

@@ -2,9 +2,10 @@
  * Story-137 / SEP-1865 — `ui://concierge/*` HTML resource registration
  * + `_meta.ui.resourceUri` propagation on tools with a `uiCardId`.
  */
-import { type ConciergeTool, tool } from '@concierge-mantle/tools';
+
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { type ConciergeTool, tool } from '@mpilot/tools';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { UI_RESOURCES } from '../registerUIResources.ts';

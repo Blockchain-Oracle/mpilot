@@ -101,7 +101,7 @@ test $? -eq 0
 - `goalHash` is `keccak256(canonicalJSON(goal))` — the canonical JSON form is computed off-chain in `packages/sdk`; the contract only stores the hash. Full goal text lives in Postgres + IPFS (referenced via the policy data field).
 - `policyData` is opaque bytes (max 4096) — typically `abi.encode(Policy)` from the SDK. Decoded off-chain. Cap enforced on-chain so we don't have unbounded SSTORE costs.
 - **Use OZ v5 errors-not-strings.** Reference: `archive/patron-2026-06-02/docs/architecture.md` confirms OZ v5.1 gives us `AccessControlUnauthorizedAccount`, `EnforcedPause`, `ReentrancyGuardReentrantCall` as native errors. Mirror this in our custom errors.
-- **UUPS-upgradeable** because we may need to fix bugs post-deploy in hackathon window without a full redeploy of the proxy (which would break `@concierge-mantle/shared/addresses.ts`). The proxy uses OZ's `ERC1967Proxy` + `UUPSUpgradeable`. `_authorizeUpgrade` is gated on `ADMIN_ROLE`.
+- **UUPS-upgradeable** because we may need to fix bugs post-deploy in hackathon window without a full redeploy of the proxy (which would break `@mpilot/shared/addresses.ts`). The proxy uses OZ's `ERC1967Proxy` + `UUPSUpgradeable`. `_authorizeUpgrade` is gated on `ADMIN_ROLE`.
 - **Storage gap** of `__gap[50]` at the end for future field additions (standard upgradeable contracts pattern). Don't skip — Sepolia mocks won't expose the issue, but it bites on Mainnet upgrade.
 - Solidity `0.8.26` per ADR + foundry.toml.
 - File MUST stay under 400 LOC (per Biome rule). If approaching, extract structs to a separate `ConciergeTypes.sol` file.

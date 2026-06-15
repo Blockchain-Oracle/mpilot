@@ -176,7 +176,7 @@ export function addressesFor(
   if (chainId === 5000) return ADDRESSES.mantleMainnet;
   if (chainId === 5003) return ADDRESSES.mantleSepolia;
   throw new Error(
-    `[@concierge-mantle/shared] addressesFor: unsupported Mantle chain id ${chainId satisfies never} (expected 5000 mainnet or 5003 sepolia)`,
+    `[@mpilot/shared] addressesFor: unsupported Mantle chain id ${chainId satisfies never} (expected 5000 mainnet or 5003 sepolia)`,
   );
 }
 

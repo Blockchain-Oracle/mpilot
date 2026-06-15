@@ -1,5 +1,5 @@
-import { canonicalize } from '@concierge-mantle/attestation';
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { canonicalize } from '@mpilot/attestation';
+import { ConciergeError } from '@mpilot/sdk';
 import { keccak256, toBytes } from 'viem';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ActionContext } from '../../_context.ts';

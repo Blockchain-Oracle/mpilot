@@ -1,12 +1,12 @@
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type {
   GetOrFetchDeps,
   GetOrFetchResult,
   LoadAgentHistoryDeps,
   PayloadError,
   RawFeedbackEntry,
-} from '@concierge-mantle/attestation';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+} from '@mpilot/attestation';
 import { describe, expect, it, vi } from 'vitest';
 import { createConciergeMcpServer } from '../server.ts';
 import { type CreateReadToolsDeps, createReadTools } from '../tools/read/index.ts';

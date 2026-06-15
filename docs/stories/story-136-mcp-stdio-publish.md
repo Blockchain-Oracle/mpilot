@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/mcp` stdio publish + `npx skills add` smoke test
+# Story — `@mpilot/mcp` stdio publish + `npx skills add` smoke test
 
 **ID:** story-136-mcp-stdio-publish
 **Epic:** Epic E8 — MCP Server
@@ -11,7 +11,7 @@
 ## User story
 
 **As a** Claude Code / Claude Desktop / Cursor / Windsurf / Goose / OpenCode / Codex user
-**I want to** run `claude mcp add concierge -- npx -y @concierge-mantle/mcp` and have Concierge's tools available in my chat client
+**I want to** run `claude mcp add concierge -- npx -y @mpilot/mcp` and have Concierge's tools available in my chat client
 **So that** I can drive Concierge from my IDE without leaving it, with zero infrastructure setup
 
 ---
@@ -22,7 +22,7 @@
 - `packages/mcp/src/stdio.ts` — UPDATE — proper shebang `#!/usr/bin/env node` at top of compiled output (`tsup` config: `banner: { js: '#!/usr/bin/env node' }`)
 - `packages/mcp/src/wallet-bootstrap.ts` — NEW — auto-generate ephemeral session key on first run, persist to `~/.concierge/config.json` (per pokaldot pattern)
 - `packages/mcp/README.md` — UPDATE — install snippets for 10+ MCP hosts (Claude Code / Claude Desktop / Cursor / Windsurf / VS Code Copilot / Zed / Cline / Goose / OpenCode / Codex)
-- `.github/workflows/publish-packages.yml` — UPDATE — npm publish job for `@concierge-mantle/mcp` with provenance enabled
+- `.github/workflows/publish-packages.yml` — UPDATE — npm publish job for `@mpilot/mcp` with provenance enabled
 
 ---
 
@@ -30,7 +30,7 @@
 
 ```
 Given the package is built
-When `pnpm --filter @concierge-mantle/mcp build && head -1 packages/mcp/dist/stdio.js` runs
+When `pnpm --filter @mpilot/mcp build && head -1 packages/mcp/dist/stdio.js` runs
 Then output is "#!/usr/bin/env node"
 
 Given the package is `npm pack`ed
@@ -46,12 +46,12 @@ When the bin starts
 Then it logs to STDERR a clear error message "Set one of ANTHROPIC_API_KEY / OPENAI_API_KEY / ... or configure AI_MODEL" AND exits with code 2
 
 Given a smoke test
-When `claude mcp add concierge -- npx -y @concierge-mantle/mcp@<published-version>` runs in a clean shell with ANTHROPIC_API_KEY set
+When `claude mcp add concierge -- npx -y @mpilot/mcp@<published-version>` runs in a clean shell with ANTHROPIC_API_KEY set
 Then Claude Code reports the server is connected AND `claude mcp list` shows "concierge: connected"
 
 Given the publish CI runs
 When `gh workflow run publish-packages.yml` is triggered against a tag
-Then `npm view @concierge-mantle/mcp version` returns the tag version within 2 minutes
+Then `npm view @mpilot/mcp version` returns the tag version within 2 minutes
 ```
 
 ---
@@ -70,7 +70,7 @@ node -e "
   if (p.type !== 'module') process.exit(3);
 "
 
-pnpm --filter @concierge-mantle/mcp build
+pnpm --filter @mpilot/mcp build
 
 # Shebang on bin output
 head -1 packages/mcp/dist/stdio.js | grep -q "^#!/usr/bin/env node"

@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import type { Queue } from 'bullmq';
 import { assertAgentId } from './agentId.ts';
 
@@ -29,7 +29,7 @@ export async function scheduleAgentTicks(
   if (!Number.isFinite(opts.cadenceMs) || opts.cadenceMs < MIN_CADENCE_MS) {
     throw new ConciergeError(
       'InvariantViolation',
-      `[@concierge-mantle/worker] scheduleAgentTicks: cadenceMs must be finite and >= ${MIN_CADENCE_MS}.`,
+      `[@mpilot/worker] scheduleAgentTicks: cadenceMs must be finite and >= ${MIN_CADENCE_MS}.`,
     );
   }
   const key = `tick-${opts.agentId}`;

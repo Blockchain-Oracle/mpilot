@@ -85,7 +85,7 @@ function send(...) external payable;
 
 ## Integration pattern for Concierge
 
-### Package: `@concierge-mantle/meth-staking`
+### Package: `@mpilot/meth-staking`
 Action provider scope = **Mantle-side only** (Ethereum L1 path is out of MVP scope; recommend cross-chain via Li.Fi for users who want to mint fresh):
 - `actions.acquire({amountWETH, slippageBps})` — DEX-swap WETH → mETH on Mantle.
 - `actions.divest({amountMETH, slippageBps})` — DEX-swap mETH → WETH on Mantle.

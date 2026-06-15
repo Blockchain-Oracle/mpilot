@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/erc8004` integration tests
+# Story — `@mpilot/erc8004` integration tests
 
 **ID:** story-43-erc8004-tests
 **Epic:** Epic E3 — Action Providers
@@ -35,7 +35,7 @@
 
 ```
 Given Vitest is configured
-When `pnpm --filter @concierge-mantle/erc8004 run test` runs
+When `pnpm --filter @mpilot/erc8004 run test` runs
 Then exit code is 0 AND ≥ 22 test cases pass
 
 Given test_provider_ResolvesSepolia
@@ -99,7 +99,7 @@ When `pnpm scripts/check-file-loc.mjs` runs
 Then every test file ≤ 400 LOC
 
 Given coverage
-When `pnpm --filter @concierge-mantle/erc8004 run test --coverage` runs
+When `pnpm --filter @mpilot/erc8004 run test --coverage` runs
 Then line coverage on `src/` ≥ 90% (high bar because attestation is the wedge's load-bearing primitive)
 ```
 
@@ -108,18 +108,18 @@ Then line coverage on `src/` ≥ 90% (high bar because attestation is the wedge'
 ## Shell verification
 
 ```bash
-pnpm --filter @concierge-mantle/erc8004 run test --reporter=verbose
+pnpm --filter @mpilot/erc8004 run test --reporter=verbose
 test $? -eq 0
 
-pnpm --filter @concierge-mantle/erc8004 run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 22 {exit 0} {exit 1}'
+pnpm --filter @mpilot/erc8004 run test --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 22 {exit 0} {exit 1}'
 
 # Critical load-bearing tests present
 for tn in "HashDeterminism" "schemaIdFor_Deterministic" "AgainstNonExistentAgent" "ResolvesSepolia" "ResolvesMainnet"; do
-  pnpm --filter @concierge-mantle/erc8004 run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
+  pnpm --filter @mpilot/erc8004 run test --reporter=verbose 2>&1 | grep "$tn" | grep -q "✓" || { echo "missing $tn"; exit 1; }
 done
 
 # Coverage ≥ 90%
-cov=$(pnpm --filter @concierge-mantle/erc8004 run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
+cov=$(pnpm --filter @mpilot/erc8004 run test --coverage 2>&1 | grep "All files" | awk '{print $4}' | tr -d '%')
 test "${cov%.*}" -ge 90
 
 bun scripts/check-file-loc.mjs

@@ -1,4 +1,4 @@
-import type { LoadAgentHistoryDeps } from '@concierge-mantle/attestation';
+import type { LoadAgentHistoryDeps } from '@mpilot/attestation';
 
 /**
  * Deps the read-tool factory needs. Kept narrow — the factory injects ONLY
@@ -12,7 +12,7 @@ export interface CreateReadToolsDeps {
   readonly identityRegistry: {
     readonly getOwner: (agentId: bigint) => Promise<string>;
   };
-  /** Reads on-chain feedback (typically from `@concierge-mantle/erc8004`). */
+  /** Reads on-chain feedback (typically from `@mpilot/erc8004`). */
   readonly readFeedback: LoadAgentHistoryDeps['readFeedback'];
   /** IPFS gateway for fetching envelope payloads. */
   readonly ipfs: LoadAgentHistoryDeps['ipfs'];

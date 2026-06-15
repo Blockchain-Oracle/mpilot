@@ -16,9 +16,9 @@
  */
 
 /** Tick phases that participate in the in-loop orchestrator. Duplicated from
- * `@concierge-mantle/agent` to keep `shared` cycle-free (agent depends on
+ * `@mpilot/agent` to keep `shared` cycle-free (agent depends on
  * shared via the SDK; shared cannot depend on agent). The two lists must stay
- * in sync — see also `ORCHESTRATED_PHASES` in `@concierge-mantle/agent/types`. */
+ * in sync — see also `ORCHESTRATED_PHASES` in `@mpilot/agent/types`. */
 export type OrchestratedPhase = 'plan' | 'simulate' | 'propose' | 'execute' | 'record';
 
 import type { Hex } from 'viem';

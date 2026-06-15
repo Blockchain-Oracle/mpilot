@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { http } from 'viem';
 import {
   type PaymasterClient,
@@ -38,14 +38,14 @@ export function createPaymasterClient(config: CreatePaymasterClientConfig): Paym
   if (!apiKey) {
     throw new ConciergeError(
       'ConfigError',
-      "[@concierge-mantle/smart-account] createPaymasterClient: MissingEnvVar('PIMLICO_API_KEY') — set this env var before creating a paymaster client.",
+      "[@mpilot/smart-account] createPaymasterClient: MissingEnvVar('PIMLICO_API_KEY') — set this env var before creating a paymaster client.",
     );
   }
   const chainConfig = CHAIN_CONFIGS[config.chain];
   if (!chainConfig) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/smart-account] createPaymasterClient: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
+      `[@mpilot/smart-account] createPaymasterClient: UnsupportedChain('${config.chain}') — supported: ${Object.keys(CHAIN_CONFIGS).join(', ')}`,
     );
   }
   const paymasterUrl = `${chainConfig.bundlerBaseUrl}?apikey=${encodeURIComponent(apiKey)}`;
@@ -54,7 +54,7 @@ export function createPaymasterClient(config: CreatePaymasterClientConfig): Paym
   } catch (err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/smart-account] createPaymasterClient: paymaster transport init failed (chain: '${config.chain}')`,
+      `[@mpilot/smart-account] createPaymasterClient: paymaster transport init failed (chain: '${config.chain}')`,
       sanitizeCause(err, apiKey),
     );
   }

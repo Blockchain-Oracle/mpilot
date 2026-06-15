@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { reputationRegistryAbi } from '@concierge-mantle/shared/abi';
-import { tool } from '@concierge-mantle/tools';
+import { ConciergeError } from '@mpilot/sdk';
+import { reputationRegistryAbi } from '@mpilot/shared/abi';
+import { tool } from '@mpilot/tools';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 
@@ -52,7 +52,7 @@ async function fetchRevokedIndexes(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/erc8004] readFeedback: FeedbackRevoked fetch failed for agent ${agentId}`,
+        `[@mpilot/erc8004] readFeedback: FeedbackRevoked fetch failed for agent ${agentId}`,
         err,
       );
     });
@@ -61,7 +61,7 @@ async function fetchRevokedIndexes(
       if (log.args.feedbackIndex === undefined) {
         throw new ConciergeError(
           'RpcError',
-          `[@concierge-mantle/erc8004] readFeedback: FeedbackRevoked log missing feedbackIndex — ABI mismatch for agent ${agentId}`,
+          `[@mpilot/erc8004] readFeedback: FeedbackRevoked log missing feedbackIndex — ABI mismatch for agent ${agentId}`,
         );
       }
       return log.args.feedbackIndex;
@@ -89,7 +89,7 @@ export async function executeReadFeedback(
     .catch((err: unknown) => {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/erc8004] readFeedback: getContractEvents failed for agent ${input.agentId}`,
+        `[@mpilot/erc8004] readFeedback: getContractEvents failed for agent ${input.agentId}`,
         err,
       );
     });

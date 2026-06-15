@@ -8,5 +8,5 @@ export default defineConfig({
   clean: true,
   target: 'node22',
   tsconfig: 'tsconfig.build.json',
-  external: ['zod', '@concierge-mantle/tools', '@coinbase/agentkit'],
+  external: ['zod', '@mpilot/tools', '@coinbase/agentkit'],
 });

@@ -11,7 +11,7 @@
 ## User story
 
 **As a** Concierge maintainer about to deploy contracts to Mantle Mainnet
-**I want to** a step-by-step runbook covers: pre-deploy checks (CI green, audit findings closed, gas funding), the exact `forge script` command, post-deploy verification (Mantlescan source verification, on-chain `cast call` round-trip), addresses publication to `@concierge-mantle/shared`, rollback procedure
+**I want to** a step-by-step runbook covers: pre-deploy checks (CI green, audit findings closed, gas funding), the exact `forge script` command, post-deploy verification (Mantlescan source verification, on-chain `cast call` round-trip), addresses publication to `@mpilot/shared`, rollback procedure
 **So that** the Mainnet deploy is reproducible by ANYONE on the team (or a future maintainer) and the deploy itself is the LEAST risky moment of the hackathon
 
 ---

@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { identityRegistryAbi } from '@concierge-mantle/shared/abi';
-import { tool } from '@concierge-mantle/tools';
+import { ConciergeError } from '@mpilot/sdk';
+import { identityRegistryAbi } from '@mpilot/shared/abi';
+import { tool } from '@mpilot/tools';
 import {
   AbiEventSignatureEmptyTopicsError,
   AbiEventSignatureNotFoundError,
@@ -54,7 +54,7 @@ function findMintAgentId(
         continue;
       throw new ConciergeError(
         'RpcError',
-        '[@concierge-mantle/erc8004] registerAgent: unexpected error decoding IdentityRegistry log',
+        '[@mpilot/erc8004] registerAgent: unexpected error decoding IdentityRegistry log',
         err,
       );
     }
@@ -69,7 +69,7 @@ export async function executeRegisterAgent(
   if (!ctx.walletClient) {
     throw new ConciergeError(
       'ConfigError',
-      '[@concierge-mantle/erc8004] registerAgent: walletClient is required',
+      '[@mpilot/erc8004] registerAgent: walletClient is required',
     );
   }
 
@@ -86,7 +86,7 @@ export async function executeRegisterAgent(
     const msg = err instanceof Error ? err.message : String(err);
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/erc8004] registerAgent: register() failed — ${msg}`,
+      `[@mpilot/erc8004] registerAgent: register() failed — ${msg}`,
       err,
     );
   }
@@ -97,7 +97,7 @@ export async function executeRegisterAgent(
     } catch (err) {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/erc8004] registerAgent: waitForTransactionReceipt failed — ${txHash}`,
+        `[@mpilot/erc8004] registerAgent: waitForTransactionReceipt failed — ${txHash}`,
         err,
       );
     }
@@ -106,7 +106,7 @@ export async function executeRegisterAgent(
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/erc8004] registerAgent: transaction reverted — ${txHash}`,
+      `[@mpilot/erc8004] registerAgent: transaction reverted — ${txHash}`,
     );
   }
 
@@ -114,7 +114,7 @@ export async function executeRegisterAgent(
   if (agentId === undefined) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/erc8004] registerAgent: no Transfer mint event found in receipt ${txHash} — the register() call may have reverted silently`,
+      `[@mpilot/erc8004] registerAgent: no Transfer mint event found in receipt ${txHash} — the register() call may have reverted silently`,
     );
   }
   return { agentId: agentId.toString(), txHash };

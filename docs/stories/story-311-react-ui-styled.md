@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/react-ui` styled drop-in cards
+# Story — `@mpilot/react-ui` styled drop-in cards
 
 **ID:** story-311-react-ui-styled
 **Epic:** Epic E14 — Composable UI
@@ -11,15 +11,15 @@
 ## User story
 
 **As a** developer who wants Concierge's official look-and-feel
-**I want to** `pnpm add @concierge-mantle/react-ui` and drop `<TickCard />`, `<ProposalCard />`, `<PortfolioCard />` etc. into my app, styled with Concierge brand tokens
+**I want to** `pnpm add @mpilot/react-ui` and drop `<TickCard />`, `<ProposalCard />`, `<PortfolioCard />` etc. into my app, styled with Concierge brand tokens
 **So that** I get the canonical Concierge visual without owning the source
 
 ---
 
 ## File modification map
 
-- `packages/react-ui/package.json` — NEW — ESM-only per ADR-018; peer deps on `react`, `react-dom`, `@concierge-mantle/react`, `tailwindcss ^4`; runtime deps on `@concierge-mantle/ui` (brand tokens), Radix primitives, `class-variance-authority`, `lucide-react`
-- `packages/react-ui/src/TickCard.tsx` — NEW — composes `<TickPart>` from `@concierge-mantle/react`; renders the 12 lifecycle states from `08-ux-component-intent.md` § TickCard
+- `packages/react-ui/package.json` — NEW — ESM-only per ADR-018; peer deps on `react`, `react-dom`, `@mpilot/react`, `tailwindcss ^4`; runtime deps on `@mpilot/ui` (brand tokens), Radix primitives, `class-variance-authority`, `lucide-react`
+- `packages/react-ui/src/TickCard.tsx` — NEW — composes `<TickPart>` from `@mpilot/react`; renders the 12 lifecycle states from `08-ux-component-intent.md` § TickCard
 - `packages/react-ui/src/ProposalCard.tsx` — NEW — composes `<ProposalPart>`; Approve/Reject/Edit buttons; uses `addToolOutput` for client-side tool callback
 - `packages/react-ui/src/PortfolioCard.tsx` — NEW — composes `<PortfolioPart>`; per-position rows; HealthFactorGauge
 - `packages/react-ui/src/ReputationChart.tsx` — NEW — composes `<ReputationPart>`; time series via Recharts (or equiv)
@@ -77,7 +77,7 @@ When axe-core runs against each component
 Then 0 violations (WCAG AA)
 
 Given Storybook builds
-When `pnpm --filter @concierge-mantle/react-ui storybook:build` runs
+When `pnpm --filter @mpilot/react-ui storybook:build` runs
 Then exit 0 AND at least 12 stories are present
 ```
 
@@ -90,11 +90,11 @@ for f in TickCard ProposalCard PortfolioCard ReputationChart EmergencyStop GoalI
   test -f packages/react-ui/src/${f}.tsx || { echo "missing: $f"; exit 1; }
 done
 
-# Peer deps shape — @concierge-mantle/react MUST be peer (not runtime)
+# Peer deps shape — @mpilot/react MUST be peer (not runtime)
 node -e "
   const p = require('./packages/react-ui/package.json');
-  if (p.dependencies?.['@concierge-mantle/react']) process.exit(1);
-  if (!p.peerDependencies?.['@concierge-mantle/react']) process.exit(2);
+  if (p.dependencies?.['@mpilot/react']) process.exit(1);
+  if (!p.peerDependencies?.['@mpilot/react']) process.exit(2);
 "
 
 # Anti-regression: no banned slop patterns
@@ -106,9 +106,9 @@ node -e "
 ! node -e "const p = require('./packages/react-ui/package.json'); if (p.dependencies?.['@assistant-ui/tool-ui']) process.exit(1); if (p.devDependencies?.['@assistant-ui/tool-ui']) process.exit(2);"
 
 # Accessibility check via axe
-pnpm --filter @concierge-mantle/react-ui test:a11y 2>&1 | grep -q "0 violations"
+pnpm --filter @mpilot/react-ui test:a11y 2>&1 | grep -q "0 violations"
 
-pnpm --filter @concierge-mantle/react-ui build
+pnpm --filter @mpilot/react-ui build
 ```
 
 ---
@@ -116,10 +116,10 @@ pnpm --filter @concierge-mantle/react-ui build
 ## Notes for coding agent
 
 - **DESIGN REFERENCE — `@assistant-ui/tool-ui`** patterns (schema-driven, lifecycle-aware, parse-then-render, mobile-first, accessibility built in). NOT a runtime dependency. We compose Radix + shadcn primitives directly (same building blocks). MIT — attribute if any code patterns borrowed verbatim.
-- **Per-card schema gating** (per ADR-014): every card calls `safeParseSerializableXxx(part.output)` (from `@concierge-mantle/react` which inherits from `@concierge-mantle/tools`) before rendering content. On parse fail → error region.
+- **Per-card schema gating** (per ADR-014): every card calls `safeParseSerializableXxx(part.output)` (from `@mpilot/react` which inherits from `@mpilot/tools`) before rendering content. On parse fail → error region.
 - **The 12 TickCard lifecycle states** are spec'd verbatim in `research/concierge/08-ux-component-intent.md` § TickCard. Implement ALL 12: pending / planning / simulating / proposing / awaiting-approval / auto-approved / executing / confirmed / attesting / attested / failed-simulation / failed-execution / rejected-by-user.
 - **Status pill animation**: FLIP technique for state morphs, 250ms ease-out. Never bouncy. `prefers-reduced-motion` = instant.
-- **Brand tokens** come from `@concierge-mantle/ui` (the brand-token-only package). Designer agent populates that; this story just CONSUMES the tokens.
+- **Brand tokens** come from `@mpilot/ui` (the brand-token-only package). Designer agent populates that; this story just CONSUMES the tokens.
 - **Web-app dogfood requirement** (per ADR-015): `apps/web/app/app/*` MUST consume these components. story-212 wires that up.
 - **Anti-slop banned patterns** apply (architecture.md banned list): no purple-to-pink gradients, no text-gray-600 on white, no font-sans w/o explicit import.
 - Cross-ref: ADR-013, ADR-015, ADR-017 (Rail 1), `08-ux-component-intent.md`, `09-tracks-and-judges.md` (UI/UX track criteria).

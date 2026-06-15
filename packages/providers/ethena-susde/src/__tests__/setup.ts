@@ -3,7 +3,7 @@
 
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import type { Address } from '@concierge-mantle/shared';
+import type { Address } from '@mpilot/shared';
 import {
   type Chain,
   createPublicClient,

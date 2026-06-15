@@ -76,7 +76,7 @@ describe('claimRewards action', () => {
   });
 
   it('throws NetworkUnsupported when incentivesController is not configured', async () => {
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
 
     // Anvil chainId=31337 — provider leaves incentivesControllerAddress=undefined unless passed.
     const provider = createAaveV3MantleProvider({
@@ -94,7 +94,7 @@ describe('claimRewards action', () => {
   });
 
   it('throws ConfigError when no walletClient is provided', async () => {
-    const { ConciergeError } = await import('@concierge-mantle/sdk');
+    const { ConciergeError } = await import('@mpilot/sdk');
 
     const provider = createAaveV3MantleProvider({
       publicClient: anvil.publicClient,

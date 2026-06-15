@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address } from '@mpilot/shared';
 import type { PublicClient, WalletClient } from 'viem';
 import { BaseError, ContractFunctionRevertedError, parseAbi } from 'viem';
 import type {
@@ -51,7 +51,7 @@ export function createMerchantMoeVenue(
     if (!walletClient) {
       throw new ConciergeError(
         'ConfigError',
-        '[@concierge-mantle/mantle-dex] merchantMoe.swap: walletClient required',
+        '[@mpilot/mantle-dex] merchantMoe.swap: walletClient required',
       );
     }
     const { tokenIn, tokenOut, amountIn, amountOutMin, recipient, account, deadline } = params;
@@ -71,7 +71,7 @@ export function createMerchantMoeVenue(
         ) {
           throw new ConciergeError(
             'InsufficientLiquidity',
-            `[@concierge-mantle/mantle-dex] merchantMoe.swap: no route at execution time for ${tokenIn} → ${tokenOut}`,
+            `[@mpilot/mantle-dex] merchantMoe.swap: no route at execution time for ${tokenIn} → ${tokenOut}`,
           );
         }
         throw err;
@@ -102,7 +102,7 @@ export function createMerchantMoeVenue(
     if (receipt.status === 'reverted') {
       throw new ConciergeError(
         'RpcError',
-        `[@concierge-mantle/mantle-dex] merchantMoe.swap: tx ${txHash} reverted`,
+        `[@mpilot/mantle-dex] merchantMoe.swap: tx ${txHash} reverted`,
       );
     }
 

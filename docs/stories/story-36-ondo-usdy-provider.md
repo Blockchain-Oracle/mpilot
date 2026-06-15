@@ -1,4 +1,4 @@
-# Story — `@concierge-mantle/ondo-usdy` action provider (read-only v1)
+# Story — `@mpilot/ondo-usdy` action provider (read-only v1)
 
 **ID:** story-36-ondo-usdy-provider
 **Epic:** Epic E3 — Action Providers
@@ -11,7 +11,7 @@
 ## User story
 
 **As a** Concierge agent runtime
-**I want to** an `@concierge-mantle/ondo-usdy` package exposes read-only actions (`getBalance`, `getRateAccrual`, `getYieldRate`) against the Ondo USDY token on Mantle, plus a `getEligibilityStatus` selector for the KYC-gating mechanic
+**I want to** an `@mpilot/ondo-usdy` package exposes read-only actions (`getBalance`, `getRateAccrual`, `getYieldRate`) against the Ondo USDY token on Mantle, plus a `getEligibilityStatus` selector for the KYC-gating mechanic
 **So that** the agent can monitor user-held USDY positions + accrued yield without trying to mint/redeem (which requires KYC + happens off-chain via Ondo's portal, NOT on-chain)
 
 ---
@@ -33,7 +33,7 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge-mantle/ondo-usdy run build` runs
+When `pnpm --filter @mpilot/ondo-usdy run build` runs
 Then exit code is 0
 
 Given the provider has read-only actions only (per v1 scope)
@@ -85,7 +85,7 @@ test -f src/selectors.ts
 
 cd ../../..
 
-pnpm --filter @concierge-mantle/ondo-usdy run build
+pnpm --filter @mpilot/ondo-usdy run build
 test $? -eq 0
 pnpm run typecheck
 

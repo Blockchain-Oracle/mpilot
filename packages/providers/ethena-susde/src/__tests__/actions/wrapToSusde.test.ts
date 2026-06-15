@@ -4,8 +4,8 @@
 // Fork note: WooFi on Mantle mainnet does NOT have a USDe/sUSDe pool as of fork date.
 // The fork test verifies the error path. Happy-path tests use a mocked publicClient to
 // simulate WooFi having liquidity, covering the full action code path.
-import { ConciergeError } from '@concierge-mantle/sdk';
-import { ADDRESSES } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import { ADDRESSES } from '@mpilot/shared';
 import { createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';

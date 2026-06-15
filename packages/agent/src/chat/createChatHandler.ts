@@ -1,6 +1,6 @@
 import type { LanguageModelV2 } from '@ai-sdk/provider';
-import type { ConciergeAgentLike, ProviderToolFactory } from '@concierge-mantle/tools';
-import { getVercelAITools } from '@concierge-mantle/vercel-ai';
+import type { ConciergeAgentLike, ProviderToolFactory } from '@mpilot/tools';
+import { getVercelAITools } from '@mpilot/vercel-ai';
 import {
   consumeStream,
   convertToModelMessages,
@@ -50,7 +50,7 @@ export interface CreateChatHandlerDeps {
   readonly model: LanguageModelV2;
   /** Concierge runtime context — supplies `chainId` for tool gating. */
   readonly agent: ConciergeAgentLike;
-  /** Provider tool factories from each `@concierge-mantle/<provider>` package. */
+  /** Provider tool factories from each `@mpilot/<provider>` package. */
   readonly providerToolFactories?: ReadonlyArray<ProviderToolFactory>;
   /**
    * Per-request system-prompt context provider. Called on EVERY request so

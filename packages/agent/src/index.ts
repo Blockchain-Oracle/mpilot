@@ -1,4 +1,4 @@
-// Re-export UI-facing types from @concierge-mantle/shared so agent consumers
+// Re-export UI-facing types from @mpilot/shared so agent consumers
 // (worker, SDK) get them via the agent barrel without depending on shared
 // directly. The types LIVE in shared because the SDK also re-exports them and
 // `agent → sdk → agent` would be a build cycle.
@@ -15,7 +15,7 @@ export {
   TICK_PHASE_TO_ORCHESTRATED_PHASE,
   type TickActionData,
   type TickUpdateEnvelope,
-} from '@concierge-mantle/shared';
+} from '@mpilot/shared';
 export {
   type AuthGate,
   type CreateChatHandlerDeps,

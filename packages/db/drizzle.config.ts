@@ -4,7 +4,7 @@ import { defineConfig } from 'drizzle-kit';
 const databaseUrl = process.env['DATABASE_URL'];
 if (!databaseUrl) {
   throw new Error(
-    '[@concierge-mantle/db] drizzle.config.ts: DATABASE_URL is required. Set it before running drizzle-kit (e.g. DATABASE_URL=postgresql://localhost:5432/concierge_dev pnpm db:generate).',
+    '[@mpilot/db] drizzle.config.ts: DATABASE_URL is required. Set it before running drizzle-kit (e.g. DATABASE_URL=postgresql://localhost:5432/concierge_dev pnpm db:generate).',
   );
 }
 

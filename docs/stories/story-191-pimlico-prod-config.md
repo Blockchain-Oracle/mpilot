@@ -72,7 +72,7 @@ test -f apps/worker/src/config/pimlico.ts
 test -f scripts/pimlico-alert-test.sh
 test -f apps/worker/src/monitor/pimlico-metrics.ts
 
-pnpm --filter @concierge-mantle/worker run build
+pnpm --filter @mpilot/worker run build
 test $? -eq 0
 
 # Sepolia sponsorship + Mainnet no-sponsorship guard
@@ -81,7 +81,7 @@ grep -q "5000" apps/worker/src/config/pimlico.ts
 grep -qE "(PaymasterNotAllowed|paymaster.*none)" apps/worker/src/config/pimlico.ts
 
 # Tests pass
-pnpm --filter @concierge-mantle/worker run test 2>&1 | grep "pimlico-config" | grep -q "PASS"
+pnpm --filter @mpilot/worker run test 2>&1 | grep "pimlico-config" | grep -q "PASS"
 
 bun scripts/check-file-loc.mjs
 ```

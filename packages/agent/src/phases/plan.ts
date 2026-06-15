@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { generateText, type LanguageModel, stepCountIs, type ToolSet } from 'ai';
 import { sanitizeError, sanitizeMessage } from '../sanitize.ts';
 import type { AgentState, PhaseOutcome, Plan } from '../types.ts';
@@ -60,7 +60,7 @@ export async function runPlan(
   if (state.goal.length > MAX_GOAL_CHARS) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/agent] runPlan: state.goal exceeds ${MAX_GOAL_CHARS} chars (got ${state.goal.length}). Cap upstream.`,
+      `[@mpilot/agent] runPlan: state.goal exceeds ${MAX_GOAL_CHARS} chars (got ${state.goal.length}). Cap upstream.`,
     );
   }
 
@@ -80,7 +80,7 @@ export async function runPlan(
   } catch (err) {
     throw new ConciergeError(
       'LlmCallFailed',
-      `[@concierge-mantle/agent] runPlan: LLM call failed: ${sanitizeError(err).message}`,
+      `[@mpilot/agent] runPlan: LLM call failed: ${sanitizeError(err).message}`,
       sanitizeError(err),
     );
   }
@@ -90,7 +90,7 @@ export async function runPlan(
   if (result.finishReason === 'error') {
     throw new ConciergeError(
       'LlmCallFailed',
-      `[@concierge-mantle/agent] runPlan: model returned finishReason='error'.`,
+      `[@mpilot/agent] runPlan: model returned finishReason='error'.`,
       undefined,
       { finishReason: 'error' },
     );
@@ -103,7 +103,7 @@ export async function runPlan(
   if (text === '' || result.finishReason !== 'stop') {
     throw new ConciergeError(
       'PlanIncomplete',
-      `[@concierge-mantle/agent] runPlan: no usable final text (finishReason='${result.finishReason}', textLen=${text.length}).`,
+      `[@mpilot/agent] runPlan: no usable final text (finishReason='${result.finishReason}', textLen=${text.length}).`,
       undefined,
       {
         finishReason: result.finishReason,
@@ -122,7 +122,7 @@ export async function runPlan(
   } catch (jsonErr) {
     throw new ConciergeError(
       'PlanSchemaViolation',
-      `[@concierge-mantle/agent] runPlan: model output was not valid JSON.`,
+      `[@mpilot/agent] runPlan: model output was not valid JSON.`,
       sanitizeError(jsonErr),
       { rawOutput: safeRawSlice, rootShape: 'invalid-json' },
     );
@@ -132,7 +132,7 @@ export async function runPlan(
   if (parsedJson === null || typeof parsedJson !== 'object' || Array.isArray(parsedJson)) {
     throw new ConciergeError(
       'PlanSchemaViolation',
-      `[@concierge-mantle/agent] runPlan: model output root is not a plain object.`,
+      `[@mpilot/agent] runPlan: model output root is not a plain object.`,
       undefined,
       { rawOutput: safeRawSlice, rootShape: parsedJson === null ? 'null' : typeof parsedJson },
     );
@@ -142,7 +142,7 @@ export async function runPlan(
   if (!parsed.success) {
     throw new ConciergeError(
       'PlanSchemaViolation',
-      `[@concierge-mantle/agent] runPlan: model output failed Zod validation.`,
+      `[@mpilot/agent] runPlan: model output failed Zod validation.`,
       undefined,
       { rawOutput: safeRawSlice, zodIssues: parsed.error.issues, rootShape: 'object' },
     );

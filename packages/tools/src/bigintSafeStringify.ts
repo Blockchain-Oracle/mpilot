@@ -59,7 +59,7 @@ export function bigintSafeStringify(value: unknown, space?: number | string): st
     isThenable(value)
   ) {
     throw new TypeError(
-      `[@concierge-mantle/tools] bigintSafeStringify: top-level ${typeof value === 'object' ? 'thenable/Promise' : typeof value} is not serializable (violates :string contract)`,
+      `[@mpilot/tools] bigintSafeStringify: top-level ${typeof value === 'object' ? 'thenable/Promise' : typeof value} is not serializable (violates :string contract)`,
     );
   }
 
@@ -81,12 +81,12 @@ export function bigintSafeStringify(value: unknown, space?: number | string): st
         if (v !== root) {
           if (typeof v === 'function' || typeof v === 'symbol' || isThenable(v)) {
             throw new TypeError(
-              `[@concierge-mantle/tools] bigintSafeStringify: non-serializable nested ${typeof v === 'object' ? 'thenable/Promise' : typeof v} at .${String(key)} (forgot to await?)`,
+              `[@mpilot/tools] bigintSafeStringify: non-serializable nested ${typeof v === 'object' ? 'thenable/Promise' : typeof v} at .${String(key)} (forgot to await?)`,
             );
           }
           if (v instanceof WeakMap || v instanceof WeakSet) {
             throw new TypeError(
-              `[@concierge-mantle/tools] bigintSafeStringify: nested WeakMap/WeakSet at .${String(key)} is not serializable`,
+              `[@mpilot/tools] bigintSafeStringify: nested WeakMap/WeakSet at .${String(key)} is not serializable`,
             );
           }
         }
@@ -96,11 +96,11 @@ export function bigintSafeStringify(value: unknown, space?: number | string): st
     );
   } catch (cause) {
     // Pass our typed errors through untouched (already decorated).
-    if (cause instanceof TypeError && /\[@concierge-mantle\/tools\]/.test(cause.message)) {
+    if (cause instanceof TypeError && /\[@mpilot\/tools\]/.test(cause.message)) {
       throw cause;
     }
     const msg = cause instanceof Error ? cause.message : String(cause);
-    throw new Error(`[@concierge-mantle/tools] bigintSafeStringify: ${msg}`, { cause });
+    throw new Error(`[@mpilot/tools] bigintSafeStringify: ${msg}`, { cause });
   }
   // Post-stringify guard: JSON.stringify can return the literal `undefined`
   // value (not a string) when the root's `toJSON()` returns undefined — the
@@ -111,7 +111,7 @@ export function bigintSafeStringify(value: unknown, space?: number | string): st
   // bigintSafeStringify.test.ts under "post-stringify guard".
   if (typeof result !== 'string') {
     throw new TypeError(
-      `[@concierge-mantle/tools] bigintSafeStringify: JSON.stringify returned non-string (${typeof result})`,
+      `[@mpilot/tools] bigintSafeStringify: JSON.stringify returned non-string (${typeof result})`,
     );
   }
   return result;

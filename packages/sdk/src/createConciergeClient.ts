@@ -13,7 +13,7 @@
  * native `EventSource` constructor — Edge and Node 18+ both ship it.
  */
 
-import { type TickUpdateEnvelope, tickUpdateEnvelopeSchema } from '@concierge-mantle/shared';
+import { type TickUpdateEnvelope, tickUpdateEnvelopeSchema } from '@mpilot/shared';
 import {
   agentShareUrl,
   attestationIpfsUrl,

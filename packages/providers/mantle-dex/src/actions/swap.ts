@@ -1,6 +1,6 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address, Hex } from '@concierge-mantle/shared';
-import { tool } from '@concierge-mantle/tools';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address, Hex } from '@mpilot/shared';
+import { tool } from '@mpilot/tools';
 import { parseAbi } from 'viem';
 import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
@@ -73,7 +73,7 @@ async function ensureApproval(
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/mantle-dex] swap: ERC-20 approve failed for token ${token}`,
+      `[@mpilot/mantle-dex] swap: ERC-20 approve failed for token ${token}`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -83,14 +83,14 @@ async function ensureApproval(
   } catch (err) {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/mantle-dex] swap: timed out waiting for approve tx ${approveHash}`,
+      `[@mpilot/mantle-dex] swap: timed out waiting for approve tx ${approveHash}`,
       err instanceof Error ? err : undefined,
     );
   }
   if (receipt.status === 'reverted') {
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/mantle-dex] swap: approve tx ${approveHash} reverted`,
+      `[@mpilot/mantle-dex] swap: approve tx ${approveHash} reverted`,
     );
   }
 }
@@ -114,7 +114,7 @@ export async function executeSwap(
     const venueName = venues[i]?.name ?? `venue[${i}]`;
     if (s.status === 'rejected') {
       // Log but don't throw — one venue failure should not block others.
-      console.error(`[@concierge-mantle/mantle-dex] swap: ${venueName} quote rejected:`, s.reason);
+      console.error(`[@mpilot/mantle-dex] swap: ${venueName} quote rejected:`, s.reason);
     } else if (s.value !== null) {
       quotes.push(s.value);
     }
@@ -123,7 +123,7 @@ export async function executeSwap(
   if (quotes.length === 0) {
     throw new ConciergeError(
       'InsufficientLiquidity',
-      `[@concierge-mantle/mantle-dex] swap: no venue has a route for ${tokenIn} → ${tokenOut}`,
+      `[@mpilot/mantle-dex] swap: no venue has a route for ${tokenIn} → ${tokenOut}`,
     );
   }
 
@@ -134,7 +134,7 @@ export async function executeSwap(
   if (!bestQuote) {
     throw new ConciergeError(
       'InsufficientLiquidity',
-      '[@concierge-mantle/mantle-dex] swap: no quote results',
+      '[@mpilot/mantle-dex] swap: no quote results',
     );
   }
   const amountOutMin = (bestQuote.amountOut * BigInt(10_000 - slippageBps)) / 10_000n;
@@ -144,7 +144,7 @@ export async function executeSwap(
   if (!winningVenue) {
     throw new ConciergeError(
       'RpcError',
-      '[@concierge-mantle/mantle-dex] swap: internal error — venue not found',
+      '[@mpilot/mantle-dex] swap: internal error — venue not found',
     );
   }
 
@@ -176,7 +176,7 @@ export async function executeSwap(
     if (err instanceof ConciergeError) throw err;
     throw new ConciergeError(
       'RpcError',
-      `[@concierge-mantle/mantle-dex] swap: ${bestQuote.venue} execution failed`,
+      `[@mpilot/mantle-dex] swap: ${bestQuote.venue} execution failed`,
       err instanceof Error ? err : undefined,
     );
   }
@@ -184,7 +184,7 @@ export async function executeSwap(
   if (swapResult.amountOut < amountOutMin) {
     throw new ConciergeError(
       'SwapSlippageBreach',
-      `[@concierge-mantle/mantle-dex] swap: amountOut ${swapResult.amountOut} < amountOutMin ${amountOutMin}`,
+      `[@mpilot/mantle-dex] swap: amountOut ${swapResult.amountOut} < amountOutMin ${amountOutMin}`,
       undefined,
       {
         expected: bestQuote.amountOut.toString(),
@@ -211,7 +211,7 @@ export async function executeSwap(
     // Swap already committed — wrap Zod error so caller gets a typed ConciergeError with txHash.
     throw new ConciergeError(
       'AttestationFailed',
-      `[@concierge-mantle/mantle-dex] swap: attestation schema validation failed after swap ${swapResult.txHash}`,
+      `[@mpilot/mantle-dex] swap: attestation schema validation failed after swap ${swapResult.txHash}`,
       err instanceof Error ? err : undefined,
       { txHash: swapResult.txHash, venue: bestQuote.venue },
     );

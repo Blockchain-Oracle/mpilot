@@ -1,5 +1,5 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
-import type { Address, EvmChainId } from '@concierge-mantle/shared';
+import { ConciergeError } from '@mpilot/sdk';
+import type { Address, EvmChainId } from '@mpilot/shared';
 import type { PublicClient, WalletClient } from 'viem';
 
 export interface EthenaAddresses {
@@ -25,14 +25,14 @@ export async function requireWallet(
   if (!ctx.walletClient) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/ethena-susde] ${action}: walletClient is required for write operations.`,
+      `[@mpilot/ethena-susde] ${action}: walletClient is required for write operations.`,
     );
   }
   const maybeAccount = ctx.walletClient.account?.address;
   if (!maybeAccount) {
     throw new ConciergeError(
       'ConfigError',
-      `[@concierge-mantle/ethena-susde] ${action}: walletClient has no bound account. Pass an explicit account to createWalletClient({ account: privateKeyToAccount(...) }).`,
+      `[@mpilot/ethena-susde] ${action}: walletClient has no bound account. Pass an explicit account to createWalletClient({ account: privateKeyToAccount(...) }).`,
     );
   }
   return { walletClient: ctx.walletClient, account: maybeAccount };

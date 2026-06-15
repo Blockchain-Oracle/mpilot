@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import type { Job } from 'bullmq';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { DeadLetterQueue } from '../dlq.ts';

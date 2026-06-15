@@ -1,6 +1,6 @@
 'use client';
 
-import { mantleScanTxUrl } from '@concierge-mantle/sdk';
+import { mantleScanTxUrl } from '@mpilot/sdk';
 import { useState } from 'react';
 import { createPublicClient, http } from 'viem';
 import { mintConciergeIdentity } from '../../_lib/conciergeMint';

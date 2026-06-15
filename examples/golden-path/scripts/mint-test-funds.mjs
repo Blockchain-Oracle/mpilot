@@ -5,7 +5,7 @@
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { ADDRESSES } from '@concierge-mantle/shared';
+import { ADDRESSES } from '@mpilot/shared';
 import {
   createPublicClient,
   createWalletClient,

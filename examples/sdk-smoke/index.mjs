@@ -1,6 +1,6 @@
-import { ConciergeError, defaultModel } from '@concierge-mantle/sdk';
+import { ConciergeError, defaultModel } from '@mpilot/sdk';
 
-console.log('✓ @concierge-mantle/sdk imports OK');
+console.log('✓ @mpilot/sdk imports OK');
 console.log('  defaultModel typeof:', typeof defaultModel);
 console.log('  ConciergeError typeof:', typeof ConciergeError);
 try {

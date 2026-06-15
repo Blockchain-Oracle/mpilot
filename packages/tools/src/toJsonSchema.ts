@@ -22,7 +22,7 @@ function convert(
     return z.toJSONSchema(schema, { target: 'openapi-3.0' }) as Record<string, unknown>;
   } catch (cause) {
     throw new Error(
-      `[@concierge-mantle/tools] toJsonSchema: cannot convert ${field} for tool "${toolName}" — ${
+      `[@mpilot/tools] toJsonSchema: cannot convert ${field} for tool "${toolName}" — ${
         cause instanceof Error ? cause.message : String(cause)
       }. .transform() / z.custom() are not representable in JSON Schema.`,
       { cause },

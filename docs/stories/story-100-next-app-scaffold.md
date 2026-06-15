@@ -18,7 +18,7 @@
 
 ## File modification map
 
-- `apps/web/package.json` — NEW — Next.js 15, React 19, Tailwind v4, peer deps on `@concierge-mantle/sdk`, `@concierge-mantle/shared`, `@concierge-mantle/agent` (read-only types)
+- `apps/web/package.json` — NEW — Next.js 15, React 19, Tailwind v4, peer deps on `@mpilot/sdk`, `@mpilot/shared`, `@mpilot/agent` (read-only types)
 - `apps/web/next.config.ts` — NEW — config with React strict mode, image domains for IPFS gateways
 - `apps/web/tsconfig.json` — UPDATE (created in story-02) — extends base, adds Next.js plugin
 - `apps/web/app/layout.tsx` — NEW — root layout with shared providers (PrivyProvider, QueryClient, Theme)
@@ -41,11 +41,11 @@
 
 ```
 Given the package builds
-When `pnpm --filter @concierge-mantle/web run build` runs
+When `pnpm --filter @mpilot/web run build` runs
 Then exit code is 0 AND the build output exists at `apps/web/.next/`
 
 Given the dev server runs
-When `pnpm --filter @concierge-mantle/web dev` runs
+When `pnpm --filter @mpilot/web dev` runs
 Then it serves at http://localhost:3000 AND `curl http://localhost:3000` returns 200
 
 Given the routes are scaffolded
@@ -61,7 +61,7 @@ When `bunx shadcn add button` runs
 Then it succeeds and a `Button.tsx` file appears in `apps/web/components/ui/`
 
 Given typecheck
-When `pnpm --filter @concierge-mantle/web run typecheck` runs
+When `pnpm --filter @mpilot/web run typecheck` runs
 Then exit code is 0
 
 Given the Biome lint passes
@@ -96,7 +96,7 @@ test -f middleware.ts
 
 cd ../..
 
-pnpm --filter @concierge-mantle/web run build
+pnpm --filter @mpilot/web run build
 test $? -eq 0
 pnpm run typecheck
 

@@ -1,4 +1,4 @@
-import { ConciergeError } from '@concierge-mantle/sdk';
+import { ConciergeError } from '@mpilot/sdk';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { tick } from '../tick.ts';
 import type {

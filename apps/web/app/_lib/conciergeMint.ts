@@ -1,13 +1,13 @@
 /**
  * r2 — wires onboarding to the ERC-8004 identity mint via
- * `@concierge-mantle/erc8004`.
+ * `@mpilot/erc8004`.
  *
  * Reuses the kernel `walletClient` from the smart-account deploy step;
  * `registerAgent` sends the on-chain tx through the kernel client (so the
  * paymaster sponsors gas). Returns the minted `agentId` from the
  * `NewAgent` event so the UI can surface "Agent #N".
  */
-import { createErc8004Provider } from '@concierge-mantle/erc8004';
+import { createErc8004Provider } from '@mpilot/erc8004';
 import type { PublicClient, WalletClient } from 'viem';
 
 export interface MintArgs {
