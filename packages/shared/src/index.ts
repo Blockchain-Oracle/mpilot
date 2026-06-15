@@ -11,6 +11,9 @@ export {
   ZERO_ADDRESS,
 } from './addresses.ts';
 export { assertNumericChainId, chainFor, mantleMainnet, mantleSepolia } from './chains.ts';
+// UI-facing shapes consumed by the dashboard, MCP iframe cards, skill, docs.
+// Pure types + constants — no runtime deps. See file header for rationale.
+export { GOAL_EXAMPLES, type GoalChip, type GoalChipType } from './goalExamples.ts';
 export type {
   ActionKind,
   Address,
@@ -29,3 +32,14 @@ export {
   agentIdToJSON,
   isAgentId,
 } from './types.ts';
+export {
+  type ISO8601,
+  ORCHESTRATED_PHASE_OF,
+  type OrchestratedPhase as UIOrchestratedPhase,
+  type ProposalFields,
+  type RiskFlag,
+  type RiskSeverity,
+  type SimulationOutput,
+  type TickActionData,
+  type TickUpdateEnvelope,
+} from './uiTypes.ts';
