@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** end-to-end integration tests verify a full agent tick from BullMQ cron firing → plan → simulate → propose → execute → record → ERC-8004 attestation on-chain, against a Mantle Sepolia Anvil fork with a real Postgres test container and Redis
 **So that** the agent runtime's 6 phases compose correctly under realistic conditions before any tick fires on Mainnet
 

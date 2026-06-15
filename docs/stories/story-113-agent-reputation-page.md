@@ -10,9 +10,9 @@
 
 ## User story
 
-**As a** Mantle user, judge, or future agent considering whether to interact with this Concierge agent
+**As a** Mantle user, judge, or future agent considering whether to interact with this mPilot agent
 **I want to** the public page at `/agent/[id]` shows the full attestation history (every action ever taken, with IPFS payloads decoded, txHash links to Mantlescan, attestation CID links to IPFS gateway) — no auth required, browsable by anyone
-**So that** the verifiability claim is REAL: anyone can audit the agent's track record without trusting Concierge as a centralized authority
+**So that** the verifiability claim is REAL: anyone can audit the agent's track record without trusting mPilot as a centralized authority
 
 ---
 

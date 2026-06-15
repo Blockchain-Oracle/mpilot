@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user
+**As a** mPilot user
 **I want to** an `Emergency Stop` flow that (1) marks all my agent's session keys as revoked in Postgres, (2) submits an on-chain revocation tx so any in-flight UserOps with my session keys fail, and (3) halts the BullMQ cron worker for my agent
 **So that** if I suspect my session key is compromised or my agent is acting wrong, I can stop everything in one click
 

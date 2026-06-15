@@ -1,4 +1,4 @@
-# Concierge — Design Brief (Hackathon Submission Assets)
+# mPilot — Design Brief (Hackathon Submission Assets)
 
 > For: Designer. All deliverables in **SVG**. Brand colors are already known to you — not repeated here.
 > Prepared from verified codebase data (contract addresses, repo, deploy state) on 2026-06-15.
@@ -9,14 +9,14 @@
 
 | Field | Value |
 |---|---|
-| **Product name** | Concierge |
+| **Product name** | mPilot |
 | **Tagline** | Autonomous AI agent for Mantle DeFi |
 | **One-liner** | Set a plain-English goal; the agent runs `plan → simulate → propose → execute → record` across 7 Mantle DeFi protocols, with reputation attested on-chain every tick. |
-| **Website / QR target** | `https://concierge.xyz` |
-| **MCP server endpoint** | `mcp.concierge.xyz/mcp` (hosted) — install: `npx -y @mpilot/mcp` (stdio) |
-| **Skill install** | `npx skills add Blockchain-Oracle/concierge` |
+| **Website / QR target** | `https://mpilot.xyz` |
+| **MCP server endpoint** | `mcp.mpilot.xyz/mcp` (hosted) — install: `npx -y @mpilot/mcp` (stdio) |
+| **Skill install** | `npx skills add Blockchain-Oracle/mpilot` |
 | **npm SDK** | `npm i @mpilot/sdk` |
-| **GitHub repo** | `https://github.com/Blockchain-Oracle/concierge` |
+| **GitHub repo** | `https://github.com/Blockchain-Oracle/mpilot` |
 | **Network (mainnet)** | Mantle Mainnet — chain id `5000` |
 | **Network (testnet)** | Mantle Sepolia — chain id `5003` |
 | **Mainnet contract (ConciergeRegistry)** | `0xE54B60382bC85C14abc15A20a0fB90d6FAea8025` |
@@ -41,10 +41,10 @@
 
 We do not currently have a real logo. There is a **placeholder** SVG icon at `packages/skill-mantle-agent/assets/icon.svg` (plus a `preview.png`) used by the Agent Skill listing — your new logomark should **replace** both. Create the logo fresh; don't treat the placeholder as a starting point.
 
-- **Concept:** "Concierge" = a trusted, white-glove assistant that acts on your behalf. Evoke *guidance / orchestration / trust*, fused with an on-chain/agentic feel. Think a concierge bell, a key, a compass, or an abstract "agent node" routing to many protocols — your call. Avoid generic robot heads.
+- **Concept:** "mPilot" = a trusted, white-glove assistant that acts on your behalf. Evoke *guidance / orchestration / trust*, fused with an on-chain/agentic feel. Think a concierge bell, a key, a compass, or an abstract "agent node" routing to many protocols — your call. Avoid generic robot heads.
 - **Deliverables (separate SVG files):**
   - **Logomark** (icon only, square-safe) — must read clearly at 32×32 px (favicon) and 512×512 px.
-  - **Logotype** (wordmark "Concierge" set in type).
+  - **Logotype** (wordmark "mPilot" set in type).
   - **Horizontal lockup** (mark + wordmark side by side).
   - **Stacked lockup** (mark above wordmark).
 - **Variants for each:** full-color on light, full-color on dark, monochrome (single-color), and knockout/white. We deploy on both light and dark surfaces.
@@ -59,7 +59,7 @@ The first image a visitor sees at the top of the GitHub README — so it must co
 - **Aspect ratio:** ~ **3.5:1 to 4:1** (e.g. 1280×360 or 1600×400 in SVG viewBox units). Must not be tall — README images that are too tall push the content down and annoy readers.
 - **Must contain:**
   - Logo lockup (horizontal variant) — prominent, left or center.
-  - Product name **Concierge** + tagline *"Autonomous AI agent for Mantle DeFi"*.
+  - Product name **mPilot** + tagline *"Autonomous AI agent for Mantle DeFi"*.
   - A short value line: *"plan → simulate → propose → execute → record across 7 Mantle protocols"*.
   - Subtle "Built on Mantle" cue and a hint of the protocol set (Aave V3 · Mantle DEX · Ethena · Ondo · mETH · Li.Fi · ERC-8004) — small, secondary; don't clutter.
   - Optional small badges row vibe (open-source, MCP, npm SDK) — visual only, not real shields.
@@ -70,17 +70,17 @@ The first image a visitor sees at the top of the GitHub README — so it must co
 
 ## 3. Architecture diagram
 
-A clear system diagram a technical judge can read. **Logo + name "Concierge" in the TOP-RIGHT corner** (as a small lockup/watermark).
+A clear system diagram a technical judge can read. **Logo + name "mPilot" in the TOP-RIGHT corner** (as a small lockup/watermark).
 
-**What Concierge IS (so you can structure the diagram):** a composable agent primitive — one core, consumable from any AI agent runtime, shipped across 4 surfaces, acting on 7 Mantle DeFi protocols. Here is the full structure to lay out:
+**What mPilot IS (so you can structure the diagram):** a composable agent primitive — one core, consumable from any AI agent runtime, shipped across 4 surfaces, acting on 7 Mantle DeFi protocols. Here is the full structure to lay out:
 
 ### Layer A — User goal (top)
 - A user sets a **plain-English goal** (e.g. "earn safe yield on my idle USDC"). Show a person / chat bubble entering the system.
 
 ### Layer B — Surfaces (4 entry points)
 The product ships across **4 surfaces**, all hanging off the same core:
-1. **Web app** (Next.js) — `concierge.xyz`
-2. **MCP server** (stdio-first; optional hosted Cloudflare Worker at `mcp.concierge.xyz`)
+1. **Web app** (Next.js) — `mpilot.xyz`
+2. **MCP server** (stdio-first; optional hosted Cloudflare Worker at `mcp.mpilot.xyz`)
 3. **Agent Skill** (installable via `npx skills add`)
 4. **npm SDK** ("AgentKit for Mantle")
 
@@ -127,13 +127,13 @@ The agent acts on 7 protocols (show as a fan-out from core):
 
 A shareable "deployment card" for the submission — proves we're live on Mantle Mainnet.
 
-- **Header:** logo lockup + "Concierge" + a "MAINNET" badge/pill. Make "Mainnet" visually distinct (e.g. a solid/primary treatment) so it's never confused with the testnet card.
+- **Header:** logo lockup + "mPilot" + a "MAINNET" badge/pill. Make "Mainnet" visually distinct (e.g. a solid/primary treatment) so it's never confused with the testnet card.
 - **Contents (label → value, value in monospace):**
   - **Network:** Mantle Mainnet (chain `5000`)
   - **ConciergeRegistry:** `0xE54B60382bC85C14abc15A20a0fB90d6FAea8025`
-  - **GitHub:** `github.com/Blockchain-Oracle/concierge`
-  - **Website:** `concierge.xyz`
-- **QR code (THIS CARD ONLY):** encodes **`https://concierge.xyz`**. Place it prominently (e.g. right side or bottom-right) with a small "Scan to try" caption. Render the QR as crisp vector SVG (not an embedded raster) with a quiet zone/margin so it scans reliably. Test-scan it with a phone before final export.
+  - **GitHub:** `github.com/Blockchain-Oracle/mpilot`
+  - **Website:** `mpilot.xyz`
+- **QR code (THIS CARD ONLY):** encodes **`https://mpilot.xyz`**. Place it prominently (e.g. right side or bottom-right) with a small "Scan to try" caption. Render the QR as crisp vector SVG (not an embedded raster) with a quiet zone/margin so it scans reliably. Test-scan it with a phone before final export.
 - **Format:** card/poster proportions are fine here (this one is allowed to be more square/portrait than the banner) — e.g. 1200×675 (16:9) or a square 1080×1080 both work; pick what looks best.
 
 ---
@@ -142,11 +142,11 @@ A shareable "deployment card" for the submission — proves we're live on Mantle
 
 Same template/visual system as the mainnet card, but for the Sepolia playground.
 
-- **Header:** logo lockup + "Concierge" + a "TESTNET" badge/pill, visually differentiated from mainnet (e.g. an outlined/secondary treatment).
+- **Header:** logo lockup + "mPilot" + a "TESTNET" badge/pill, visually differentiated from mainnet (e.g. an outlined/secondary treatment).
 - **Contents (label → value, value in monospace):**
   - **Network:** Mantle Sepolia (chain `5003`)
   - **ConciergeRegistry:** `0x5e73931A99E1D6868F60e4dCCd3774655EFeB7dD`
-  - **GitHub:** `github.com/Blockchain-Oracle/concierge`
+  - **GitHub:** `github.com/Blockchain-Oracle/mpilot`
   - Optional note: *"Judges can try every protocol on Sepolia with zero capital — our own on-chain mocks mirror the mainnet contracts."*
 - **NO QR code** on this card (per request — QR is mainnet-only).
 - **Format:** identical to the mainnet card so the two read as a matched pair.
@@ -164,7 +164,7 @@ If time allows — a 1200×630 Open Graph image (logo + name + tagline + "Built 
 - [ ] Logomark used consistently across banner, architecture diagram (top-right), and both cards.
 - [ ] All hex addresses in **monospace**, copy-pasted from §0 (not hand-typed), 42 chars each, `0x`-prefixed.
 - [ ] Mainnet vs Testnet cards are visually distinct but clearly a matched set.
-- [ ] QR appears on the **mainnet card only**, encodes `https://concierge.xyz`, vector, scan-tested.
+- [ ] QR appears on the **mainnet card only**, encodes `https://mpilot.xyz`, vector, scan-tested.
 - [ ] README banner is **wide/short** (≤ ~4:1), legible at ~850px and on mobile.
 - [ ] Architecture diagram readable when embedded at README width; tick-loop + ERC-8004 attestation arrow emphasized.
 - [ ] Every asset delivered as clean SVG with named layers; light + dark variants where relevant.

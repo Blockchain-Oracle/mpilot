@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Claude Desktop / ChatGPT / Goose / VS Code Insiders user with the Concierge MCP installed
-**I want to** see Concierge proposal / tick / portfolio / reputation cards rendered as RICH INTERACTIVE UI inside my chat window (not just JSON)
+**As a** Claude Desktop / ChatGPT / Goose / VS Code Insiders user with the mPilot MCP installed
+**I want to** see mPilot proposal / tick / portfolio / reputation cards rendered as RICH INTERACTIVE UI inside my chat window (not just JSON)
 **So that** I can approve / inspect / drill in without leaving the chat
 
 ---

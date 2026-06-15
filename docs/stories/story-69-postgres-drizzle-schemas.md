@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** Drizzle schemas for all 7 tables (agents, ticks, proposals, executions, attestations, session_keys, eoa_tx_queue) with migrations checked into the repo
 **So that** the off-chain state model is a single source of truth (consumed by tick orchestrator, web app, BullMQ worker, MCP server) and schema changes flow through proper migrations
 

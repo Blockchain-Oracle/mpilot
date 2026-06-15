@@ -65,9 +65,9 @@ describe('attestationIpfsUrl', () => {
 
 describe('agentShareUrl', () => {
   it('serializes bigint agent ids', () => {
-    expect(agentShareUrl(42n, 'https://concierge.xyz')).toBe('https://concierge.xyz/agent/42');
+    expect(agentShareUrl(42n, 'https://mpilot.xyz')).toBe('https://mpilot.xyz/agent/42');
   });
   it('strips trailing slash from origin', () => {
-    expect(agentShareUrl('99', 'https://concierge.xyz/')).toBe('https://concierge.xyz/agent/99');
+    expect(agentShareUrl('99', 'https://mpilot.xyz/')).toBe('https://mpilot.xyz/agent/99');
   });
 });

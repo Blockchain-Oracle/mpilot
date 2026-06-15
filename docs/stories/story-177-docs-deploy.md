@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Concierge user, judge, or developer
-**I want to** the docs site is reachable at concierge.xyz/docs (same Vercel deploy as the marketing site), linked from the landing footer and from the dashboard nav, with proper SEO (OG images, sitemap, robots.txt)
+**As a** mPilot user, judge, or developer
+**I want to** the docs site is reachable at mpilot.xyz/docs (same Vercel deploy as the marketing site), linked from the landing footer and from the dashboard nav, with proper SEO (OG images, sitemap, robots.txt)
 **So that** the docs are discoverable from every surface AND search engines index them properly AND social previews look good
 
 ---
@@ -30,7 +30,7 @@
 ## Acceptance criteria (BDD)
 
 ```
-Given the docs are deployed at concierge.xyz/docs
+Given the docs are deployed at mpilot.xyz/docs
 When the marketing site footer renders
 Then it contains a "Docs" link that navigates to /docs
 
@@ -48,7 +48,7 @@ Then it allows crawling /docs/* and / but disallows /app/* (the auth-gated dashb
 
 Given a docs page (e.g., /docs/concepts/overview)
 When the OG image is requested at /docs/concepts/overview/opengraph-image
-Then a PNG is returned dynamically generated with the page title + Concierge branding
+Then a PNG is returned dynamically generated with the page title + mPilot branding
 
 Given the docs deploy
 When a user shares a docs URL on X/Twitter
@@ -110,5 +110,5 @@ bun scripts/check-file-loc.mjs
 - **Footer is the catch-all nav** — links to everything not in the primary nav. Don't bury important links here (the GitHub repo link belongs in the landing trust signals from story-105 too).
 - **The dashboard SidePanel docs link** lets users jump to docs without leaving the app. Critical for "I forget how X works mid-task" UX.
 - **OG image dimensions 1200×630** is the Open Graph spec. NOT 1200×600 (despite what some half-old tutorials suggest).
-- **Domain `concierge.xyz` is locked.** All routes are subpaths, not subdomains (except mcp.concierge.xyz from story-133). Consistent UX.
+- **Domain `mpilot.xyz` is locked.** All routes are subpaths, not subdomains (except mcp.mpilot.xyz from story-133). Consistent UX.
 - Cross-ref: `research/concierge/08-ux-component-intent.md` § footer + nav, ADR-011 (docs/web same deploy).

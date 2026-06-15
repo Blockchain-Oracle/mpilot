@@ -8,7 +8,7 @@ const STEPS: ReadonlyArray<{ readonly n: string; readonly title: string; readonl
     {
       n: '01',
       title: 'Tell it what you want',
-      body: 'Plain English. "Max yield on stablecoins, keep $200 liquid, never drop below 1.8 health factor." Concierge parses it into typed policies.',
+      body: 'Plain English. "Max yield on stablecoins, keep $200 liquid, never drop below 1.8 health factor." mPilot parses it into typed policies.',
     },
     {
       n: '02',

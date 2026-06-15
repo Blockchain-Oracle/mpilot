@@ -1,5 +1,5 @@
 /**
- * Inline SVG icons used across the Concierge web surface. Designer's
+ * Inline SVG icons used across the mPilot web surface. Designer's
  * prototype attached these to `window.X` for fast iteration; engineering
  * port turns each into a typed React component so we get tree-shaking +
  * proper props + TypeScript completion.
@@ -35,7 +35,7 @@ function asProps(p: IconProps, defaultSize = 16): SVGProps<SVGSVGElement> {
   };
 }
 
-/** The padlock-with-checkmark Concierge glyph (used in header marks). */
+/** The padlock-with-checkmark mPilot glyph (used in header marks). */
 export function LockboxGlyph(props: IconProps) {
   return (
     // biome-ignore lint/a11y/noSvgWithoutTitle: decorative icon (aria-hidden + role=presentation set in asProps)

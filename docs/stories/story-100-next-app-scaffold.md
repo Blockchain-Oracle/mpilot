@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user
+**As a** mPilot user
 **I want to** the web app skeleton exists at `apps/web/` using Next.js 15 (App Router), Tailwind v4 (`@theme` CSS-first), and shadcn/ui (New York variant), with all the routing scaffolds for /, /app, /docs, /agent/[id]
 **So that** every subsequent UI story has a known place to add components, and the routing structure matches the architecture's locked route shape
 

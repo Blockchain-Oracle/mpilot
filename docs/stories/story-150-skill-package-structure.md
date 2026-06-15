@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the RealClaw skill lives at `packages/skill-mantle-agent` with the standard skill folder layout (SKILL.md, assets/, scripts/, references/) per the RealClaw skills convention, NOT the Byreal Skills CLI (which is Solana-only)
 **So that** the skill can be packaged + published to RealClaw's skill registry as a Track-6 qualifier, distributed via `npx skills add @mpilot/mantle-agent`
 
@@ -43,11 +43,11 @@ Then it has fields: name, description, version, tools, permissions (all required
 
 Given SKILL.md description
 When read
-Then it does NOT call Concierge a "Buy-Now-Pay-Later agent" or any BNPL-era language (Patron contamination must NEVER appear)
+Then it does NOT call mPilot a "Buy-Now-Pay-Later agent" or any BNPL-era language (Patron contamination must NEVER appear)
 
 Given the description
 When inspected
-Then it accurately describes Concierge: "Autonomous DeFi agent for Mantle" + the action surface (Aave, sUSDe, mETH, bridging, attestation)
+Then it accurately describes mPilot: "Autonomous DeFi agent for Mantle" + the action surface (Aave, sUSDe, mETH, bridging, attestation)
 
 Given the version field
 When inspected
@@ -124,6 +124,6 @@ bun scripts/check-file-loc.mjs
 - **The description field is the public-facing one-liner.** It appears in the skill listing. Copy it verbatim from `research/concierge/01-wedge-locked.md` (the locked positioning).
 - **Tools array must MATCH the MCP server's registered tools.** Drift here = users install a skill that promises tools the server doesn't have. CI catches this via cross-reference test.
 - **`.skillignore` like `.gitignore`** — excludes test files, source TypeScript, internal docs. The published skill is the SKILL.md + assets + scripts + references + maybe install scripts.
-- **The install.sh script** handles the post-install configuration: it asks the user for their concierge.xyz user ID (or runs OAuth), saves to local config. Reference: `research/concierge/06-realclaw-skill-pkg.md` § install flow.
+- **The install.sh script** handles the post-install configuration: it asks the user for their mpilot.xyz user ID (or runs OAuth), saves to local config. Reference: `research/concierge/06-realclaw-skill-pkg.md` § install flow.
 - **Designer agent owns icon + preview.** Placeholders here; final assets from designer per CLAUDE.md "designer owns UI" rule.
 - Cross-ref: `research/concierge/06-realclaw-skill-pkg.md` (full skill packaging spec), CLAUDE.md anti-contamination grep.

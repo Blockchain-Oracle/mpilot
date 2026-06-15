@@ -1,4 +1,4 @@
-# Epics — Concierge
+# Epics — mPilot
 
 **Hackathon:** Mantle Turing Test 2026 — AI Awakening (Phase 2)
 **Status:** REWORKED 2026-06-09 — supersedes 2026-06-03 draft
@@ -17,7 +17,7 @@
 | Tools defined per-runtime in each adapter | Single **`@mpilot/tools`** framework-agnostic registry with `inputSchema` + `outputSchema` (load-bearing). Adapters (Vercel AI / OpenAI / LangChain / AgentKit / MCP) are 15-40 LOC each, wrap the same source | ADR-014 (NEW), CDR-Kit pattern, SDK-DX-STUDY §H | story-300, 301, 302, 303, 304 (all NEW) |
 | Single rail for generative UI (tool cards in the web app) | **Three rails** on a structured-JSON `outputSchema` contract: Vercel AI SDK tool-parts (web) + MCP Apps `ui://` resources (Claude Desktop iframe) + MCP Elicitation (form + url modes for high-value confirms / wallet-connect) | ADR-017 (NEW), AUDIT §3, SEP-1865 merged 2026-01-28 | story-137 (NEW), story-138 (NEW) |
 | Bun workspaces + dual ESM/CJS | **pnpm workspaces + pure ESM + Node ≥22 + tree-shakeable** for every published package; tsup for builds; peer deps for `ai` / `zod` / framework SDKs | ADR-018 (NEW), SDK-DX-STUDY §D | every new + amended story |
-| Class hierarchy + Result<T, E> + goal-at-construction | **Factory functions** (`createConcierge`) + **typed error discriminator** (`ConciergeError` w/ `type`) + **AsyncIterable + `.on()`** events for streaming + `setGoal()` post-construction | ADR-019 (NEW), SDK-DX-STUDY §F-I | story-22 (amended), story-23 (DX-amended at impl time) |
+| Class hierarchy + Result<T, E> + goal-at-construction | **Factory functions** (`createmPilot`) + **typed error discriminator** (`ConciergeError` w/ `type`) + **AsyncIterable + `.on()`** events for streaming + `setGoal()` post-construction | ADR-019 (NEW), SDK-DX-STUDY §F-I | story-22 (amended), story-23 (DX-amended at impl time) |
 | `@mpilot/goat` + `@coinbase/agentkit-vercel-ai-sdk` dependencies | **DROPPED** — GOAT SDK 4-15 months stale; AgentKit framework extensions 15 months stale (use `customActionProvider` escape hatch) | AUDIT §5, §6 | n/a (removed from package list) |
 | Tambo + Crayon as gen-UI candidates | **DROPPED** — model-driven, contradict "tool X always renders card X" contract | ADR-015, SPEC-REWORK-BRIEF Thread 5 | n/a |
 
@@ -108,7 +108,7 @@
 **Stories:**
 - `story-20-shared-package-bootstrap` — `packages/shared/` with `addresses.ts` (auto-generated from broadcast artifacts), `types.ts`, ABI re-exports
 - `story-21-shared-abi-imports` — Import canonical ABIs (Aave V3 IPool from bgd-labs, ERC-8004 from erc-8004-contracts, viem chain config)
-- `story-22-sdk-skeleton` — `packages/sdk/` skeleton: `Concierge` class signature, provider registration pattern, env validation (Zod)
+- `story-22-sdk-skeleton` — `packages/sdk/` skeleton: `mPilot` class signature, provider registration pattern, env validation (Zod)
 - `story-23-sdk-error-types` — Typed error hierarchy (`AaveBorrowFailed`, `OraclePriceUnavailable`, `SessionKeyExpired`, etc.)
 - `story-24-sdk-config-loader` — `loadConfig()` reads env, validates, returns typed config object
 
@@ -161,7 +161,7 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 
 ## Epic E5 — Agent Runtime
 
-**Business value:** The agent IS the product. Without the tick loop + six-phase orchestration + state persistence, there is no Concierge.
+**Business value:** The agent IS the product. Without the tick loop + six-phase orchestration + state persistence, there is no mPilot.
 
 **Dependencies:** E3 (providers), E4 (smart account).
 
@@ -229,7 +229,7 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 
 ## Epic E8 — MCP Server
 
-**Business value:** The strategic distribution moat — Concierge is callable from Claude Code / Claude Desktop / OpenClaw / RealClaw without us shipping additional UI. Free reach into the judge audience.
+**Business value:** The strategic distribution moat — mPilot is callable from Claude Code / Claude Desktop / OpenClaw / RealClaw without us shipping additional UI. Free reach into the judge audience.
 
 **Dependencies:** E2 (SDK), E3 (providers), E5 (runtime).
 
@@ -241,7 +241,7 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 - `story-132-mcp-tool-registrations` — Register all 7 provider actions as MCP tools (plus `tickNow`, `getPortfolio`, `getReputation`, `activate`, `deactivate`, `setGoal`)
 - `story-133-mcp-bearer-auth` — Bearer token v0 authentication, session bound to `agentId`
 - `story-134-mcp-redis-session-store` — Upstash Redis-backed session persistence
-- `story-135-mcp-claude-code-integration-test` — E2E test driving Concierge from Claude Code via MCP
+- `story-135-mcp-claude-code-integration-test` — E2E test driving mPilot from Claude Code via MCP
 
 ---
 
@@ -295,7 +295,7 @@ For each of {aave-v3-mantle, mantle-dex, ethena-susde, ondo-usdy, meth-staking, 
 - `story-191-sepolia-faucet-page` — `/app/faucet` page that mints mock sUSDe + USDC + USDY + mETH to connected wallet
 - `story-192-mainnet-deploy-runbook` — `DEPLOY-MAINNET-RUNBOOK.md` + interactive `deploy-mainnet.sh` wrapper
 - `story-193-mainnet-deploy-execution` — Actual Mainnet deploy (one-off — runbook executed): `ConciergeRegistry` + session-key validator deployed + verified on MantleScan
-- `story-194-mcp-server-deployment` — Deploy MCP server to Cloudflare Workers, configure domain `mcp.concierge.xyz`
+- `story-194-mcp-server-deployment` — Deploy MCP server to Cloudflare Workers, configure domain `mcp.mpilot.xyz`
 - `story-195-postdeploy-smoke-tests` — Smoke test against Mainnet deployments: read-only verifications, addresses.ts populated
 
 ---
@@ -467,7 +467,7 @@ Designer agent runs in parallel from the start. UI stories (E7) gate on `@mpilot
 
 ## Epic E13 — Composable Primitive (NEW 2026-06-09)
 
-**Business value:** Concierge becomes a **composable primitive** — the single `@mpilot/tools` registry feeds 4 framework adapters (Vercel AI SDK / OpenAI/Anthropic raw / LangChain / Coinbase AgentKit) + the MCP server. Any developer can `pnpm add @mpilot/<adapter>` and drop our 30+ DeFi actions into their existing agent stack in 5 lines. This is the LARGEST single-cost-multiplier win: ~30-40 LOC per adapter × N runtimes = N distribution channels with marginal cost.
+**Business value:** mPilot becomes a **composable primitive** — the single `@mpilot/tools` registry feeds 4 framework adapters (Vercel AI SDK / OpenAI/Anthropic raw / LangChain / Coinbase AgentKit) + the MCP server. Any developer can `pnpm add @mpilot/<adapter>` and drop our 30+ DeFi actions into their existing agent stack in 5 lines. This is the LARGEST single-cost-multiplier win: ~30-40 LOC per adapter × N runtimes = N distribution channels with marginal cost.
 
 **Dependencies:** E2 (`@mpilot/sdk` skeleton — amended), E3 (action providers expose `tools()` functions).
 
@@ -481,13 +481,13 @@ Designer agent runs in parallel from the start. UI stories (E7) gate on `@mpilot
 - `story-304-agentkit-adapter` — `@mpilot/agentkit` → Coinbase AgentKit `customActionProvider` (escape hatch — NOT `@CreateAction` decorator) (~12 LOC)
 - `story-320-model-agnostic-provider` — `@mpilot/sdk` accepts `model: LanguageModelV2` directly. `defaultModel()` helper auto-detects `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` / `XAI_API_KEY` with `AI_MODEL="provider:model"` override. Per-call model override per tick phase.
 
-**Acceptance criteria for the epic as a whole:** `pnpm add @mpilot/langchain` in an external LangChain app + `getLangChainTools(agent)` returns ≥30 working Concierge tools. Same for Vercel AI SDK + OpenAI + AgentKit. End-to-end demo: a third-party LangChain agent supplies a USDC via Concierge tools, signed by the user's session key.
+**Acceptance criteria for the epic as a whole:** `pnpm add @mpilot/langchain` in an external LangChain app + `getLangChainTools(agent)` returns ≥30 working mPilot tools. Same for Vercel AI SDK + OpenAI + AgentKit. End-to-end demo: a third-party LangChain agent supplies a USDC via mPilot tools, signed by the user's session key.
 
 ---
 
 ## Epic E14 — Composable UI (NEW 2026-06-09)
 
-**Business value:** Concierge cards (proposal, tick, portfolio, reputation) ship as TWO npm packages — `@mpilot/react` (headless: behavior + ARIA + state machines + parse-then-render) and `@mpilot/react-ui` (styled drop-ins built on Radix + shadcn + brand tokens). The web app at `concierge.xyz/app` DOGFOODS the package (per ADR-015) — no duplicate components. External devs can `pnpm add @mpilot/react-ui` and embed Concierge cards in THEIR dashboard / chat. Two thin adapter packages (`@mpilot/react-assistant-ui`, `@mpilot/react-copilotkit`) bridge to assistant-ui and CopilotKit — which transitively covers LangGraph / CrewAI / Mastra / Pydantic AI / AutoGen2 / MS Agent Framework users.
+**Business value:** mPilot cards (proposal, tick, portfolio, reputation) ship as TWO npm packages — `@mpilot/react` (headless: behavior + ARIA + state machines + parse-then-render) and `@mpilot/react-ui` (styled drop-ins built on Radix + shadcn + brand tokens). The web app at `mpilot.xyz/app` DOGFOODS the package (per ADR-015) — no duplicate components. External devs can `pnpm add @mpilot/react-ui` and embed mPilot cards in THEIR dashboard / chat. Two thin adapter packages (`@mpilot/react-assistant-ui`, `@mpilot/react-copilotkit`) bridge to assistant-ui and CopilotKit — which transitively covers LangGraph / CrewAI / Mastra / Pydantic AI / AutoGen2 / MS Agent Framework users.
 
 **Dependencies:** E13 (`@mpilot/tools` for schemas), E7 (Next.js + Tailwind scaffold).
 
@@ -506,7 +506,7 @@ Designer agent runs in parallel from the start. UI stories (E7) gate on `@mpilot
 
 ## Epic E15 — Distribution (NEW 2026-06-09)
 
-**Business value:** `npm create concierge-app@latest` with 5 templates (starter / vercel-ai-agent / langchain-agent / mcp-only / react-embed) — a Mantle developer goes from zero to running Concierge integration in 30 seconds. Reduces adoption friction from "read 5 packages' READMEs" to "answer 2 prompts."
+**Business value:** `npm create concierge-app@latest` with 5 templates (starter / vercel-ai-agent / langchain-agent / mcp-only / react-embed) — a Mantle developer goes from zero to running mPilot integration in 30 seconds. Reduces adoption friction from "read 5 packages' READMEs" to "answer 2 prompts."
 
 **Dependencies:** E13, E14 (all framework adapters + react packages publishable so templates can reference them).
 
@@ -515,7 +515,7 @@ Designer agent runs in parallel from the start. UI stories (E7) gate on `@mpilot
 **Stories:**
 - `story-330-scaffolder` — `packages/create-concierge-app/` with `@clack/prompts` CLI + 5 templates. Each template ships `package.json` w/ pinned `@mpilot/*` deps + `.env.example` + working `pnpm dev` from clone-to-running in < 5 minutes. Pattern reference: CDR-Kit's `create-cdr-kit-app` with 9 templates.
 
-**Acceptance criteria for the epic as a whole:** `npm create concierge-app@latest my-app --template vercel-ai-agent` followed by `cd my-app && pnpm install && pnpm dev` opens a working chat at localhost:3000 with live Concierge tools rendered as cards. All 5 templates demonstrated working end-to-end.
+**Acceptance criteria for the epic as a whole:** `npm create concierge-app@latest my-app --template vercel-ai-agent` followed by `cd my-app && pnpm install && pnpm dev` opens a working chat at localhost:3000 with live mPilot tools rendered as cards. All 5 templates demonstrated working end-to-end.
 
 ---
 

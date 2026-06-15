@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** developer extending Concierge with a new action or auditing an existing provider's logic
+**As a** developer extending mPilot with a new action or auditing an existing provider's logic
 **I want to** one MDX page per locked provider (Aave V3, Mantle DEX, Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridge, ERC-8004) documenting: addresses, actions exposed, read selectors, gotchas, on-chain verification steps
 **So that** I can verify "is the agent calling Aave correctly?" or "what attestation schema does the DEX provider use?" without reading the source
 
@@ -56,7 +56,7 @@ Then it documents: per-tick attestation IS the verifiability claim (ADR-004), sc
 
 Given the lifi-bridge page
 When inspected
-Then it documents: Diamond contract address, supported chain pairs for Concierge, what bridge fees look like
+Then it documents: Diamond contract address, supported chain pairs for mPilot, what bridge fees look like
 
 Given all address tables
 When inspected

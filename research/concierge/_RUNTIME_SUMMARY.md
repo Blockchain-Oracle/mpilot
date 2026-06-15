@@ -1,4 +1,4 @@
-# Concierge Runtime Research — Summary
+# mPilot Runtime Research — Summary
 
 Four deep-domain files for the agent runtime + distribution surfaces, consumed by `sahil-spec-writer`.
 
@@ -23,7 +23,7 @@ Four deep-domain files for the agent runtime + distribution surfaces, consumed b
 - **BullMQ repeatable jobs API** — verified from `docs.bullmq.io/guide/jobs/repeatable`.
 - **`npx skills add <owner>/<repo>`** — verified as the canonical install pattern; gh search shows ~50+ public skill repos using it, including `coinbase/agentic-wallet-skills` and `base/skills`.
 - **`byreal-git/byreal-agent-skills` SKILL.md frontmatter** — fetched verbatim via gh API; pattern documented in `06-realclaw-skill-pkg.md` §2.
-- **`Magicianhax/mantle-active-trader` SKILL.md** — fetched verbatim; pattern documented in §3 (RealClaw on Mantle DeFi, the closest analog to Concierge).
+- **`Magicianhax/mantle-active-trader` SKILL.md** — fetched verbatim; pattern documented in §3 (RealClaw on Mantle DeFi, the closest analog to mPilot).
 - **MCP TypeScript SDK v2 `registerTool`** — verified from `modelcontextprotocol/typescript-sdk` README + migration docs.
 - **MCP Streamable HTTP transport** with stateless mode (`sessionIdGenerator: undefined`) — verified from `typescript-sdk` Express middleware README.
 
@@ -35,7 +35,7 @@ Four deep-domain files for the agent runtime + distribution surfaces, consumed b
 
 3. **Giza's MCP server stack details (`https://mcp.gizatech.xyz/api/sse`).** Could not fetch their docs (404 on direct paths, homepage didn't expose technical info). Initial brief claims it's Next.js + OAuth + Redis sessions on Vercel. Treated as a directional reference, not a load-bearing detail.
 
-4. **The official npm `skills` CLI canonical source.** GitHub search confirms 50+ repos use `npx skills add <owner>/<repo>` in their READMEs (including Coinbase and Base) so it is a real distribution rail. The npm package page (`npmjs.com/package/skills`) returned 403 during research. Action: install locally and inspect before publishing the Concierge skill — likely owned by Anthropic or a closely-affiliated party.
+4. **The official npm `skills` CLI canonical source.** GitHub search confirms 50+ repos use `npx skills add <owner>/<repo>` in their READMEs (including Coinbase and Base) so it is a real distribution rail. The npm package page (`npmjs.com/package/skills`) returned 403 during research. Action: install locally and inspect before publishing the mPilot skill — likely owned by Anthropic or a closely-affiliated party.
 
 5. **RealClaw's skill index / discovery surface.** No public registry URL documented. Distribution in practice is via README + awesome-lists (`VoltAgent/awesome-openclaw-skills`, `LeoYeAI/openclaw-master-skills`). Action: PR those lists after launching.
 

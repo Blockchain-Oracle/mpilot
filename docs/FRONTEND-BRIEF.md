@@ -1,6 +1,6 @@
-# Concierge — Frontend Brief for Designer
+# mPilot — Frontend Brief for Designer
 
-> **What this brief is.** Everything you need to design Concierge's three
+> **What this brief is.** Everything you need to design mPilot's three
 > user-facing web surfaces (landing, app, docs) plus every shared
 > component, with full domain context so you can make confident design
 > calls. It is intentionally exhaustive — nothing about the product is
@@ -23,9 +23,9 @@
 
 ---
 
-## §1 — What Concierge is
+## §1 — What mPilot is
 
-Concierge is an autonomous AI agent that manages a user's DeFi position
+mPilot is an autonomous AI agent that manages a user's DeFi position
 on the Mantle blockchain, 24 hours a day. A user sets a goal in plain
 English — "max stablecoin yield, never breach 70% Aave LTV, keep $200
 USDC liquid" — and an agent owned by that user runs a continuous loop
@@ -52,7 +52,7 @@ through the tick's lifecycle. The transaction hash links to a block
 explorer the moment it confirms. The attestation hash links to the
 on-chain reputation registry.
 
-Concierge composes seven Mantle protocols (Aave V3, Mantle DEXes,
+mPilot composes seven Mantle protocols (Aave V3, Mantle DEXes,
 Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridging, ERC-8004
 reputation) under one agent. The user does not pick protocols; they
 state a goal, and the agent picks across protocols to satisfy it.
@@ -77,7 +77,7 @@ black box. Comfortable connecting a wallet. Reads tx hashes.
 
 ### Secondary persona — the Mantle developer
 
-Building their own agent or app on Mantle. Wants to drop Concierge's
+Building their own agent or app on Mantle. Wants to drop mPilot's
 DeFi actions into an existing LangChain / Vercel AI SDK / OpenAI /
 Claude Agent / Coinbase AgentKit stack with one `npm install`. Reads
 the docs first, then the landing's developer CTA. Cares about API
@@ -123,11 +123,11 @@ they trust it (for delegated funds, vouching, recruitment).
 
 ## §4 — The four surfaces (and which one this brief is about)
 
-Concierge ships across four surfaces:
+mPilot ships across four surfaces:
 
 | # | Surface | Owns |
 |---|---|---|
-| 1 | **Web app at concierge.xyz** — landing, app, docs | THIS BRIEF |
+| 1 | **Web app at mpilot.xyz** — landing, app, docs | THIS BRIEF |
 | 2 | **npm SDK** — `@mpilot/sdk` + 14 sibling packages | Engineering only |
 | 3 | **MCP server** — installs in Claude Code, Claude Desktop, Cursor, Windsurf, VS Code Copilot, Zed, Cline, Goose, OpenCode, Codex | Engineering owns transport; designer owns the embedded `ui://` HTML resources Claude Desktop renders inside the chat |
 | 4 | **RealClaw skill** — `npx skills add @mpilot/mantle-agent` | Engineering only |
@@ -141,7 +141,7 @@ which can come later.
 
 ## §5 — Information architecture
 
-The web app at `concierge.xyz` has three logical surfaces (landing,
+The web app at `mpilot.xyz` has three logical surfaces (landing,
 app, docs) and one public reputation viewer. Routes are locked.
 
 ### Public routes (no auth)
@@ -166,7 +166,7 @@ app, docs) and one public reputation viewer. Routes are locked.
 | Route | Purpose |
 |---|---|
 | `/app/onboarding/connect` | Wallet connect (Privy / Reown / WalletConnect). |
-| `/app/onboarding/account` | Smart account deploy (sponsored by Concierge — user pays zero gas). |
+| `/app/onboarding/account` | Smart account deploy (sponsored by mPilot — user pays zero gas). |
 | `/app/onboarding/identity` | ERC-8004 identity NFT mint. |
 | `/app/onboarding/goal` | First plain-English goal. |
 | `/app/onboarding/policy` | Autopilot toggles per category. |
@@ -210,7 +210,7 @@ is sticky after scroll and condenses. The app header is pinned.
    framing → developer CTA → trust signals.
 4. User clicks "Try on Sepolia" (primary hero CTA).
 5. Routed to `/app/onboarding/connect`. Wallet prompt opens.
-6. After connect: `/app/onboarding/account`. Concierge sponsors the
+6. After connect: `/app/onboarding/account`. mPilot sponsors the
    smart-account deploy (Pimlico paymaster) — the user pays zero MNT.
    Progress indicator shows the deploy phases.
 7. `/app/onboarding/identity`. ERC-8004 identity NFT mints. Card
@@ -288,7 +288,7 @@ is sticky after scroll and condenses. The app header is pinned.
 
 1. User on `/app/agent` (their own authed reputation view).
 2. Clicks "Copy share link" → clipboard receives
-   `https://concierge.xyz/agent/:id`.
+   `https://mpilot.xyz/agent/:id`.
 3. Recipient opens that URL — unauthenticated.
 4. Public reputation viewer renders: agent NFT, reputation summary,
    reputation chart, recent attested ticks (read-only, no controls).
@@ -353,20 +353,20 @@ is sticky after scroll and condenses. The app header is pinned.
 ### Flow K — MCP install from Claude Desktop
 
 1. User (Claude Desktop power-user) reads the README's MCP section.
-2. Adds Concierge MCP to Claude Desktop's config.
+2. Adds mPilot MCP to Claude Desktop's config.
 3. Restarts Claude.
-4. Types "Concierge, what's my portfolio?" into Claude.
+4. Types "mPilot, what's my portfolio?" into Claude.
 5. Claude calls the MCP server.
 6. The MCP server returns a structured response plus a `ui://` HTML
    resource.
 7. Claude Desktop renders the HTML resource inline (this is the
-   Concierge portfolio card, designed by you, rendered inside Claude
+   mPilot portfolio card, designed by you, rendered inside Claude
    Desktop's chat).
 8. User clicks "Approve" inside Claude Desktop's chat.
 9. MCP Elicitation pops a structured confirmation form (max-slippage
    slider, justification text, confirm checkbox).
 10. User confirms.
-11. The same session key (Concierge-managed) signs.
+11. The same session key (mPilot-managed) signs.
 12. The same on-chain tx confirms.
 13. User sees confirmation card inline in Claude Desktop.
 
@@ -385,7 +385,7 @@ demo.
 
 **Content.**
 
-- A single-sentence headline expressing what Concierge is. Locked
+- A single-sentence headline expressing what mPilot is. Locked
   positioning: "Autonomous AI agent for Mantle DeFi." The exact wording
   is yours.
 - A supporting line — the one-sentence explanation of how it works.
@@ -445,14 +445,14 @@ illustrations.
 
 ### §7.3 — `<KlarnaComparison>`
 
-**Purpose.** Cost-of-credit framing — show that Concierge's mechanism
+**Purpose.** Cost-of-credit framing — show that mPilot's mechanism
 is structurally cheaper than traditional consumer credit.
 
 **Content.** A side-by-side comparison.
 
 - Left side: "Klarna 23.99% APR" or equivalent reference rate. This
   number is fixed at write-time.
-- Right side: "Concierge — your collateral earns the loan interest"
+- Right side: "mPilot — your collateral earns the loan interest"
   with a *live* spread number that comes from the `/api/rates`
   endpoint (Aave Oracle + DefiLlama proxy).
 - A copy line explaining the framing in one sentence.
@@ -472,7 +472,7 @@ neutral with an explanatory tooltip. When negative, warning.
 
 **Content.**
 
-- A short copy line: "Drop Concierge into your agent stack."
+- A short copy line: "Drop mPilot into your agent stack."
 - A code block with the install command (`pnpm add @mpilot/sdk`).
 - A 3-line example showing an agent being spun up.
 - A "Read the docs" CTA.
@@ -521,7 +521,7 @@ note.
 
 ## §8 — Web app (`/app/*`)
 
-The product. Where users interact with Concierge once they've
+The product. Where users interact with mPilot once they've
 onboarded.
 
 ### §8.1 — `/app` (dashboard)
@@ -614,7 +614,7 @@ variant.
 ## §9 — Docs site (`/docs/*`)
 
 The docs exist to convert a Mantle developer into someone who `npm
-install`s Concierge into their own agent and ships it.
+install`s mPilot into their own agent and ships it.
 
 ### §9.1 — Layout
 
@@ -629,7 +629,7 @@ hidden).
 |---|---|---|
 | `/docs` | Overview + table of contents. | Section list. |
 | `/docs/quickstart` | "Clone to running agent in 10 minutes." | Prereq, install, first goal, first tick, what next. |
-| `/docs/sdk` | `@mpilot/sdk` API reference. | `createConcierge`, `tick`, `propose`, `execute`, `record`, types. |
+| `/docs/sdk` | `@mpilot/sdk` API reference. | `createmPilot`, `tick`, `propose`, `execute`, `record`, types. |
 | `/docs/providers` | Per-protocol reference. | One section per protocol (7 total). |
 | `/docs/runtime` | Agent runtime concepts. | Tick loop, session keys, attestation, error model. |
 | `/docs/skill` | RealClaw skill packaging. | Frontmatter spec, install snippet per host. |
@@ -1088,7 +1088,7 @@ Heights are locked at 64px desktop / 56px mobile.
 - **`full`** — Sections: Product (links to /app, /docs, /agent),
   Resources (GitHub, X, Discord), Legal (License, Terms-stub) · MCP
   install snippet · copyright + MIT note. Used on `/`.
-- **`minimal`** — Single line: "Concierge — built for Mantle Turing
+- **`minimal`** — Single line: "mPilot — built for Mantle Turing
   Test 2026 · MIT License · GitHub." Used on `/docs/*` and
   `/agent/:id`.
 - **`none`** — No footer. Used on `/app/*` (Emergency Stop takes the
@@ -1096,7 +1096,7 @@ Heights are locked at 64px desktop / 56px mobile.
 
 ### §10.39 — MCP UI Resources (embedded in Claude Desktop and other MCP hosts)
 
-Concierge's MCP server returns structured responses with `ui://` HTML
+mPilot's MCP server returns structured responses with `ui://` HTML
 resources. When a host (Claude Desktop, ChatGPT, Goose, VS Code
 Insiders) supports MCP Apps (SEP-1865), it renders these resources
 inline in the chat as sandboxed iframes.
@@ -1127,14 +1127,14 @@ by the four cards above) and can be a hand-written CSS block.
 
 ### §10.40 — Elicitation forms (MCP Elicitation, `mode: 'form'`)
 
-When a Concierge tool requires user confirmation (executing a tx,
+When a mPilot tool requires user confirmation (executing a tx,
 revoking a session key), the MCP server returns an Elicitation
 request and the host renders a structured form. The form's fields are
 described in JSON; the host renders them with its own form chrome.
 
 You do not design the form's visual chrome (the host owns that). You
 do design the *field copy*: labels, descriptions, default values,
-warning text. Each Elicitation form is associated with one Concierge
+warning text. Each Elicitation form is associated with one mPilot
 action; the fields are typically (max-slippage, justification,
 confirm checkbox).
 
@@ -1174,7 +1174,7 @@ confirm checkbox).
   primary actions, floating Emergency Stop. Desktop prefers:
   horizontal grids, persistent left nav, top-aligned actions, header
   Emergency Stop.
-- **Dark mode is primary, light mode is supported.** Concierge's
+- **Dark mode is primary, light mode is supported.** mPilot's
   brand is designed for dark; both ship from day one. The dark/light
   switch lives somewhere reachable but not prominent (settings or a
   small toggle in the header).

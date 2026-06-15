@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** end-to-end tests use the actual MCP SDK client to talk to a locally-running mcp-server (via wrangler dev's local runtime), exercising the full path: discovery → initialize → OAuth → tools/list → tools/call (read + write) → token refresh → rate limit
 **So that** the MCP server's contract with real MCP clients (Claude Code, claude.ai/mcp, custom integrations) is verified before submission
 

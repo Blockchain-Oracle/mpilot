@@ -1,7 +1,7 @@
 # @mpilot/langchain
 
 LangChain JS adapter for `@mpilot/tools`. Converts the framework-agnostic
-Concierge registry into `StructuredToolInterface[]` ready for
+mPilot registry into `StructuredToolInterface[]` ready for
 `model.bindTools(tools)` or any LangChain agent toolset.
 
 ## Quickstart
@@ -23,7 +23,7 @@ Tool outputs are stringified (bigint-safe: wei amounts become decimal
 strings) so `ToolMessage` content is a deterministic string under the
 adapter's control — LangChain v1 would otherwise coerce objects itself.
 Parse the string if you need the structured value. Inputs are validated
-against the original Concierge Zod `inputSchema` (passed through by
+against the original mPilot Zod `inputSchema` (passed through by
 reference) before `invoke` runs.
 
 Cancelling a LangChain run does not cancel an in-flight tool call —

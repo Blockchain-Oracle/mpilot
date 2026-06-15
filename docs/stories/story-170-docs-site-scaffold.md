@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the docs site is an MDX-driven Nextra v4 app served from `apps/web/app/docs/*` (same Next.js deployment as the marketing site), with the navigation tree + theming defined declaratively
 **So that** documentation lives next to the code (single deploy + single PR cycle), MDX components can import live React components for embedded examples, and the docs don't require their own infra
 

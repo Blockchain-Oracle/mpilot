@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** an `@mpilot/ondo-usdy` package exposes read-only actions (`getBalance`, `getRateAccrual`, `getYieldRate`) against the Ondo USDY token on Mantle, plus a `getEligibilityStatus` selector for the KYC-gating mechanic
 **So that** the agent can monitor user-held USDY positions + accrued yield without trying to mint/redeem (which requires KYC + happens off-chain via Ondo's portal, NOT on-chain)
 
@@ -118,6 +118,6 @@ bun scripts/check-file-loc.mjs
 - **`isAllowed` is the on-chain allowlist** — Ondo's KYC service maintains it. Read-only check; agent CANNOT modify.
 - **Selectors are exposed via `provider.selectors`** (per the SDK ProviderInterface from story-22), NOT as Vercel AI SDK tools. The agent calls selectors during plan/simulate; tools are for execute-phase mutations only. `isUserEligible` is a selector, not a tool.
 - **Attestation for read-only**: even though no state changes, the agent attests "I observed user X's USDY position at block Y" so the on-chain audit trail is complete. Schema: `concierge.ondo.read.v1`. Payload: { user, balance, multiplier, blockNumber }. Lightweight, low gas.
-- **NO L1 mint/redeem RFQ integration.** Per `research/concierge/03-providers/ondo-usdy.md`: Ondo's RFQ API is for institutional flows; retail KYC happens via portal. Concierge never calls Ondo's APIs.
+- **NO L1 mint/redeem RFQ integration.** Per `research/concierge/03-providers/ondo-usdy.md`: Ondo's RFQ API is for institutional flows; retail KYC happens via portal. mPilot never calls Ondo's APIs.
 - **v1.1 path forward:** if Ondo ships an on-chain permissionless mint flow (unlikely; USDY is regulated), this provider gets `mint` + `redeem` actions. For now, document as v1.1 in `research/concierge/03-providers/ondo-usdy.md` § Open questions.
 - Cross-ref: `research/concierge/03-providers/ondo-usdy.md` (every claim + KYC mechanic + multiplier math).

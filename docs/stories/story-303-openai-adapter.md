@@ -12,7 +12,7 @@
 
 **As a** developer using OpenAI Chat Completions directly (or Anthropic Messages API raw tool-use)
 **I want to** call `getOpenAITools(agent)` and get `{ tools, dispatch }` ready for either runtime
-**So that** I can drop Concierge tools into my custom agent loop without an SDK layer between me and the LLM API
+**So that** I can drop mPilot tools into my custom agent loop without an SDK layer between me and the LLM API
 
 ---
 

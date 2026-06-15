@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the ethena-susde provider has Vitest integration tests covering wrap/unwrap on a Sepolia mock fork, yield-rate derivation, and the carry-vs-Aave spread-floor logic across positive/inverted/zero cases
 **So that** the spread-floor primitive (which the agent's plan() phase uses to refuse new borrow positions) is provably correct against every edge case judges will probe
 

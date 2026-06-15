@@ -12,7 +12,7 @@
 
 **As a** Claude Code user who just ran `npx skills add @mpilot/mantle-agent`
 **I want to** the bundled `references/quickstart.md` walks me through the first 5 minutes: connect, set a goal, watch the tick stream, approve a proposal — using only natural-language Claude prompts
-**So that** I see Concierge working in my own terminal/Claude session without reading a 50-page manual
+**So that** I see mPilot working in my own terminal/Claude session without reading a 50-page manual
 
 ---
 

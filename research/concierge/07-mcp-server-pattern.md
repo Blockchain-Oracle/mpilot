@@ -1,6 +1,6 @@
 # 07 — MCP Server as Agent Surface
 
-**Purpose:** Concrete patterns for shipping Concierge as an MCP server consumable by Claude Code, Claude Desktop, Cursor, OpenClaw, and any other MCP host. This is the strategic distribution moat — judges already use Claude Code daily, so a working MCP makes the demo land. Read by `sahil-spec-writer` before generating the MCP surface story.
+**Purpose:** Concrete patterns for shipping mPilot as an MCP server consumable by Claude Code, Claude Desktop, Cursor, OpenClaw, and any other MCP host. This is the strategic distribution moat — judges already use Claude Code daily, so a working MCP makes the demo land. Read by `sahil-spec-writer` before generating the MCP surface story.
 
 **Stack:** `@modelcontextprotocol/sdk` (TypeScript) with the `McpServer` high-level API + Streamable HTTP transport + OAuth via the SDK's `mcpAuthRouter` + Redis-backed session store + Cloudflare Workers (preferred) or Fly.io.
 
@@ -10,7 +10,7 @@
 
 Model Context Protocol (MCP) is an open standard for connecting LLM hosts (Claude Desktop, Claude Code, Cursor, OpenClaw, …) to *tools, resources, and prompts* exposed by external servers. Specification + protocol schema live at `modelcontextprotocol/modelcontextprotocol`. The reference TypeScript SDK is `modelcontextprotocol/typescript-sdk`. The host (e.g. Claude Code) maintains a persistent connection to one or more MCP servers; the LLM running inside the host can call any server-registered tool the same way it'd call a local one.
 
-For Concierge: instead of (or in addition to) shipping a CLI + Skill, we expose the agent's primitives directly as MCP tools, hosted publicly so any Claude Code user can `claude mcp add concierge https://mcp.concierge.app/mcp` and immediately have agent-controlled DeFi from their chat.
+For mPilot: instead of (or in addition to) shipping a CLI + Skill, we expose the agent's primitives directly as MCP tools, hosted publicly so any Claude Code user can `claude mcp add concierge https://mcp.concierge.app/mcp` and immediately have agent-controlled DeFi from their chat.
 
 ---
 
@@ -33,7 +33,7 @@ server.registerTool(
   'agent_status',
   {
     title: 'Agent status',
-    description: 'Read current state of the user\'s Concierge agent.',
+    description: 'Read current state of the user\'s mPilot agent.',
     inputSchema: z.object({ agentId: z.string().describe('Agent id (agt_...)') }),
   },
   async ({ agentId }) => {
@@ -60,7 +60,7 @@ Three transports the SDK supports:
 | **Streamable HTTP**| Hosted server. Single `/mcp` endpoint, full-duplex over POST + SSE. | `NodeStreamableHTTPServerTransport` / `WebStandardStreamableHTTPServerTransport` |
 | **SSE (legacy)**   | Older clients that don't speak Streamable HTTP. **Deprecated.**  | `SSEServerTransport` (legacy package)     |
 
-**Concierge ships both:**
+**mPilot ships both:**
 - **stdio** — for power users who want zero network latency and don't care about hosting. Distributed via `npm install -g @mpilot/mcp` and invoked from the MCP host's config.
 - **Streamable HTTP** — for the hosted moat. `https://mcp.concierge.app/mcp`. One-line install for any user.
 
@@ -84,7 +84,7 @@ app.post('/mcp', async (req, res) => {
 });
 ```
 
-Stateless is fine when every tool call is fully parameterized (agentId in args, auth in headers). For Concierge most calls fit that shape, so we start stateless.
+Stateless is fine when every tool call is fully parameterized (agentId in args, auth in headers). For mPilot most calls fit that shape, so we start stateless.
 
 ### 3.2 Stateful mode (sessions)
 
@@ -132,11 +132,11 @@ This is the cleanest deploy target for hosted MCP.
 
 ## 4. Tool registration — the real surface
 
-Concierge MCP tools (proposed):
+mPilot MCP tools (proposed):
 
 ```typescript
 server.registerTool('agent_status', {
-  description: 'Get current state of the user\'s Concierge agent.',
+  description: 'Get current state of the user\'s mPilot agent.',
   inputSchema: z.object({ agentId: z.string() }),
 }, async ({ agentId }) => ({ content: [{ type: 'text', text: JSON.stringify(await getState(agentId)) }] }));
 
@@ -187,7 +187,7 @@ app.use('/auth', mcpAuthRouter({
 }));
 ```
 
-For the hackathon we can shortcut OAuth via a single static **bearer token** the user generates in the Concierge web app and pastes into Claude Code's MCP config:
+For the hackathon we can shortcut OAuth via a single static **bearer token** the user generates in the mPilot web app and pastes into Claude Code's MCP config:
 
 ```json
 {
@@ -202,13 +202,13 @@ For the hackathon we can shortcut OAuth via a single static **bearer token** the
 
 The server middleware validates the token, looks up the bound `agentId`, and injects it into every tool call. This is the fastest demo path. Real OAuth (PKCE flow with consent screen) is the v1 upgrade.
 
-The hosted reference Giza is described as hosting at `https://mcp.gizatech.xyz/api/sse` (Next.js + OAuth + Redis sessions, Vercel). [UNVERIFIED — homepage didn't expose docs we could fetch]. The Concierge target endpoint shape: `https://mcp.concierge.app/mcp` (Streamable HTTP, not deprecated SSE).
+The hosted reference Giza is described as hosting at `https://mcp.gizatech.xyz/api/sse` (Next.js + OAuth + Redis sessions, Vercel). [UNVERIFIED — homepage didn't expose docs we could fetch]. The mPilot target endpoint shape: `https://mcp.concierge.app/mcp` (Streamable HTTP, not deprecated SSE).
 
 ---
 
 ## 6. Deployment — where to host
 
-The killer constraint is **request lifetime**. Streamable HTTP responses can stream for minutes if the tool is slow. Vercel's *default* serverless functions cap at 10s (Hobby) / 60s Fluid (Pro). That's *fine* for most Concierge tools (read state, list proposals — sub-second), but `proposal_approve` could wait on a tick that takes longer.
+The killer constraint is **request lifetime**. Streamable HTTP responses can stream for minutes if the tool is slow. Vercel's *default* serverless functions cap at 10s (Hobby) / 60s Fluid (Pro). That's *fine* for most mPilot tools (read state, list proposals — sub-second), but `proposal_approve` could wait on a tick that takes longer.
 
 | Host                | Pros                                                                   | Cons                                                              |
 | ------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -229,7 +229,7 @@ The killer constraint is **request lifetime**. Streamable HTTP responses can str
 claude mcp add concierge https://mcp.concierge.app/mcp --header "Authorization: Bearer ck_live_..."
 ```
 
-Or edit `~/.config/claude/mcp.json` directly. Once added, Claude Code surfaces every Concierge tool to the model on every turn.
+Or edit `~/.config/claude/mcp.json` directly. Once added, Claude Code surfaces every mPilot tool to the model on every turn.
 
 ### 7.2 Claude Desktop
 
@@ -261,10 +261,10 @@ Same MCP standard. Config file path differs but the contract is identical. RealC
 ## 8. Why MCP is the distribution moat
 
 1. **Judges already live in Claude Code / Cursor.** A working `claude mcp add concierge ...` line in the demo is the difference between "interesting project" and "I want this in my IDE right now."
-2. **Composability.** A user with our MCP and someone else's MCP (e.g. an Etherscan MCP, a Curve MCP, a Telegram MCP) can have Claude orchestrate cross-service workflows — "if my Concierge yield drops below 6%, message me on Telegram and propose a rebalance." We don't have to ship Telegram. We just have to be on the bus.
+2. **Composability.** A user with our MCP and someone else's MCP (e.g. an Etherscan MCP, a Curve MCP, a Telegram MCP) can have Claude orchestrate cross-service workflows — "if my mPilot yield drops below 6%, message me on Telegram and propose a rebalance." We don't have to ship Telegram. We just have to be on the bus.
 3. **Friction-free trial.** No npm install, no CLI setup. Paste URL + bearer token, done.
 4. **Track 6 multiplier.** Track 6 rewards agent infra. A skill + an SDK + a CLI + an MCP server is four checkboxes, not one.
-5. **Long tail.** Every MCP host that ships gets Concierge for free. We don't have to court Cursor or Codex — they all speak the same protocol.
+5. **Long tail.** Every MCP host that ships gets mPilot for free. We don't have to court Cursor or Codex — they all speak the same protocol.
 
 ---
 

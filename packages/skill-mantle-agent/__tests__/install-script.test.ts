@@ -172,7 +172,7 @@ describe.runIf(POSIX)(
     });
 
     it('round-2 CWE-74-class: validate_url ACCEPTS proper http(s) origins', () => {
-      expect(sourceAndRun(`validate_url 'https://staging.concierge.xyz'`).code).toBe(0);
+      expect(sourceAndRun(`validate_url 'https://staging.mpilot.xyz'`).code).toBe(0);
       expect(sourceAndRun(`validate_url 'http://localhost:8787'`).code).toBe(0);
       expect(sourceAndRun(`validate_url 'https://example.com/path/here'`).code).toBe(0);
     });

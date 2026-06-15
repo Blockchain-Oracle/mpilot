@@ -12,7 +12,7 @@
 
 **As a** developer using Coinbase AgentKit
 **I want to** call `getConciergeActionProvider(agent)` and drop the result into my AgentKit `agentKitFromWallet(...).withActionProviders([...])` chain
-**So that** Concierge tools are first-class actions in my AgentKit agent without decorator/class boilerplate
+**So that** mPilot tools are first-class actions in my AgentKit agent without decorator/class boilerplate
 
 ---
 
@@ -33,7 +33,7 @@ When the result is inspected
 Then it is a valid AgentKit ActionProvider with `getActions()` method returning an Action array
 
 Given the returned ActionProvider is used in `agentKit.withActionProviders([conciergeProvider])`
-When the agent invokes a Concierge action by name
+When the agent invokes a mPilot action by name
 Then the action's `invoke(args)` routes to `ConciergeTool.invoke()` from @mpilot/tools
 
 Given decorator anti-pattern check
@@ -93,7 +93,7 @@ export function getConciergeActionProvider(agent: ConciergeAgent) {
 }
 ```
 
-~12 LOC. **`customActionProvider` is the ESCAPE HATCH** from AgentKit's documented-but-burdensome `@CreateAction` decorator + class hierarchy path. Concierge takes the escape hatch because:
+~12 LOC. **`customActionProvider` is the ESCAPE HATCH** from AgentKit's documented-but-burdensome `@CreateAction` decorator + class hierarchy path. mPilot takes the escape hatch because:
 - No `reflect-metadata` import
 - No `experimentalDecorators: true` in tsconfig
 - No class hierarchy required

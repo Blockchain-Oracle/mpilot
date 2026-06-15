@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** fuzz tests exercise wide input ranges for goal hashes, policy bytes, agent IDs, and addresses to catch edge cases hand-written unit tests miss
 **So that** off-by-one + boundary + adversarial-input bugs surface before Mainnet
 

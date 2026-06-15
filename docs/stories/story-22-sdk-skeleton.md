@@ -10,8 +10,8 @@
 
 ## ⚠️ 2026-06-10 IMPLEMENTATION ADDENDUM — `@mpilot/agent` re-exports DEFERRED to Epic E5
 
-The 2026-06-09 UPDATE below assumes `@mpilot/agent` exists (`createConcierge`,
-`Concierge`, `tick()`, `setGoal()` re-exports + the tick/goal BDD criteria).
+The 2026-06-09 UPDATE below assumes `@mpilot/agent` exists (`createmPilot`,
+`mPilot`, `tick()`, `setGoal()` re-exports + the tick/goal BDD criteria).
 **No story in the corpus creates `packages/agent/` before Epic E5** — story-60
 creates `@mpilot/llm`, and the runtime itself is assembled by stories 62-67,
 all of which transitively depend on THIS story. Stubbing a fake runtime to
@@ -30,7 +30,7 @@ implementable subset:
 - ✅ Barrel re-exports of the EXISTING surface (`@mpilot/tools` +
   `@mpilot/vercel-ai`) + README
 - ⏸️ DEFERRED to the E5 story that creates `@mpilot/agent`: the
-  `createConcierge` / `Concierge` re-exports, the tick/goal BDD criteria
+  `createmPilot` / `mPilot` re-exports, the tick/goal BDD criteria
   (missing-goal `ConciergeError`, AsyncIterable + `.on()`, per-phase model
   override), and the ADR-019 five-line quickstart in the README.
 
@@ -38,18 +38,18 @@ implementable subset:
 
 Per architecture.md ADR-014 + ADR-016 + ADR-019 (rework 2026-06-09), the `@mpilot/sdk` shape changed:
 
-1. **`@mpilot/sdk` becomes a META PACKAGE** that re-exports `@mpilot/agent` + `@mpilot/tools` + `@mpilot/vercel-ai` for ergonomic single-import. The "main class" is `Concierge` exported from `@mpilot/agent`, not `@mpilot/sdk` directly.
+1. **`@mpilot/sdk` becomes a META PACKAGE** that re-exports `@mpilot/agent` + `@mpilot/tools` + `@mpilot/vercel-ai` for ergonomic single-import. The "main class" is `mPilot` exported from `@mpilot/agent`, not `@mpilot/sdk` directly.
 
-2. **`createConcierge()` factory replaces the `new Concierge()` class constructor** (per SDK-DX-STUDY §I — factory functions, no class hierarchies needed):
+2. **`createmPilot()` factory replaces the `new mPilot()` class constructor** (per SDK-DX-STUDY §I — factory functions, no class hierarchies needed):
    ```typescript
-   export function createConcierge(opts: {
+   export function createmPilot(opts: {
      model: LanguageModelV2;                      // user brings provider (ADR-016)
      registry: ConciergeRegistry;                  // bundled Mantle addresses
      models?: Partial<Record<TickPhase, LanguageModelV2>>;  // per-phase override
      walletProvider?: WalletProvider;
      rpcUrl?: string;
      attestation?: { erc8004: boolean };
-   }): Concierge;
+   }): mPilot;
    ```
 
 3. **`goal` is NOT a constructor arg.** `concierge.setGoal('...')` is a separate method. Constructor side-effects = test hell (SDK-DX-STUDY §I).
@@ -70,13 +70,13 @@ Per architecture.md ADR-014 + ADR-016 + ADR-019 (rework 2026-06-09), the `@mpilo
 ### Updated file modification map (replaces the one below)
 
 - `packages/sdk/package.json` — NEW per ADR-018 shape
-- `packages/sdk/src/index.ts` — barrel re-exports: `createConcierge`, `defaultModel`, `ConciergeRegistry`, `Concierge` class type, `ConciergeError`, `ConciergeTool`, `tool()`, `SerializableConciergeXxxSchema`s
+- `packages/sdk/src/index.ts` — barrel re-exports: `createmPilot`, `defaultModel`, `ConciergeRegistry`, `mPilot` class type, `ConciergeError`, `ConciergeTool`, `tool()`, `SerializableConciergeXxxSchema`s
 - `packages/sdk/src/registry.ts` — `ConciergeRegistry.mainnet()` / `ConciergeRegistry.sepolia()` bundled-addresses factory (sources from `@mpilot/shared`)
 - `packages/sdk/src/defaultModel.ts` — env-auto-detect helper (per ADR-016)
 - `packages/sdk/README.md` — the 5-line quickstart from ADR-019:
   ```typescript
-  import { createConcierge, defaultModel, ConciergeRegistry } from '@mpilot/sdk';
-  const concierge = createConcierge({ model: defaultModel(), registry: ConciergeRegistry.mainnet() });
+  import { createmPilot, defaultModel, ConciergeRegistry } from '@mpilot/sdk';
+  const concierge = createmPilot({ model: defaultModel(), registry: ConciergeRegistry.mainnet() });
   await concierge.setGoal('Max USDC yield, stay under 70% LTV');
   for await (const event of concierge.tick()) { console.log(event); }
   ```
@@ -92,11 +92,11 @@ Given env has AI_MODEL="openai:gpt-5.1" + OPENAI_API_KEY set
 When `defaultModel()` is called with no args
 Then it returns a LanguageModelV2 from openai('gpt-5.1')
 
-Given a Concierge instance is constructed without a goal
+Given a mPilot instance is constructed without a goal
 When `concierge.tick()` is called
 Then it throws ConciergeError with type='UserRejected' and message hints to call setGoal() first
 
-Given a Concierge instance with a goal and Sepolia registry
+Given a mPilot instance with a goal and Sepolia registry
 When `for await (const e of concierge.tick())` runs
 Then the first event has type='plan-delta' or type='plan-done'
 ```
@@ -123,8 +123,8 @@ Then the first event has type='plan-delta' or type='plan-done'
 
 ## User story
 
-**As a** Mantle developer using Concierge
-**I want to** `import { Concierge } from '@mpilot/sdk'` and register providers in 5 lines
+**As a** Mantle developer using mPilot
+**I want to** `import { mPilot } from '@mpilot/sdk'` and register providers in 5 lines
 **So that** I can ship my own agent without re-implementing the runtime contract
 
 ---
@@ -133,10 +133,10 @@ Then the first event has type='plan-delta' or type='plan-done'
 
 - `packages/sdk/package.json` — NEW — `name: "@mpilot/sdk"`, exports map, peer deps on `viem`, `zod`
 - `packages/sdk/src/index.ts` — NEW — barrel exports
-- `packages/sdk/src/Concierge.ts` — NEW — main `Concierge` class with `constructor(opts)`, `registerProvider(name, provider)`, `getProvider(name)`, `listProviders()`, `setGoal(goal)`, `activate()`, `deactivate()`, lifecycle events
+- `packages/sdk/src/mPilot.ts` — NEW — main `mPilot` class with `constructor(opts)`, `registerProvider(name, provider)`, `getProvider(name)`, `listProviders()`, `setGoal(goal)`, `activate()`, `deactivate()`, lifecycle events
 - `packages/sdk/src/types.ts` — NEW — `ConciergeOptions`, `ProviderInterface`, `ActionDefinition`, `AgentLifecycle`
 - `packages/sdk/src/provider.ts` — NEW — `defineProvider(name, actions)` helper for Mantle dev ergonomics
-- `packages/sdk/src/Concierge.test.ts` — NEW — unit tests covering: construction, provider registration, action lookup, lifecycle transitions, invalid-config errors
+- `packages/sdk/src/mPilot.test.ts` — NEW — unit tests covering: construction, provider registration, action lookup, lifecycle transitions, invalid-config errors
 - `packages/sdk/README.md` — NEW — quickstart: `npm install @mpilot/sdk` + 5-line example
 
 ---
@@ -148,8 +148,8 @@ Given `@mpilot/sdk` package exists
 When `node -e "const pkg = require('./packages/sdk/package.json'); console.log(pkg.name)"` runs
 Then output is "@mpilot/sdk"
 
-Given a Concierge instance is constructed
-When `pnpm -e "import { Concierge } from './packages/sdk/src/index.ts'; const c = new Concierge({ chain: 'mantle-mainnet' }); console.log(c.listProviders())"` runs
+Given a mPilot instance is constructed
+When `pnpm -e "import { mPilot } from './packages/sdk/src/index.ts'; const c = new mPilot({ chain: 'mantle-mainnet' }); console.log(c.listProviders())"` runs
 Then output is "[]" (empty array — no providers registered yet)
 
 Given a mock provider is registered
@@ -161,11 +161,11 @@ When `await c.setGoal("max yield"); await c.activate(); console.log(c.state)` ru
 Then output is "active"
 
 Given an invalid options object is passed
-When `new Concierge({})` runs
+When `new mPilot({})` runs
 Then it throws a Zod validation error with helpful message
 
 Given test file runs
-When `pnpm test packages/sdk/src/Concierge.test.ts` runs
+When `pnpm test packages/sdk/src/mPilot.test.ts` runs
 Then ≥ 15 test cases pass
 ```
 
@@ -175,10 +175,10 @@ Then ≥ 15 test cases pass
 
 ```bash
 test -f packages/sdk/package.json
-test -f packages/sdk/src/Concierge.ts
+test -f packages/sdk/src/mPilot.ts
 test -f packages/sdk/src/types.ts
 test -f packages/sdk/src/provider.ts
-test -f packages/sdk/src/Concierge.test.ts
+test -f packages/sdk/src/mPilot.test.ts
 test -f packages/sdk/README.md
 
 # Package name correct
@@ -188,7 +188,7 @@ node -e "
 "
 
 # Tests pass with ≥ 15 cases
-pnpm test packages/sdk/src/Concierge.test.ts --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 15 {exit 0} {exit 1}'
+pnpm test packages/sdk/src/mPilot.test.ts --reporter=verbose 2>&1 | grep -E "(✓|PASS)" | wc -l | awk '$1 >= 15 {exit 0} {exit 1}'
 
 # Typecheck passes
 pnpm run typecheck
@@ -196,7 +196,7 @@ test $? -eq 0
 
 # README has the 5-line example
 grep -q "npm install @mpilot/sdk" packages/sdk/README.md
-grep -q "new Concierge" packages/sdk/README.md
+grep -q "new mPilot" packages/sdk/README.md
 grep -q "registerProvider" packages/sdk/README.md
 ```
 
@@ -204,7 +204,7 @@ grep -q "registerProvider" packages/sdk/README.md
 
 ## Notes for coding agent
 
-- `Concierge` class is the dev-facing entrypoint. Internally it owns a `Map<string, ProviderInterface>`.
+- `mPilot` class is the dev-facing entrypoint. Internally it owns a `Map<string, ProviderInterface>`.
 - `ProviderInterface` shape (locked):
   ```typescript
   interface ProviderInterface {

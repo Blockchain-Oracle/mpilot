@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer preparing the hackathon submission
+**As a** mPilot maintainer preparing the hackathon submission
 **I want to** a written script for two demo video cuts (60-second pitch + 5-minute deep-dive), a recording checklist (environment setup, browser state, screen resolution), and a post-production checklist (captions, intro/outro, host platform)
 **So that** the demo video is the polished artifact judges actually watch — not a one-take rambling screen capture
 
@@ -31,7 +31,7 @@
 ```
 Given the 60-second script
 When read
-Then it covers (in order): (1) hook — "autonomous DeFi agent for Mantle", (2) one-line problem statement, (3) live demo of activating + watching a tick, (4) the verifiability claim shown via the Mantlescan link, (5) CTA "try it at concierge.xyz"
+Then it covers (in order): (1) hook — "autonomous DeFi agent for Mantle", (2) one-line problem statement, (3) live demo of activating + watching a tick, (4) the verifiability claim shown via the Mantlescan link, (5) CTA "try it at mpilot.xyz"
 
 Given the 60-second script
 When measured by spoken-word count

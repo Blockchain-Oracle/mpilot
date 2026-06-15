@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user watching the dashboard
+**As a** mPilot user watching the dashboard
 **I want to** a real-time tick stream in the SidePanel shows the current phase (plan/simulate/propose/execute/record) with status pills transitioning through Vercel AI SDK's four UI states (input-streaming → input-available → output-available → output-error)
 **So that** I see the agent thinking AS it happens — not after — and the trust-via-visibility primitive of the wedge actually delivers
 

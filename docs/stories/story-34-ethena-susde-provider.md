@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** an `@mpilot/ethena-susde` package exposes `getYieldRate`, `getCarryVsAave`, `wrapToSusde`, `unwrapToUSDe` actions (no on-chain native staking — that's Ethereum L1) plus reads for the Mantle-side bridged sUSDe
 **So that** the agent can monitor the sUSDe basis trade carry vs Aave's USDC borrow rate (the wedge's spread-floor mechanic) and bridge USDe ↔ sUSDe on Mantle when policy allows
 

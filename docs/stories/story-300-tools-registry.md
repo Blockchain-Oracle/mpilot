@@ -12,7 +12,7 @@
 
 **As a** Mantle developer or AI agent author
 **I want to** import `createConciergeTools(agent)` from `@mpilot/tools` and receive a framework-agnostic array of `ConciergeTool` objects
-**So that** my Vercel AI SDK / OpenAI / LangChain / AgentKit / MCP server / React UI consumer can all use the SAME source of truth for Concierge actions, with one schema definition feeding every surface
+**So that** my Vercel AI SDK / OpenAI / LangChain / AgentKit / MCP server / React UI consumer can all use the SAME source of truth for mPilot actions, with one schema definition feeding every surface
 
 ---
 

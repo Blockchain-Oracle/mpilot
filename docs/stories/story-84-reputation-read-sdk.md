@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge dashboard + agent reputation page + judge auditor
+**As a** mPilot dashboard + agent reputation page + judge auditor
 **I want to** a `loadAgentHistory({ agentId, chain })` function returns ALL attestations for an agent (paginated by 50), each enriched with the IPFS-fetched payload, with caching to avoid re-fetching IPFS content
 **So that** the agent dashboard renders fast (cached), the reputation page shows full history, and judges can audit the agent's track record via a single SDK call
 

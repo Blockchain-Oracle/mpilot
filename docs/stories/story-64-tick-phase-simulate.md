@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge tick orchestrator
+**As a** mPilot tick orchestrator
 **I want to** a `runPhase('simulate', plan)` function dry-runs the plan's suggested actions via `eth_call` (or Tenderly bundle simulation if configured), computes the predicted delta state (HF before/after, balance changes, slippage), and refuses if simulation reverts
 **So that** the agent NEVER submits a tx that would revert on-chain (wasted gas, MEV exposure) and the propose phase has accurate predicted outcomes to show the user
 

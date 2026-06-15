@@ -59,7 +59,7 @@ export interface SubscribeTicksOpts {
 }
 
 export interface ConciergeClientConfig {
-  /** Origin of the Concierge backend (typically `https://concierge.xyz`). */
+  /** Origin of the Concierge backend (typically `https://mpilot.xyz`). */
   readonly baseUrl: string;
   /** Pulls a fresh Privy JWT. The SDK never persists or caches it. */
   readonly getAccessToken: () => Promise<string | null>;

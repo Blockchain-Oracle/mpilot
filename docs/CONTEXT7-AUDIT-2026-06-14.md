@@ -25,7 +25,7 @@
 #### C2. Attestation hash double-truth — `hash.ts` (raw keccak) vs `eip712.ts` (EIP-712 typed-data) produce different `bytes32` for the same envelope
 
 - **Files:** `packages/attestation/src/hash.ts` vs `packages/providers/erc8004/src/eip712.ts`
-- **What we ship:** `hash.ts` computes `keccak256(toBytes(canonical))` over the JCS envelope. `eip712.ts` computes `hashTypedData({domain:{name:'Concierge',version:'1',chainId},types:{ActionAttestation:[...]}, ...})`. The two paths produce different `bytes32` for the same logical attestation. `writeAttestation.ts:33-39` JSDoc already documents this as a story-84 blocker.
+- **What we ship:** `hash.ts` computes `keccak256(toBytes(canonical))` over the JCS envelope. `eip712.ts` computes `hashTypedData({domain:{name:'mPilot',version:'1',chainId},types:{ActionAttestation:[...]}, ...})`. The two paths produce different `bytes32` for the same logical attestation. `writeAttestation.ts:33-39` JSDoc already documents this as a story-84 blocker.
 - **What docs say:** ERC-8004 `ReputationRegistry.giveFeedback(agentId, schema, feedbackURI, feedbackHash)` takes an arbitrary `bytes32` — contract does NOT enforce EIP-712. So whichever scheme we pick must be applied consistently. Per ADR-004 + CLAUDE.md non-negotiable §2 ("audit supersedes spec"), keccak wins.
 - **Risk:** Unverifiable receipts. A verifier reading on-chain `feedbackHash` + pulling IPFS payload cannot reproduce the bytes32 because two production paths disagree.
 - **Fix:** Per ADR-004 — rip out EIP-712 path. Rename/delete `hashActionPayload`. Ensure `attestAction` writes `dataHash = keccak256(toBytes(canonical))` from `computeFeedbackPair`. Add an integration test that asserts `onChainFeedbackHash === keccak256(toBytes(IPFS_content))`.
@@ -43,7 +43,7 @@
 #### H2. EIP-712 domain omits `verifyingContract` — cross-deployment replay vector
 
 - **File:** `packages/providers/erc8004/src/eip712.ts:5-10`
-- **What we ship:** `EIP712_DOMAIN = { name: 'Concierge', version: '1' }` + `chainId` injected per-call. `verifyingContract` deliberately omitted.
+- **What we ship:** `EIP712_DOMAIN = { name: 'mPilot', version: '1' }` + `chainId` injected per-call. `verifyingContract` deliberately omitted.
 - **What EIP-712 best practice says:** `{name, version, chainId, verifyingContract}` is the canonical full domain. Wallets display all four; verifying-contract is what prevents cross-deployment replay.
 - **Risk:** A hash signed against the Mantle Mainnet Reputation contract is bit-identical to one against any fork of the same contract. If we ever sign these hashes (session-key flow), replay across deployments is possible.
 - **Fix:** Closes naturally with C2 — if we rip out EIP-712 (keccak wins), this issue disappears. If we keep EIP-712 anywhere, pull `verifyingContract` from `@mpilot/shared/addresses.ts` per chain.

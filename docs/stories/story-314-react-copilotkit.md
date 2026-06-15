@@ -12,14 +12,14 @@
 
 **As a** developer using CopilotKit / AG-UI Protocol (which transitively covers LangGraph, CrewAI, Mastra, Pydantic AI, AutoGen2, MS Agent Framework)
 **I want to** `pnpm add @mpilot/react-copilotkit` and call `useConciergeActions()` inside my `<CopilotKit>` provider
-**So that** all Concierge cards register as CopilotKit frontend tools and render automatically when the agent emits them
+**So that** all mPilot cards register as CopilotKit frontend tools and render automatically when the agent emits them
 
 ---
 
 ## File modification map
 
 - `packages/react-copilotkit/package.json` — NEW — ESM-only; peer deps on `@copilotkit/react-core ^1.59`, `react`, `@mpilot/react`
-- `packages/react-copilotkit/src/useConciergeActions.tsx` — NEW — hook calling `useCopilotAction` (or `useFrontendTool` v2 — pin at impl time per AUDIT §10) for each Concierge card
+- `packages/react-copilotkit/src/useConciergeActions.tsx` — NEW — hook calling `useCopilotAction` (or `useFrontendTool` v2 — pin at impl time per AUDIT §10) for each mPilot card
 - `packages/react-copilotkit/src/__tests__/useConciergeActions.test.tsx` — NEW — ≥ 5 cases (renderHook)
 - `packages/react-copilotkit/README.md` — NEW — quickstart
 
@@ -30,7 +30,7 @@
 ```
 Given a React tree with `<CopilotKit>` provider
 When `useConciergeActions()` is called inside a descendant
-Then `useCopilotAction` (or `useFrontendTool`) is called for each Concierge card: proposeAction, executeTick, portfolioRead, recordAttestation
+Then `useCopilotAction` (or `useFrontendTool`) is called for each mPilot card: proposeAction, executeTick, portfolioRead, recordAttestation
 
 Given the agent emits a tool call for `proposeAction`
 When CopilotKit's runtime resolves the registered action
@@ -83,7 +83,7 @@ import { ProposalPart, TickPart, PortfolioPart, ReputationPart } from '@mpilot/r
 export function useConciergeActions() {
   useCopilotAction({
     name: 'proposeAction',
-    description: 'Show a Concierge proposal card with Approve/Reject/Edit',
+    description: 'Show a mPilot proposal card with Approve/Reject/Edit',
     parameters: [/* derived from @mpilot/tools ConciergeTool inputSchema */],
     render: (args, result, status) => <ProposalPart part={{ /* mapped */ }} />,
   });

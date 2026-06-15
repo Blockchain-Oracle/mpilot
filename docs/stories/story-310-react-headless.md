@@ -10,9 +10,9 @@
 
 ## User story
 
-**As a** developer building my own chat UI for Concierge
+**As a** developer building my own chat UI for mPilot
 **I want to** `pnpm add @mpilot/react` and render headless components that handle ARIA + state machines + parse-then-render, but bring my own styling
-**So that** I can use Concierge's logic without inheriting the brand styling, suitable for embedding in my dApp's own design system
+**So that** I can use mPilot's logic without inheriting the brand styling, suitable for embedding in my dApp's own design system
 
 ---
 

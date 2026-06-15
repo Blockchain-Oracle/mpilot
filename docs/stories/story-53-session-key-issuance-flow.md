@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Concierge user activating my agent
-**I want to** a flow that (1) generates a fresh session-key keypair in my browser, (2) builds the policy from my agent's enabled providers, (3) requests my EOA to sign the policy approval, and (4) persists the (encrypted) session-key + policy to my Concierge account
+**As a** mPilot user activating my agent
+**I want to** a flow that (1) generates a fresh session-key keypair in my browser, (2) builds the policy from my agent's enabled providers, (3) requests my EOA to sign the policy approval, and (4) persists the (encrypted) session-key + policy to my mPilot account
 **So that** the agent can act on my behalf within the granted scope without me being online for every tick
 
 ---

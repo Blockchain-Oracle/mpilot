@@ -10,9 +10,9 @@
 
 ## User story
 
-**As a** new Concierge user
+**As a** new mPilot user
 **I want to** a 4-step onboarding flow at /app/onboarding (connect wallet → set initial policy → state your goal in plain English → activate the agent)
-**So that** I can get from "landed on concierge.xyz" to "my agent is ticking" in under 5 minutes with explicit consent at every step (no dark patterns)
+**So that** I can get from "landed on mpilot.xyz" to "my agent is ticking" in under 5 minutes with explicit consent at every step (no dark patterns)
 
 ---
 

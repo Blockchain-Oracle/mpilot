@@ -1,7 +1,7 @@
 # @mpilot/vercel-ai
 
 Vercel AI SDK v6 adapter for `@mpilot/tools`. Converts the
-framework-agnostic Concierge registry into a `ToolSet` ready for
+framework-agnostic mPilot registry into a `ToolSet` ready for
 `streamText({ tools })`, with `outputSchema` passed through so
 `InferUITools` and `tool-${name}` UI parts stay fully typed.
 

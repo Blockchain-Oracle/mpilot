@@ -1,4 +1,4 @@
-# Concierge — Architecture (Locked)
+# mPilot — Architecture (Locked)
 
 > **⚠️ 2026-06-09 — partial supersession:** This was the 2026-06-03 research doc that fed the original `docs/architecture.md` draft. Several stack choices have since been amended per `AUDIT-2026-06-09.md` + `SDK-DX-STUDY-2026-06-09.md`:
 > - **Monorepo manager:** Bun workspaces → **pnpm workspaces** (per ADR-018 — pnpm's strict peer-dep handling matches our adapter package strategy, aligned with cdr-kit/pokaldot/kwala)
@@ -38,14 +38,14 @@
 
 Single Next.js project, three top-level routes, one Vercel deploy:
 
-- `concierge.xyz/` — landing (marketing + hero + how-it-works + CTA)
-- `concierge.xyz/app` — application (sign-in + onboarding + tick stream + dashboard + settings)
-- `concierge.xyz/docs` — developer documentation (Fumadocs or similar — designer's pick)
+- `mpilot.xyz/` — landing (marketing + hero + how-it-works + CTA)
+- `mpilot.xyz/app` — application (sign-in + onboarding + tick stream + dashboard + settings)
+- `mpilot.xyz/docs` — developer documentation (Fumadocs or similar — designer's pick)
 
 Plus auxiliary routes:
-- `concierge.xyz/agent/:agentId` — public ERC-8004 reputation viewer
-- `concierge.xyz/api/*` — backend routes
-- `mcp.concierge.xyz/api/sse` — MCP server (separate subdomain due to SSE long-lived connection needs)
+- `mpilot.xyz/agent/:agentId` — public ERC-8004 reputation viewer
+- `mpilot.xyz/api/*` — backend routes
+- `mcp.mpilot.xyz/api/sse` — MCP server (separate subdomain due to SSE long-lived connection needs)
 
 **Rationale:** subdomains add auth-cookie + SSL + DNS complexity for solo-12-day; single domain unifies brand, simplifies analytics, faster ship. MCP-server-on-subdomain only because SSE may need different runtime than the main app.
 
@@ -65,7 +65,7 @@ Plus auxiliary routes:
                 │                      │                          │
        ┌────────┴────────┐  ┌──────────┴──────────┐   ┌──────────┴──────────┐  ┌─────────┐
        │  Web app        │  │  npm SDK            │   │  MCP server         │  │ RealClaw│
-       │ concierge.xyz   │  │  @mpilot/sdk     │   │ mcp.concierge.xyz   │  │  skill  │
+       │ mpilot.xyz   │  │  @mpilot/sdk     │   │ mcp.mpilot.xyz   │  │  skill  │
        │      /app       │  │  @mpilot/<7>     │   │   /api/sse          │  │         │
        │                 │  │                     │   │                     │  │  npx    │
        │ Consumer        │  │ Mantle devs build   │   │ Claude Code /       │  │ skills  │
@@ -95,21 +95,21 @@ Plus auxiliary routes:
 
 **Status:** Accepted 2026-06-03.
 **Context:** Byreal Skills CLI is **Solana-only** (verified: byreal-git/byreal-agent-skills 44★ MIT TS, "CLMM DEX on Solana"). Byreal Perps CLI is **Hyperliquid-only**. Both are wrong-chain for our Mantle product.
-**Decision:** Satisfy Track 6 ("must use core capabilities of at least one of: Byreal Agent Skills / Byreal Perps CLI / RealClaw") via the **RealClaw** path. Package Concierge as a RealClaw-compatible TypeScript skill installable via `npx skills add @mpilot/mantle-agent`. Pattern verified by byreal-agent-skills itself (TS, MIT, distributable) and Magicianhax/mantle-active-trader (Python RealClaw skill for Mantle DeFi).
+**Decision:** Satisfy Track 6 ("must use core capabilities of at least one of: Byreal Agent Skills / Byreal Perps CLI / RealClaw") via the **RealClaw** path. Package mPilot as a RealClaw-compatible TypeScript skill installable via `npx skills add @mpilot/mantle-agent`. Pattern verified by byreal-agent-skills itself (TS, MIT, distributable) and Magicianhax/mantle-active-trader (Python RealClaw skill for Mantle DeFi).
 **Consequences:** Track 6 qualified without depending on wrong-chain CLIs. Strategic upgrade: we ship into Byreal's official distribution channel (`npx skills add`) which is the surface Byreal/Mantle judges actually use. See `06-realclaw-skill-pkg.md` for implementation details.
 
 ### ADR-004 — ERC-8004 attestation as verifiability (NOT zkML)
 
 **Status:** Accepted 2026-06-03.
-**Context:** Giza's original zkML (Orion/LuminAIR Cairo/Rust) is decoupled from their consumer product. Adding zkML to Concierge would consume weeks for marginal Innovation score gain. Allora (judge) cares about verifiable *output*, not runtime proofs.
+**Context:** Giza's original zkML (Orion/LuminAIR Cairo/Rust) is decoupled from their consumer product. Adding zkML to mPilot would consume weeks for marginal Innovation score gain. Allora (judge) cares about verifiable *output*, not runtime proofs.
 **Decision:** Every successful tick writes an ERC-8004 `giveFeedback` attestation to the agent's identity NFT. This is the canonical "verifiability" claim — a public, permanent record of what the agent did and what the outcome was, queryable by anyone.
-**Consequences:** No zkML rabbit hole. ERC-8004 reputation NFTs become Concierge's flagship trust artifact. The `/agent/:id` page renders the reputation history visually = demo wow + judge thesis match.
+**Consequences:** No zkML rabbit hole. ERC-8004 reputation NFTs become mPilot's flagship trust artifact. The `/agent/:id` page renders the reputation history visually = demo wow + judge thesis match.
 
-### ADR-005 — Single-domain routing (concierge.xyz/app, not app.concierge.xyz)
+### ADR-005 — Single-domain routing (mpilot.xyz/app, not app.mpilot.xyz)
 
 **Status:** Accepted 2026-06-03.
 **Context:** Subdomains add auth-cookie + SSL + DNS + Vercel project complexity for solo-12-day budget.
-**Decision:** Single Next.js project at `concierge.xyz` with `/app`, `/docs`, `/agent/:id` as top-level routes. MCP server on `mcp.concierge.xyz` as the only subdomain (because SSE long-lived connections may need a different runtime).
+**Decision:** Single Next.js project at `mpilot.xyz` with `/app`, `/docs`, `/agent/:id` as top-level routes. MCP server on `mcp.mpilot.xyz` as the only subdomain (because SSE long-lived connections may need a different runtime).
 **Consequences:** Faster ship, unified brand + analytics, single Vercel deploy. Auth cookies just work across routes.
 
 ### ADR-006 — Sonnet 4.6 default + Opus 4.7 for hard reasoning

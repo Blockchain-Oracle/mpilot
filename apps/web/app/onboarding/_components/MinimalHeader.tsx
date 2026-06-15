@@ -33,7 +33,7 @@ export function MinimalHeader({ stepIdx }: { readonly stepIdx: number }) {
       >
         <Link
           href="/"
-          aria-label="Concierge home"
+          aria-label="mPilot home"
           style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ink)' }}
         >
           <span
@@ -57,7 +57,7 @@ export function MinimalHeader({ stepIdx }: { readonly stepIdx: number }) {
               letterSpacing: '-0.02em',
             }}
           >
-            Concierge
+            mPilot
           </span>
         </Link>
         <div

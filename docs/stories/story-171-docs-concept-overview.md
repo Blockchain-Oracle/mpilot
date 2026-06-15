@@ -1,4 +1,4 @@
-# Story — Docs concept overview (what Concierge is + how it differs)
+# Story — Docs concept overview (what mPilot is + how it differs)
 
 **ID:** story-171-docs-concept-overview
 **Epic:** Epic E10 — Docs Site
@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** developer or judge new to Concierge
-**I want to** the first concept page explains: what Concierge is, the wedge (autonomous DeFi agent for Mantle), the 5 phases of the tick loop, the trust primitives (visibility + ERC-8004 attestation), how it differs from robo-advisors AND from BNPL
+**As a** developer or judge new to mPilot
+**I want to** the first concept page explains: what mPilot is, the wedge (autonomous DeFi agent for Mantle), the 5 phases of the tick loop, the trust primitives (visibility + ERC-8004 attestation), how it differs from robo-advisors AND from BNPL
 **So that** I can read 5-10 minutes and form a correct mental model — concrete enough to act on, abstract enough to fit in working memory
 
 ---
@@ -33,7 +33,7 @@
 ```
 Given the concept overview page
 When read
-Then it explains in the first 200 words: what Concierge is, what protocols it acts on, what the user does vs what the agent does
+Then it explains in the first 200 words: what mPilot is, what protocols it acts on, what the user does vs what the agent does
 
 Given the trust-primitives page
 When inspected
@@ -41,7 +41,7 @@ Then it covers BOTH primitives: (1) real-time visibility via the live tick strea
 
 Given the how-we-differ page
 When read
-Then it explicitly mentions: Klarna BNPL (not Concierge), traditional robo-advisors (not Concierge), generic "AI assistants" without on-chain receipts (not Concierge)
+Then it explicitly mentions: Klarna BNPL (not mPilot), traditional robo-advisors (not mPilot), generic "AI assistants" without on-chain receipts (not mPilot)
 
 Given the loop diagram
 When rendered
@@ -99,9 +99,9 @@ bun scripts/check-file-loc.mjs
 
 ## Notes for coding agent
 
-- **Concept pages explain WHY before HOW.** Per `research/concierge/08-ux-component-intent.md` § docs structure: a reader who only reads concept pages should still leave with a correct mental model of what Concierge does and why it's different.
+- **Concept pages explain WHY before HOW.** Per `research/concierge/08-ux-component-intent.md` § docs structure: a reader who only reads concept pages should still leave with a correct mental model of what mPilot does and why it's different.
 - **The 5-phase loop is the central conceit.** Get this diagram right — interactive, clickable, with one-sentence-per-phase explanations. The judges' "wow moment" is seeing the agent thinking; this diagram is the docs equivalent.
-- **Klarna BNPL appears ONLY in the negation context.** Per the load-bearing memory: Patron pivoted; this disambiguation is critical for community alignment. But don't lead with it — start with what Concierge IS, then in a separate page address what it ISN'T.
+- **Klarna BNPL appears ONLY in the negation context.** Per the load-bearing memory: Patron pivoted; this disambiguation is critical for community alignment. But don't lead with it — start with what mPilot IS, then in a separate page address what it ISN'T.
 - **Link liberally between concept pages and reference pages.** "See the SDK reference for the exact function signatures" — let readers go deep when they want.
 - **No code blocks longer than 15 lines** in concept pages. Long code belongs in tutorials (story-175) and reference (story-176). Concepts should be 80% prose + diagrams.
 - **The trust-primitives page is the wedge essay.** Make it good. Per ADR-004: the per-tick attestation IS the verifiability claim. Don't bury this; lead with it.

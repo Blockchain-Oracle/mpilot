@@ -1,6 +1,6 @@
 # 05 — ZeroDev + ERC-4337: Smart Accounts & Session Keys on Mantle
 
-**Purpose:** Concrete patterns for Concierge's on-chain execution layer. Read by `sahil-spec-writer` before generating wallet/execution stories.
+**Purpose:** Concrete patterns for mPilot's on-chain execution layer. Read by `sahil-spec-writer` before generating wallet/execution stories.
 
 **Stack:** ZeroDev Kernel v3 smart account + permission validator (session keys) + viem clients + Pimlico bundler/paymaster on Mantle (chain id 5000) since ZeroDev's hosted bundler does not document Mantle support.
 
@@ -204,7 +204,7 @@ const receipt = await kernelClient.waitForUserOperationReceipt({ hash: txHash })
 | `toSignatureCallerPolicy` | Restrict who can broadcast (1559 relayer pattern).       |
 | `toSignaturePolicy`       | Custom signature scheme.                                 |
 
-Compose multiple — they're ANDed. Concierge uses at minimum: `toCallPolicy` + `toTimestampPolicy` + `toSpendingLimitPolicy`.
+Compose multiple — they're ANDed. mPilot uses at minimum: `toCallPolicy` + `toTimestampPolicy` + `toSpendingLimitPolicy`.
 
 ### 4.4 Revocation
 
@@ -212,7 +212,7 @@ Two paths:
 - **Time-based** — let `validUntil` expire. Cheap, no on-chain action.
 - **Active** — owner sends UserOp that uninstalls the permission validator. Costs gas but immediate.
 
-Concierge UX: show "Session expires in X days. Renew?" + a single-tap **Revoke now** button.
+mPilot UX: show "Session expires in X days. Renew?" + a single-tap **Revoke now** button.
 
 ---
 

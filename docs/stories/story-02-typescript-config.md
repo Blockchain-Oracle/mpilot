@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge contributor
+**As a** mPilot contributor
 **I want to** strict TS with project references across the monorepo
 **So that** each package's types compose without circular imports or `any` leaks
 

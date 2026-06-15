@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the lifi-bridge provider has tests covering quote accuracy + bridge tx submission + two-stage attestation + stale-route refresh + session-key policy restrictiveness, with the Li.Fi HTTP API mocked via MSW (so tests don't depend on live API uptime)
 **So that** behavioral guarantees hold even when Li.Fi's API is rate-limiting or down, and the policy assertions catch any future loosening of the session-key scope
 

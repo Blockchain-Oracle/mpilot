@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer about to submit to the Mantle Turing Test 2026
+**As a** mPilot maintainer about to submit to the Mantle Turing Test 2026
 **I want to** all submission form answers drafted in advance (DoraHacks BUIDL fields, Mantle's track-specific questionnaire) with consistent positioning, all links verified live, all addresses correct
 **So that** the submission itself is a 5-minute paste-and-go — not an hour of "what should I write for X?" during which I miss a deadline
 

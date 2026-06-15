@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** a BullMQ worker process schedules per-agent repeatable jobs every 60s (default cadence) with concurrency=5, retry policy, and dead-letter-queue routing
 **So that** the worker can handle hundreds of users without one slow agent's tick blocking others, and failed ticks are observable for post-hoc analysis
 

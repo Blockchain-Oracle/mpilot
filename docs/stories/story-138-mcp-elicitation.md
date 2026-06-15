@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Claude Desktop user about to approve a $10,000 USDC supply via Concierge
+**As a** Claude Desktop user about to approve a $10,000 USDC supply via mPilot
 **I want to** see a STRUCTURED confirmation form (max-slippage slider, justification field, confirm checkbox) rendered by Claude Desktop, not a free-text LLM prompt
 **So that** the high-value action is gated by an explicit confirmation, and my wallet-connect handoff can use `url-mode` Elicitation when needed
 
@@ -20,7 +20,7 @@
 
 - `packages/mcp/src/elicitation.ts` — NEW — exports `requestFormConfirmation(ctx, opts)` (form mode) and `requestUrlElicitation(ctx, opts)` (url mode, SEP-1036)
 - `packages/mcp/src/server.ts` — UPDATE — write tools (e.g., `executeProposal`) call `requestFormConfirmation` when args trigger high-value threshold ($X configurable, default $1000)
-- `packages/mcp/src/wallet-import-flow.ts` — NEW — `importSessionKeyViaElicitation(ctx)` triggers a `mode: 'url'` Elicitation pointing the user to `https://concierge.xyz/auth/import?session=<one-time-token>` for OAuth/wallet-connect handoff
+- `packages/mcp/src/wallet-import-flow.ts` — NEW — `importSessionKeyViaElicitation(ctx)` triggers a `mode: 'url'` Elicitation pointing the user to `https://mpilot.xyz/auth/import?session=<one-time-token>` for OAuth/wallet-connect handoff
 - `packages/mcp/src/__tests__/elicitation.test.ts` — NEW — ≥ 8 cases (form accept/decline/cancel + url accept + threshold trigger + high-value path)
 
 ---
@@ -46,7 +46,7 @@ Then the tool returns a partial-completion message AND does NOT execute the on-c
 
 Given the URL-mode handoff is requested
 When `importSessionKeyViaElicitation(ctx)` runs
-Then it calls `elicitInput({ mode: 'url', url: '<one-time-link>', message: '...' })` AND on `accept`, polls the Concierge API for the imported session key
+Then it calls `elicitInput({ mode: 'url', url: '<one-time-link>', message: '...' })` AND on `accept`, polls the mPilot API for the imported session key
 
 Given the host does NOT support Elicitation (older MCP client)
 When the tool runs
@@ -107,12 +107,12 @@ export async function requestFormConfirmation(ctx, opts: { actionSummary: string
 ```typescript
 export async function importSessionKeyViaElicitation(ctx, agentId: string) {
   const oneTimeToken = await generateOneTimeImportToken(agentId);  // 5-min TTL
-  const url = `https://concierge.xyz/auth/import?token=${oneTimeToken}`;
+  const url = `https://mpilot.xyz/auth/import?token=${oneTimeToken}`;
   const result = await ctx.mcpReq.elicitInput({
     mode: 'url',
     elicitationId: crypto.randomUUID(),
     url,
-    message: 'Import your Concierge session key by signing on concierge.xyz.',
+    message: 'Import your mPilot session key by signing on mpilot.xyz.',
   });
   if (result.action !== 'accept') throw new ConciergeError('UserRejected', `Import cancelled: ${result.action}`);
   return await pollImportResult(oneTimeToken);  // polls server until session key is registered

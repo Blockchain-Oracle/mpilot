@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** a `pinFeedback(envelope)` function uploads the canonical JSON to Pinata (primary) AND web3.storage (fallback), returns the IPFS CID, and persists both pin receipts to Postgres
 **So that** the off-chain attestation content is permanently retrievable via `ipfs://<cid>` even if one pinning service has an outage, and judges can verify any attestation by fetching the JSON from a standard IPFS gateway
 

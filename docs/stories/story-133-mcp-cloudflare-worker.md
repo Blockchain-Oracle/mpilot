@@ -18,11 +18,11 @@ Per architecture.md ADR-011 amendment, this story is now about the **HOSTED vari
 2. **`apps/mcp/src/index.ts` is THIN** — imports `createStreamableHttpHandler` from `@mpilot/mcp` and wraps it in a Hono app with Workers-specific bindings (KV / D1 / secrets / custom domain).
 3. **Auth:** bearer token v0 (read from `c.env.CONCIERGE_BEARER_TOKEN_HASH` map). OAuth (PKCE) is v1 follow-up.
 4. **NEVER overwrite the stdio path.** The hosted Worker is a CONVENIENCE, not THE MCP. README defaults to stdio per ADR-011.
-5. **Demo URL:** Still useful for judges who don't want to install Node tools. `https://mcp.concierge.xyz/mcp` is the demo URL — but the README's primary install line is the stdio command.
+5. **Demo URL:** Still useful for judges who don't want to install Node tools. `https://mcp.mpilot.xyz/mcp` is the demo URL — but the README's primary install line is the stdio command.
 
 ### Updated file modification map (replaces below)
 
-- `apps/mcp/wrangler.toml` — NEW — Workers config + custom domain `mcp.concierge.xyz`
+- `apps/mcp/wrangler.toml` — NEW — Workers config + custom domain `mcp.mpilot.xyz`
 - `apps/mcp/src/index.ts` — NEW — Hono app, imports `createStreamableHttpHandler` from `@mpilot/mcp`, wires bearer-token middleware reading from `c.env.CONCIERGE_BEARER_TOKEN_HASH_MAP` (KV) and `c.env.MAINNET_RPC_URL` (secret)
 - `apps/mcp/src/env.ts` — NEW — Workers env types
 - `apps/mcp/src/auth.ts` — NEW — bearer-token validation middleware (constant-time compare, agentId binding via KV lookup)
@@ -54,7 +54,7 @@ Then the same handler works (the factory is environment-agnostic)
 - **DO NOT re-implement tool registration here.** Import `createStreamableHttpHandler` from `@mpilot/mcp` (built in story-130 amended).
 - **The 10s Vercel limit is irrelevant** — we're on Workers. But document the bundle size constraint (1MB free tier) so the orchestrator doesn't push deps that blow it.
 - **OAuth is v1.1 — bearer token is fine for hackathon demo.** README "hosted install" instruction includes the bearer-token paste line.
-- **Custom domain `mcp.concierge.xyz`** can be added later if DNS isn't ready. `workers.dev` subdomain is fine for v0 demo.
+- **Custom domain `mcp.mpilot.xyz`** can be added later if DNS isn't ready. `workers.dev` subdomain is fine for v0 demo.
 - Cross-ref: ADR-011 (amended — stdio-first hosted-optional), story-130 (now produces `packages/mcp/`), story-136 (stdio publish — the DEFAULT install).
 
 ---
@@ -65,15 +65,15 @@ Then the same handler works (the factory is environment-agnostic)
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the MCP server deploys to Cloudflare Workers with proper bindings (KV for OAuth state, D1 for audit_log, secrets for DB connections, env-scoped configs), and a deploy CI step that runs on every merge to main
-**So that** the MCP server is publicly reachable at `https://mcp.concierge.xyz/mcp` with SSE working (no 10s Vercel timeout) AND deploys are automated
+**So that** the MCP server is publicly reachable at `https://mcp.mpilot.xyz/mcp` with SSE working (no 10s Vercel timeout) AND deploys are automated
 
 ---
 
 ## File modification map
 
-- `apps/mcp-server/wrangler.toml` — UPDATE — full Workers config: KV namespace, D1 database, secret references, custom domain binding for mcp.concierge.xyz
+- `apps/mcp-server/wrangler.toml` — UPDATE — full Workers config: KV namespace, D1 database, secret references, custom domain binding for mcp.mpilot.xyz
 - `apps/mcp-server/src/index.ts` — UPDATE — `export default { fetch: app.fetch }` for Workers runtime
 - `apps/mcp-server/src/env.ts` — NEW — env type definitions tied to wrangler bindings
 - `.github/workflows/deploy-mcp.yml` — NEW — Workers deploy CI: on push to main → wrangler deploy
@@ -102,7 +102,7 @@ When `wrangler d1 migrations apply audit_log --local` runs
 Then the migration is applied successfully
 
 Given the production deploy
-When the server is reached at https://mcp.concierge.xyz/mcp with a proper initialize request
+When the server is reached at https://mcp.mpilot.xyz/mcp with a proper initialize request
 Then it returns the capability descriptor (production smoke test)
 
 Given the SSE endpoint
@@ -158,7 +158,7 @@ bun scripts/check-file-loc.mjs
 - **CLOUDFLARE WORKERS, NOT VERCEL.** Per CLAUDE.md load-bearing gotcha: Vercel's 10s SSE timeout would kill MCP tool sessions. Cloudflare Workers SSE has no such limit. This decision is irreversible without major rework.
 - **D1 for audit_log** instead of Postgres because Workers don't have direct TCP access to Postgres (would need a connection proxy like Hyperdrive — extra cost + latency). D1 is co-located, fast, and free for the volume we'll see in a hackathon.
 - **KV for OAuth state** is the canonical Workers OAuth pattern: short-lived (10min TTL) state tokens. KV reads are fast (single ms) at the edge.
-- **`mcp.concierge.xyz` subdomain** is the production endpoint. Set up via Cloudflare DNS + custom domain binding. Per architecture.md.
+- **`mcp.mpilot.xyz` subdomain** is the production endpoint. Set up via Cloudflare DNS + custom domain binding. Per architecture.md.
 - **Wrangler deploy uses Workers' bindings**: KV, D1, secrets — all configured in `wrangler.toml` + applied via the deploy step. Production secrets are set via `wrangler secret put` (one-time setup script `setup-workers.sh`).
 - **Free tier limits**: 100k requests/day, 10ms CPU per request (median; bursts to 50ms allowed). For hackathon traffic this is plenty; upgrade to paid only if usage explodes.
 - **The deploy CI uses `cloudflare/wrangler-action@v3`** (verified per Context7). API token + account ID stored as GH secrets.

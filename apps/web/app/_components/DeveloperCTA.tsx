@@ -16,7 +16,7 @@ export function DeveloperCTA() {
       <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto' }}>
         <span className="ds-eyebrow">For developers</span>
         <h2 className="ds-h-sec" style={{ marginTop: 12, marginBottom: 16 }}>
-          Bring Concierge into your IDE
+          Bring mPilot into your IDE
         </h2>
         <p className="ds-lede" style={{ marginBottom: 32, maxWidth: 720, color: 'var(--ink-2)' }}>
           Install the MCP server in Claude Code, Claude Desktop, Cursor, Windsurf, VS Code Copilot,

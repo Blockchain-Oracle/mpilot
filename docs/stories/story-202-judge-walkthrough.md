@@ -11,8 +11,8 @@
 ## User story
 
 **As a** Mantle Turing Test judge with 5 minutes per submission
-**I want to** a single doc at docs/JUDGE-WALKTHROUGH.md walks me through the 90-second hands-on experience: visit concierge.xyz → click "Try on Sepolia" → claim faucet → set goal → watch tick → see attestation on Mantlescan
-**So that** I can evaluate Concierge concretely (not just from screenshots) without anyone holding my hand
+**I want to** a single doc at docs/JUDGE-WALKTHROUGH.md walks me through the 90-second hands-on experience: visit mpilot.xyz → click "Try on Sepolia" → claim faucet → set goal → watch tick → see attestation on Mantlescan
+**So that** I can evaluate mPilot concretely (not just from screenshots) without anyone holding my hand
 
 ---
 
@@ -20,7 +20,7 @@
 
 - `docs/JUDGE-WALKTHROUGH.md` — NEW — the 90-second judge experience guide
 - `docs/JUDGE-FAQ.md` — NEW — anticipated questions: cost? trust model? differentiation? prizes?
-- `docs/JUDGE-EVALUATION-MAP.md` — NEW — cross-reference of judging criteria → where in Concierge each criterion is demonstrated
+- `docs/JUDGE-EVALUATION-MAP.md` — NEW — cross-reference of judging criteria → where in mPilot each criterion is demonstrated
 
 ---
 
@@ -41,15 +41,15 @@ Then a placeholder note explains what the judge should see (so missing assets do
 
 Given JUDGE-FAQ.md
 When inspected
-Then it answers: (1) is this real money?, (2) what trust assumptions do users make?, (3) how is this different from Klarna BNPL?, (4) which tracks does Concierge qualify for?, (5) where is the source code?, (6) does it work on Mainnet?
+Then it answers: (1) is this real money?, (2) what trust assumptions do users make?, (3) how is this different from Klarna BNPL?, (4) which tracks does mPilot qualify for?, (5) where is the source code?, (6) does it work on Mainnet?
 
 Given the FAQ on tracks
 When inspected
-Then it cites specific tracks (Track 3 Build + Track 6 Agentic Economy) AND explains how Concierge qualifies for each
+Then it cites specific tracks (Track 3 Build + Track 6 Agentic Economy) AND explains how mPilot qualifies for each
 
 Given JUDGE-EVALUATION-MAP.md
 When inspected
-Then it cross-references EACH judging criterion (from the hackathon PRD) → specific story or page in Concierge demonstrating it
+Then it cross-references EACH judging criterion (from the hackathon PRD) → specific story or page in mPilot demonstrating it
 
 Given the walkthrough avoids Patron-era contamination
 When grep'd

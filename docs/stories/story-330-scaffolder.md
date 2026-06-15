@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Mantle developer who heard about Concierge in a hackathon X-thread
-**I want to** run `npm create concierge-app@latest` and pick a template (vercel-ai-agent / langchain-agent / mcp-only / react-embed / starter) to get a working Concierge integration in 30 seconds
+**As a** Mantle developer who heard about mPilot in a hackathon X-thread
+**I want to** run `npm create concierge-app@latest` and pick a template (vercel-ai-agent / langchain-agent / mcp-only / react-embed / starter) to get a working mPilot integration in 30 seconds
 **So that** my adoption friction is "one command + answer 2 prompts" rather than "read 5 packages' READMEs"
 
 ---
@@ -42,7 +42,7 @@ Then concierge.tick() executes against Mantle Sepolia using ANTHROPIC_API_KEY fr
 
 Given the mcp-only template
 When `pnpm install && pnpm build && pnpm deploy` runs
-Then a Cloudflare Worker is deployed with the Concierge MCP server reachable at the wrangler URL
+Then a Cloudflare Worker is deployed with the mPilot MCP server reachable at the wrangler URL
 
 Given the create-concierge-app CLI
 When `npx create-concierge-app@<version> --template starter --name foo` (non-interactive) runs
@@ -97,6 +97,6 @@ pnpm --filter create-concierge-app test 2>&1 | grep -cE "(✓|PASS)" | awk '$1 >
 - **Mantle Sepolia is the default chain** for all templates (zero-capital onboarding for new devs).
 - **Each template's README** must include:
   - `pnpm install && pnpm dev` quickstart
-  - Link to relevant Concierge package docs
+  - Link to relevant mPilot package docs
   - Mantle faucet link for Sepolia gas
 - Cross-ref: ADR-014 + 015 (the packages templates consume), CDR-Kit's `create-cdr-kit-app` (the canonical reference pattern, 9 templates).

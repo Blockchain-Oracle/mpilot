@@ -2,10 +2,10 @@
 name: concierge-mantle-agent
 description: Autonomous DeFi agent for Mantle. Plans, simulates, executes, and attests positions across Aave V3, Ethena sUSDe, Ondo USDY, mETH staking, Mantle DEXes, and Li.Fi bridging — with ERC-8004 reputation per tick.
 version: 0.1.0
-homepage: https://concierge.xyz
-repository: https://github.com/Blockchain-Oracle/concierge
+homepage: https://mpilot.xyz
+repository: https://github.com/Blockchain-Oracle/mpilot
 license: MIT
-mcp_server_url: https://mcp.concierge.xyz/mcp
+mcp_server_url: https://mcp.mpilot.xyz/mcp
 oauth_client_id: concierge-mantle-agent-skill
 supported_chains:
   - 5000
@@ -34,11 +34,11 @@ permissions:
   - write:agent
 ---
 
-# Concierge — Mantle Agent
+# mPilot — Mantle Agent
 
-Concierge is an autonomous AI agent that operates a DeFi portfolio on
+mPilot is an autonomous AI agent that operates a DeFi portfolio on
 [Mantle](https://mantle.xyz). You set a plain-English goal — "earn 8% safely",
-"keep my health factor above 1.5", "rebalance every Tuesday" — and Concierge
+"keep my health factor above 1.5", "rebalance every Tuesday" — and mPilot
 runs `plan → simulate → propose → execute → record` across seven Mantle
 protocols on every tick.
 
@@ -55,7 +55,7 @@ protocols on every tick.
 
 ## Why a skill
 
-This skill packages Concierge for one-line install in any MCP-enabled client
+This skill packages mPilot for one-line install in any MCP-enabled client
 (Claude Desktop, Cursor, Cline). The skill exposes six tools above; once
 installed, you can ask your assistant questions like:
 
@@ -75,7 +75,7 @@ After install, run the post-install configurator to link your Mantle wallet:
 ./scripts/install.sh
 ```
 
-The configurator prompts for your `concierge.xyz` user id (or completes the
+The configurator prompts for your `mpilot.xyz` user id (or completes the
 OAuth flow) and stores the result in `~/.concierge/config.json`. Subsequent
 tool calls authenticate via that config.
 
@@ -91,4 +91,4 @@ tool calls authenticate via that config.
 - [Quickstart](./references/quickstart.md) — 5-minute tour.
 - [Configuration](./references/configuration.md) — chain selection, defaults,
   per-protocol thresholds.
-- [concierge.xyz](https://concierge.xyz) — the web app + dashboard.
+- [mpilot.xyz](https://mpilot.xyz) — the web app + dashboard.

@@ -1,4 +1,4 @@
-# {{PRODUCT_NAME}} — DoraHacks BUIDL Submission
+# mPilot — DoraHacks BUIDL Submission
 
 **Hackathon:** Mantle Turing Test 2026 — AI Awakening (Phase 2)
 **Track:** AI x RWA
@@ -7,7 +7,7 @@
 
 ## What it is
 
-{{PRODUCT_NAME}} is an autonomous AI agent that manages a DeFi position on Mantle 24/7. The user sets a financial goal in plain English; the agent runs a continuous **plan → simulate → propose → execute → record** loop across 7 Mantle protocols: Aave V3, Mantle DEXes, Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridge, and ERC-8004 reputation.
+mPilot is an autonomous AI agent that manages a DeFi position on Mantle 24/7. The user sets a financial goal in plain English; the agent runs a continuous **plan → simulate → propose → execute → record** loop across 7 Mantle protocols: Aave V3, Mantle DEXes, Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridge, and ERC-8004 reputation.
 
 ## Which RWA is brought on-chain
 
@@ -44,8 +44,8 @@ The agent autonomously **plans, simulates, and proposes** every tick. **Executio
 Unlike competitors who ship a single web app, the **same agent core** is consumable as:
 
 1. **Web app** — the flagship reference consumer.
-2. **MCP server** — `claude mcp add ... -- npx -y {{NPM_SCOPE}}/mcp`, runs inside Claude Desktop and other MCP hosts.
-3. **npm SDK** — `pnpm add {{NPM_SCOPE}}/sdk`, drop the agent's DeFi tools into any agent runtime.
+2. **MCP server** — `claude mcp add ... -- npx -y @mpilot/mcp`, runs inside Claude Desktop and other MCP hosts.
+3. **npm SDK** — `pnpm add @mpilot/sdk`, drop the agent's DeFi tools into any agent runtime.
 4. **Agent skill** — installable into agent hosts via `npx skills add`.
 
 The marginal cost of each extra surface is ~20-40 LOC of adapter code, because all four hang off one framework-agnostic tool registry.
@@ -62,8 +62,8 @@ Transaction: `0x5d0fcdd38f44b1a07e279562587cf03a655eeb3cf2ba3cc1e5e9dc7022cb80ed
 
 ## Links
 
-- **Demo video:** {{DEMO_URL}}
-- **Live app:** https://{{DOMAIN}}
-- **Repo:** {{REPO_URL}}
+- **Demo video:** https://mpilot.xyz
+- **Live app:** https://mpilot.xyz
+- **Repo:** https://github.com/Blockchain-Oracle/mpilot
 - **ConciergeRegistry on MantleScan:** https://mantlescan.xyz/address/0xE54B60382bC85C14abc15A20a0fB90d6FAea8025
 - **Identity registration tx:** https://mantlescan.xyz/tx/0x5d0fcdd38f44b1a07e279562587cf03a655eeb3cf2ba3cc1e5e9dc7022cb80ed

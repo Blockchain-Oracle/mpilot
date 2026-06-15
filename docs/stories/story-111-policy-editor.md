@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user
+**As a** mPilot user
 **I want to** the `/app/settings` route lets me edit my policy (autoApprovalThresholdUSD, hfFloor, allowed providers, agent cadence) with explicit "changing this revokes session key and requires re-signing" warning for material changes
 **So that** I can tune my agent's autonomy + risk profile without redoing onboarding, but ALSO can't accidentally widen permissions without re-signing the session-key policy
 

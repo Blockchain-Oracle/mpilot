@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** end-to-end integration tests verify the full ERC-4337 flow: owner-EOA creates a Kernel account, owner signs a session-key policy, the agent worker uses the session key to submit a UserOp via Pimlico, the bundler routes through the EntryPoint, and the action executes on the destination contract — all on a Mantle Sepolia Anvil fork
 **So that** the smart account layer's components are provably wired correctly before the agent runtime depends on them
 
@@ -107,7 +107,7 @@ bun scripts/check-file-loc.mjs
 
 - **Local bundler via Anvil:** Anvil 0.3.0+ exposes ERC-4337 bundler RPC methods natively (`eth_sendUserOperation`, `eth_estimateUserOperationGas`, etc.) when run with `--auto-impersonate`. No need to spin up a real Pimlico/Alto/Rundler — the bundler client wired in story-51 can target the Anvil endpoint. Reference: `https://book.getfoundry.sh/anvil/`.
 - **Policy enforcement is the load-bearing assertion.** A future regression that loosens the policy validator silently would let a leaked session key drain a wallet. Each enforcement test (target, selector, spendingLimit, timeFrame) is one regression guard. Don't merge any policy change without these tests passing.
-- **`PaymasterSponsorship` test verifies the Sepolia gasless onboarding flow.** Without it, a regression in the paymaster wiring could break the "judge tries Concierge on Sepolia" flow without anyone noticing until demo day.
+- **`PaymasterSponsorship` test verifies the Sepolia gasless onboarding flow.** Without it, a regression in the paymaster wiring could break the "judge tries mPilot on Sepolia" flow without anyone noticing until demo day.
 - **`NoPaymasterRequiresMNT` is the inverse — Mainnet's user-pays guard.** A regression here would silently fail Mainnet UserOps with cryptic out-of-gas errors instead of the clean InsufficientFunds typed error.
 - **`Revocation` test uses the FULL revocation flow from story-54** (DB + on-chain + cron pause). Not a unit-level test — integration that proves all three layers compose correctly.
 - **EOA fallback test runs no bundler at all** — pure EOA signing + sendRawTransaction. Validates the fallback path works without ERC-4337.

@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** a `packages/smart-account` package wraps ZeroDev SDK + Kernel v3.1 + permission validator into ergonomic `createConciergeAccount({ owner, chain })` and `connectToConciergeAccount({ address, chain })` helpers
 **So that** every action provider gets a chain-aware ERC-4337 smart account client without each provider re-implementing the boilerplate
 

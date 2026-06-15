@@ -1,5 +1,5 @@
 /**
- * Server-only BullMQ producer for the Concierge tick queue. The web app
+ * Server-only BullMQ producer for the mPilot tick queue. The web app
  * enqueues the FIRST tick when `/api/agents` activates an agent; the worker
  * (apps/worker) is the consumer.
  *

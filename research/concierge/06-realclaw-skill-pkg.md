@@ -1,6 +1,6 @@
 # 06 — RealClaw Skill Distribution
 
-**Purpose:** Concrete patterns for packaging Concierge as a RealClaw/OpenClaw-compatible Agent Skill. This is the Track 6 qualifier — must be solid. Read by `sahil-spec-writer` before generating the distribution story.
+**Purpose:** Concrete patterns for packaging mPilot as a RealClaw/OpenClaw-compatible Agent Skill. This is the Track 6 qualifier — must be solid. Read by `sahil-spec-writer` before generating the distribution story.
 
 **Key insight:** Two real skills already published on Mantle-adjacent or sponsor-adjacent surfaces tell us *exactly* how to ship.
 - **`byreal-git/byreal-agent-skills`** (TypeScript, MIT, 44★, pushed 2026-05-26) — the canonical "CLI as Agent Skill" shape; published by the **Byreal** team itself (sponsor surface for RealClaw).
@@ -115,7 +115,7 @@ Every cycle = ONE swap on ONE DEX. Never pipeline.
 ...
 ```
 
-**What this teaches us for Concierge:**
+**What this teaches us for mPilot:**
 
 1. **Repo layout that RealClaw expects:**
    ```
@@ -134,7 +134,7 @@ Every cycle = ONE swap on ONE DEX. Never pipeline.
 
 ---
 
-## 4. Concierge skill repo layout
+## 4. mPilot skill repo layout
 
 ```
 concierge-skill/                                  ← repo: ajweb3dev/concierge-skill
@@ -159,12 +159,12 @@ concierge-skill/                                  ← repo: ajweb3dev/concierge-
     └── failures.md                               ← revert reasons + recovery
 ```
 
-### 4.1 SKILL.md for Concierge (draft)
+### 4.1 SKILL.md for mPilot (draft)
 
 ```markdown
 ---
 name: concierge
-description: "Concierge: autonomous AI agent for Mantle DeFi. User sets a plain-English financial goal; the agent runs a continuous tick loop that plans, simulates, proposes, and executes on-chain actions across Aave V3, Mantle DEXes, Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridging — with ERC-8004 reputation attested per action. Use when the user asks to automate their Mantle position, manage yield + risk, run an autonomous DeFi agent, set up a goal-driven portfolio agent, or sees the phrase 'autonomous DeFi agent' / 'agent runs it' / 'agentic wallet'."
+description: "mPilot: autonomous AI agent for Mantle DeFi. User sets a plain-English financial goal; the agent runs a continuous tick loop that plans, simulates, proposes, and executes on-chain actions across Aave V3, Mantle DEXes, Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridging — with ERC-8004 reputation attested per action. Use when the user asks to automate their Mantle position, manage yield + risk, run an autonomous DeFi agent, set up a goal-driven portfolio agent, or sees the phrase 'autonomous DeFi agent' / 'agent runs it' / 'agentic wallet'."
 metadata:
   openclaw:
     homepage: https://github.com/ajweb3dev/concierge-skill
@@ -179,7 +179,7 @@ metadata:
         global: true
 ---
 
-# Concierge — Mantle Stablecoin Agent
+# mPilot — Mantle Stablecoin Agent
 
 ## Get Full Documentation
 Run these first:
@@ -221,7 +221,7 @@ import chalk from 'chalk';
 const program = new Command();
 program
   .name('concierge-cli')
-  .description('AI-friendly CLI for Concierge DeFi agent on Mantle')
+  .description('AI-friendly CLI for mPilot DeFi agent on Mantle')
   .version(VERSION, '-v, --version', 'Output the version number')
   .option('-o, --output <format>', 'Output format (json, table)', 'table')
   .option('--non-interactive', 'Disable interactive prompts');
@@ -251,7 +251,7 @@ program.parseAsync(process.argv);
 Every command must support `-o json`. From the Byreal CLAUDE.md:
 > "`-o json` only for parsing — when showing results to the user, omit it and let the CLI's built-in tables/charts render directly. Never fetch JSON then re-draw charts yourself."
 
-JSON shape for Concierge (proposed):
+JSON shape for mPilot (proposed):
 
 ```json
 {
@@ -295,12 +295,12 @@ After `npx skills add`:
 
 ---
 
-## 8. Discovery — how do users find Concierge?
+## 8. Discovery — how do users find mPilot?
 
 [UNVERIFIED] — there's no public "Byreal skill registry" page documented. Distribution channels in practice:
 1. **GitHub repo with `npx skills add` in the README** — picked up by GitHub search + word of mouth.
 2. **Awesome-lists** — `VoltAgent/awesome-openclaw-skills` (5,400+ skills), `LeoYeAI/openclaw-master-skills` (1,209+ skills, weekly updates). Submit a PR with our skill to land in those indexes.
-3. **Sponsor amplification** — if Mantle and/or Byreal feature winning hackathon skills, that's the channel. Concierge being a Mantle DeFi skill aligned with the Byreal pattern makes it amplification-friendly.
+3. **Sponsor amplification** — if Mantle and/or Byreal feature winning hackathon skills, that's the channel. mPilot being a Mantle DeFi skill aligned with the Byreal pattern makes it amplification-friendly.
 4. **Direct Claude Code / Cursor / Codex install** — the `npx skills add` command is the universal install primitive across all of those agent harnesses.
 
 ---
@@ -337,7 +337,7 @@ The Mantle hackathon Track 6 ("AI/Agent Infrastructure") explicitly rewards skil
 
 1. **Skill name** — `concierge`? `concierge-mantle`? `mantle-agent`? Pick before publishing (frontmatter `name` is stable). Per ADR-013 + tracks doc, the install command is locked as `npx skills add @mpilot/mantle-agent`.
 2. **npm package scope** — `@mpilot/cli`, `@ajweb3dev/concierge`, or unscoped `concierge-cli`? Check availability now.
-3. **Should we wrap or write?** — The Mantle Active Trader skill wraps `mantle-cli` (an existing CLI). Do we wrap that too, or write our own CLI from scratch? Recommend write from scratch since Concierge needs ZeroDev session-key + ERC-8004 attest, neither of which `mantle-cli` does.
+3. **Should we wrap or write?** — The Mantle Active Trader skill wraps `mantle-cli` (an existing CLI). Do we wrap that too, or write our own CLI from scratch? Recommend write from scratch since mPilot needs ZeroDev session-key + ERC-8004 attest, neither of which `mantle-cli` does.
 4. **Python parity?** — Mantle Active Trader is Python. Some RealClaw users may prefer Python. Recommend TypeScript-only for hackathon, document "Python wrapper coming" if asked.
 5. **Where does the agent runtime live when installed via skill?** — Local node process spawned by the skill, or a hosted agent the CLI talks to over API? Recommend: local-process default ("self-custody" framing), with a flag `--remote https://api.concierge.app` for hosted mode.
 6. **Trigger phrases to include in description** — locked set of 6 (no BNPL framing — that was the paused Patron wedge): "autonomous DeFi agent", "agentic wallet on Mantle", "goal-driven portfolio agent", "agent runs it", "ERC-8004 audit trail", "AI manages my Mantle position".

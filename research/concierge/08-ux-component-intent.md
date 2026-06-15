@@ -1,4 +1,4 @@
-# Concierge — UX Component Intent (Designer's Brief)
+# mPilot — UX Component Intent (Designer's Brief)
 
 **Audience:** the designer agent who will produce the visual implementation. **This file describes what every component must DO** — purpose, states, transitions, streaming behavior, accessibility, mobile responsiveness. **No frameworks are named** — pick whatever (Tambo / assistant-ui / Vercel AI SDK gen-UI + custom shadcn / CopilotKit / your own) fits the intent and the brand. The agent runtime is invariant; the implementation library is the designer's call.
 
@@ -6,7 +6,7 @@
 
 ## Design constraints (carry into every decision)
 
-- **Three surfaces, one brand:** Landing (`/`), App (`/app`), Docs (`/docs`). All at `concierge.xyz`. Shared design tokens (color, type, motion, spacing). Each surface optimizes for its own conversion goal.
+- **Three surfaces, one brand:** Landing (`/`), App (`/app`), Docs (`/docs`). All at `mpilot.xyz`. Shared design tokens (color, type, motion, spacing). Each surface optimizes for its own conversion goal.
 - **Real-time agent visibility is the demo wow factor.** Users (and judges) must SEE the agent thinking → simulating → proposing → executing → confirming on-chain → attesting reputation. Status changes animate; reasoning text streams character-by-character; status pills transition between phases. Calm, dense, premium. NOT a busy dashboard.
 - **Accessibility is non-negotiable.** Keyboard-navigable every interactive surface. Screen-reader-friendly. `prefers-reduced-motion` respected (no animations when set; final states render directly). Color contrast WCAG AA minimum. Focus rings visible always.
 - **Mobile-first responsive.** Every flow works on a 375px viewport. Tap targets ≥ 44×44 px. Action cards stack vertically on mobile; horizontal on desktop where space allows.
@@ -16,10 +16,10 @@
 
 ---
 
-## Surface 1 — Landing (`concierge.xyz/`)
+## Surface 1 — Landing (`mpilot.xyz/`)
 
 ### Purpose
-Convince a tired hackathon judge or curious dev in 5 seconds that Concierge is real, well-built, and worth clicking "Try on Sepolia."
+Convince a tired hackathon judge or curious dev in 5 seconds that mPilot is real, well-built, and worth clicking "Try on Sepolia."
 
 ### Components
 
@@ -43,7 +43,7 @@ Convince a tired hackathon judge or curious dev in 5 seconds that Concierge is r
 
 #### `<KlarnaComparison>`
 - **Purpose:** Cost-of-credit-floor framing vs traditional finance.
-- **Content:** Side-by-side: "Klarna 23.99% APR" vs "Concierge — your collateral covers the loan interest (live rate, refreshed on every render)."
+- **Content:** Side-by-side: "Klarna 23.99% APR" vs "mPilot — your collateral covers the loan interest (live rate, refreshed on every render)."
 - **Behavior:** the "live rate" number fetches from `/api/rates` (Aave Oracle + DefiLlama proxy) and updates per render. NEVER hardcoded.
 - **States:** `loading`, `loaded`, `spread-positive` (success styling), `spread-compressed` (neutral styling with explanatory tooltip), `spread-negative` (warning styling).
 
@@ -68,9 +68,9 @@ Convince a tired hackathon judge or curious dev in 5 seconds that Concierge is r
 
 ---
 
-## Surface 2 — App (`concierge.xyz/app`)
+## Surface 2 — App (`mpilot.xyz/app`)
 
-The product. Where users actually interact with Concierge.
+The product. Where users actually interact with mPilot.
 
 ### Pages
 
@@ -276,7 +276,7 @@ The product. Where users actually interact with Concierge.
 
 ---
 
-## Surface 3 — Docs (`concierge.xyz/docs`)
+## Surface 3 — Docs (`mpilot.xyz/docs`)
 
 ### Purpose
 Make a Mantle developer `npm install @mpilot/sdk` and ship their own agent in 90 seconds.
@@ -370,11 +370,11 @@ Make a Mantle developer `npm install @mpilot/sdk` and ship their own agent in 90
 
 ### Flow 1: Onboarding (first-time user)
 
-1. User lands at `concierge.xyz/`
+1. User lands at `mpilot.xyz/`
 2. Clicks "Try on Sepolia" CTA
 3. `/app` redirects to `/app/onboarding/connect`
 4. Wallet connect prompt (Privy / Reown / WalletConnect)
-5. `/app/onboarding/account` — explains ERC-4337 smart account, deploys via ZeroDev (sponsored by Concierge paymaster), shows progress
+5. `/app/onboarding/account` — explains ERC-4337 smart account, deploys via ZeroDev (sponsored by mPilot paymaster), shows progress
 6. `/app/onboarding/identity` — mints ERC-8004 identity NFT, explains what the NFT represents, shows MantleScan link
 7. `/app/onboarding/goal` — first goal-set screen with examples
 8. `/app/onboarding/policy` — autopilot toggles per category (default: all off, manual approval)
@@ -417,17 +417,17 @@ Make a Mantle developer `npm install @mpilot/sdk` and ship their own agent in 90
 1. User clicks Agent identity card on `/app` or visits `/app/agent`
 2. Page renders agent NFT visual + reputation summary + ReputationChart
 3. User can click a point in the chart → opens corresponding tick detail
-4. User can click "Share" → copies public URL `concierge.xyz/agent/:id`
+4. User can click "Share" → copies public URL `mpilot.xyz/agent/:id`
 5. Recipient visits URL unauthenticated, sees the same page (read-only)
 
 ### Flow 6: Installing as a RealClaw skill
 
-1. Visitor on `concierge.xyz/docs/skill`
+1. Visitor on `mpilot.xyz/docs/skill`
 2. Sees install snippet: `npx skills add @mpilot/mantle-agent`
 3. Copies, runs in their terminal
-4. Their RealClaw / Claude Code / Claude Desktop now has Concierge tools available
-5. They invoke Concierge actions in chat: "Concierge, supply 10 USDC to Aave"
-6. The skill's MCP client connects to `mcp.concierge.xyz/api/sse` with their session token
+4. Their RealClaw / Claude Code / Claude Desktop now has mPilot tools available
+5. They invoke mPilot actions in chat: "mPilot, supply 10 USDC to Aave"
+6. The skill's MCP client connects to `mcp.mpilot.xyz/api/sse` with their session token
 7. Action executes server-side via their connected wallet's session key
 
 ---

@@ -67,7 +67,7 @@ tool's name attached and the original error as `cause`.
 
 AgentKit's wrapper calls the tool's own zod `inputSchema.parse(args)` before
 delegating, so `ConciergeTool.invoke` receives the **parsed** value (defaults
-applied, unknown keys stripped) — the same invariant as every other Concierge
+applied, unknown keys stripped) — the same invariant as every other mPilot
 adapter. AgentKit **core** only ever touches `.parse`, which is why zod-4
 schemas work inside zod-3-era AgentKit; the cast lives in
 `getConciergeActionProvider`, scoped to the `schema` field, and is pinned by

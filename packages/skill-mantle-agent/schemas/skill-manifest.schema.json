@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://concierge.xyz/schemas/skill-manifest.schema.json",
+  "$id": "https://mpilot.xyz/schemas/skill-manifest.schema.json",
   "title": "RealClaw Skill Manifest (SKILL.md frontmatter)",
   "description": "Canonical metadata for a RealClaw-packaged Concierge skill. Lives in the YAML frontmatter of SKILL.md. Runtime gate: packages/skill-mantle-agent/scripts/validate-manifest.ts.",
   "type": "object",
@@ -54,7 +54,7 @@
     "oauth_client_id": {
       "type": "string",
       "minLength": 1,
-      "description": "OAuth client ID registered with concierge.xyz's OAuth server (story-134). MCP clients use it to start the OAuth flow on 401."
+      "description": "OAuth client ID registered with mpilot.xyz's OAuth server (story-134). MCP clients use it to start the OAuth flow on 401."
     },
     "supported_chains": {
       "type": "array",

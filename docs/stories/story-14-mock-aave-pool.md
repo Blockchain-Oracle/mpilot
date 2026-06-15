@@ -10,15 +10,15 @@
 
 ## User story
 
-**As a** Concierge agent runtime running on Mantle Sepolia (where real Aave V3 is NOT deployed)
+**As a** mPilot agent runtime running on Mantle Sepolia (where real Aave V3 is NOT deployed)
 **I want to** a mock contract implements the Aave V3 `IPool` surface — supply / borrow / repay / withdraw / setUserEMode / getUserAccountData / getReserveData / getEModeCategoryData — with simplified-but-faithful math
-**So that** judges can interact with the full Concierge tick loop end-to-end on Sepolia with zero capital, and our agent code does not branch between real-Aave and mock-Aave (same `IPool` interface on both)
+**So that** judges can interact with the full mPilot tick loop end-to-end on Sepolia with zero capital, and our agent code does not branch between real-Aave and mock-Aave (same `IPool` interface on both)
 
 ---
 
 ## File modification map
 
-- `contracts/src/mocks/MockAavePool.sol` — NEW — implements `aave-v3-origin/contracts/interfaces/IPool.sol` enough for Concierge's action surface. Storage: `mapping(address asset => ReserveDataLite) reserves`, `mapping(address user => mapping(address asset => uint256)) supplies`, `mapping(address user => mapping(address asset => uint256)) debts`, `mapping(address user => uint8) userEModeCategory`, `mapping(uint8 catId => EModeCategory) emodeCategories`. Critical: applies E-Mode 1 LTV/LT correctly so the silent-fail-trap (sUSDe LTV=0 in general mode) IS reproduced on Sepolia.
+- `contracts/src/mocks/MockAavePool.sol` — NEW — implements `aave-v3-origin/contracts/interfaces/IPool.sol` enough for mPilot's action surface. Storage: `mapping(address asset => ReserveDataLite) reserves`, `mapping(address user => mapping(address asset => uint256)) supplies`, `mapping(address user => mapping(address asset => uint256)) debts`, `mapping(address user => uint8) userEModeCategory`, `mapping(uint8 catId => EModeCategory) emodeCategories`. Critical: applies E-Mode 1 LTV/LT correctly so the silent-fail-trap (sUSDe LTV=0 in general mode) IS reproduced on Sepolia.
 - `contracts/src/mocks/MockAavePoolLib.sol` — NEW — internal math helpers (ray math, health factor computation, available borrow calculation) — split out to keep `MockAavePool.sol` under 400 LOC.
 - `contracts/src/mocks/types/MockReserveTypes.sol` — NEW — `ReserveDataLite { address aToken; address debtToken; uint128 borrowRateBps; uint128 supplyRateBps; uint16 ltvBps; uint16 liquidationThresholdBps; bool active; bool borrowingEnabled; }`. `EModeCategory { uint16 ltvBps; uint16 ltBps; uint16 bonusBps; string label; }`.
 
@@ -100,6 +100,6 @@ forge test --match-test test_borrow_RevertsWhenSusdeWithoutEMode --match-contrac
 - **No reentrancy guards needed** — this is a Sepolia mock, not production. Documented as such in the contract NatSpec.
 - **Use Solidity 0.8.26 + OZ v5.1** like the rest of the codebase.
 - **Library split (`MockAavePoolLib.sol`) is mandatory** — without it the contract blows past the EIP-170 24KB bytecode limit. Pure functions (HF computation, ray math) go in the library.
-- Reference: `archive/patron-2026-06-02/docs/stories/story-14-mock-aave-pool.md` for the Patron-pattern mock with similar shape (Patron's MockAavePool was simpler — only supply/borrow/repay; Concierge needs the full E-Mode + getUserAccountData surface).
+- Reference: `archive/patron-2026-06-02/docs/stories/story-14-mock-aave-pool.md` for the Patron-pattern mock with similar shape (Patron's MockAavePool was simpler — only supply/borrow/repay; mPilot needs the full E-Mode + getUserAccountData surface).
 - Cross-ref: ADR-012 (Sepolia mock-deploy pattern), `research/concierge/03-providers/aave-v3-mantle.md` (all addresses + functions to mimic).
 - File MUST stay under 400 LOC. If `MockAavePool.sol` approaches the limit, extract more logic into `MockAavePoolLib.sol`.

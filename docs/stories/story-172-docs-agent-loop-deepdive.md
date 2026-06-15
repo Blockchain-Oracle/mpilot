@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** developer evaluating Concierge's runtime architecture
+**As a** developer evaluating mPilot's runtime architecture
 **I want to** a deep-dive doc covers each tick phase (plan, simulate, propose, decide, execute, record) with: phase input/output types, phase-scoped toolset, LLM model used, expected duration, failure modes, recovery semantics
 **So that** I can answer "what happens if the simulate phase reverts?" or "which model handles plan?" from the docs alone — no reading code required
 

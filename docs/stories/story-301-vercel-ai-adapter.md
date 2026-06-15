@@ -12,7 +12,7 @@
 
 **As a** developer building on Vercel AI SDK (`ai` v6)
 **I want to** `pnpm add @mpilot/vercel-ai @mpilot/sdk` and call `getVercelAITools(agent)` to get a `ToolSet` ready to drop into `streamText({ tools: ... })`
-**So that** my AI SDK app has all 30+ Concierge tools in 3 lines
+**So that** my AI SDK app has all 30+ mPilot tools in 3 lines
 
 ---
 

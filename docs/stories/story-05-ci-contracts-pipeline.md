@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge contracts engineer
+**As a** mPilot contracts engineer
 **I want to** `forge build + forge test + forge coverage` runs in CI on every push affecting contracts/
 **So that** contract regressions are caught before merge
 

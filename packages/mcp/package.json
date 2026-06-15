@@ -1,14 +1,14 @@
 {
   "name": "@mpilot/mcp",
   "version": "0.1.0",
-  "description": "MCP server for Concierge — autonomous DeFi agent for Mantle. Stdio-first (`npx -y @mpilot/mcp`) + optional hosted Worker.",
+  "description": "MCP server for mPilot — autonomous DeFi agent for Mantle. Stdio-first (`npx -y @mpilot/mcp`) + optional hosted Worker.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Blockchain-Oracle/concierge.git",
+    "url": "git+https://github.com/Blockchain-Oracle/mpilot.git",
     "directory": "packages/mcp"
   },
-  "homepage": "https://concierge.xyz",
+  "homepage": "https://mpilot.xyz",
   "keywords": [
     "mcp",
     "mantle",

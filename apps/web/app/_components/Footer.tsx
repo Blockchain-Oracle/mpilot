@@ -23,7 +23,7 @@ export function Footer() {
       >
         <Link
           href="/"
-          aria-label="Concierge home"
+          aria-label="mPilot home"
           style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ink-2)' }}
         >
           <span
@@ -40,7 +40,7 @@ export function Footer() {
             <LockboxGlyph size={14} />
           </span>
           <span style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: '0.95rem' }}>
-            Concierge
+            mPilot
           </span>
         </Link>
         <div
@@ -56,7 +56,7 @@ export function Footer() {
         >
           <Link href="/docs">Docs</Link>
           <Link
-            href="https://github.com/Blockchain-Oracle/concierge"
+            href="https://github.com/Blockchain-Oracle/mpilot"
             target="_blank"
             rel="noopener noreferrer"
           >

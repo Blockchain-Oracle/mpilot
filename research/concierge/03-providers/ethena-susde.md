@@ -1,7 +1,7 @@
-# Ethena sUSDe — Concierge Domain Knowledge
+# Ethena sUSDe — mPilot Domain Knowledge
 
 ## What this is
-sUSDe is Ethena's yield-bearing wrapper around USDe (Ethena's synthetic dollar). It accrues yield from (a) ETH/BTC perp funding rates Ethena captures, (b) basis trade returns, (c) reserve T-bill yield. Concierge uses sUSDe as the **primary yield-bearing collateral** for the locked Hold/YieldBNPL wedge — deposit user's stablecoin → swap to sUSDe → supply to Aave E-Mode 1 → borrow spendable USDC at LTV 90%, where sUSDe APY > USDC borrow APR (positive carry).
+sUSDe is Ethena's yield-bearing wrapper around USDe (Ethena's synthetic dollar). It accrues yield from (a) ETH/BTC perp funding rates Ethena captures, (b) basis trade returns, (c) reserve T-bill yield. mPilot uses sUSDe as the **primary yield-bearing collateral** for the locked Hold/YieldBNPL wedge — deposit user's stablecoin → swap to sUSDe → supply to Aave E-Mode 1 → borrow spendable USDC at LTV 90%, where sUSDe APY > USDC borrow APR (positive carry).
 
 ## Verified facts (with evidence)
 
@@ -25,7 +25,7 @@ cast call 0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2 "owner()(address)" --rpc-ur
 Live Aave oracle price for sUSDe on Mantle = `123214617` (USD * 1e8 = $1.232) — confirming non-rebasing share price growth.
 
 ### Mantle Sepolia (chain 5003)
-**[UNVERIFIED — likely no Ethena testnet deployment]**: Ethena does not maintain a Mantle Sepolia OFT. Concierge spec must either mock sUSDe on testnet or use a Mainnet fork.
+**[UNVERIFIED — likely no Ethena testnet deployment]**: Ethena does not maintain a Mantle Sepolia OFT. mPilot spec must either mock sUSDe on testnet or use a Mainnet fork.
 
 ### Ethereum Mainnet (canonical staking)
 | Token | Address | Verification |
@@ -42,7 +42,7 @@ Live Aave oracle price for sUSDe on Mantle = `123214617` (USD * 1e8 = $1.232) �
 ## Key functions / ABI surface
 
 ### On Mantle (sUSDe as LayerZero OFT)
-sUSDe on Mantle is a standard ERC20 + LayerZero OFT — Concierge interacts with it as an ERC20 for Aave deposits.
+sUSDe on Mantle is a standard ERC20 + LayerZero OFT — mPilot interacts with it as an ERC20 for Aave deposits.
 
 ```solidity
 // Standard ERC20 — used for Aave supply/withdraw flow
@@ -87,13 +87,13 @@ function silo() returns (address);                         // silo holding the c
 ```
 
 ### Gotchas
-- **Mantle sUSDe is non-rebasing**: its USD price grows (`convertToAssets` doesn't exist on the OFT — Concierge reads the **Aave oracle's reported price** as the authoritative USD value for HF calculations).
-- **Bridge fees**: `quoteSend` returns LZ native gas fee — Concierge must include this in any "redeem to USDe" flow.
-- **7-day cooldown on Ethereum**: redemption is asynchronous. Concierge does NOT trigger this on tick — it just holds sUSDe and unwinds via DEX swap when needed.
+- **Mantle sUSDe is non-rebasing**: its USD price grows (`convertToAssets` doesn't exist on the OFT — mPilot reads the **Aave oracle's reported price** as the authoritative USD value for HF calculations).
+- **Bridge fees**: `quoteSend` returns LZ native gas fee — mPilot must include this in any "redeem to USDe" flow.
+- **7-day cooldown on Ethereum**: redemption is asynchronous. mPilot does NOT trigger this on tick — it just holds sUSDe and unwinds via DEX swap when needed.
 - **OFT decimals shared**: USDe and sUSDe are both 18 decimals on Mantle. Don't auto-convert with the 6-decimal stables.
-- **Owner can pause OFT.send**: Ethena ops can disable bridging in an emergency. Mantle sUSDe still circulates as ERC20 (and earns yield), but cannot be redeemed to Ethereum during a pause. Concierge falls back to DEX swap (Li.Fi → Agni/Curve-on-Eth) for exit liquidity.
+- **Owner can pause OFT.send**: Ethena ops can disable bridging in an emergency. Mantle sUSDe still circulates as ERC20 (and earns yield), but cannot be redeemed to Ethereum during a pause. mPilot falls back to DEX swap (Li.Fi → Agni/Curve-on-Eth) for exit liquidity.
 
-## Integration pattern for Concierge
+## Integration pattern for mPilot
 
 ### Package: `@mpilot/ethena-susde`
 Exports:
@@ -124,7 +124,7 @@ Exports:
 ```
 
 ### Error handling
-| Failure | Concierge action |
+| Failure | mPilot action |
 |---|---|
 | DEX route fails (shallow pool) | Fall back to Li.Fi; if Li.Fi fails too, abort tick and surface to user |
 | Aave oracle stale (no price) | Pause acquire/divest until oracle resumes |
@@ -146,24 +146,24 @@ Unlike Lido stETH, sUSDe is **non-rebasing** — your balance stays constant; th
 
 This matters because:
 - aToken supply is share-based: 1 sUSDe → 1 aSUSDe; USD value updates via oracle.
-- HF calculations in Aave already use the USD-priced collateral, so Concierge doesn't double-count.
+- HF calculations in Aave already use the USD-priced collateral, so mPilot doesn't double-count.
 
 ### Bridge image vs canonical
-The Mantle sUSDe is a **fungible image** locked-and-minted via LayerZero V2. When Ethereum sUSDe's exchange rate ticks up, the Mantle oracle (Redstone/Chainlink) reports the new price. The image itself isn't a stake position — it's a delegated claim that can be bridged back. Implications for Concierge:
+The Mantle sUSDe is a **fungible image** locked-and-minted via LayerZero V2. When Ethereum sUSDe's exchange rate ticks up, the Mantle oracle (Redstone/Chainlink) reports the new price. The image itself isn't a stake position — it's a delegated claim that can be bridged back. Implications for mPilot:
 - Yield "happens" on Ethereum; Mantle holders capture it via the oracle price feed.
-- Exit liquidity on Mantle = DEX pool depth (Agni stable pool, Merchant Moe LB, WOOFi). Concierge should monitor depth before sizing positions > $10K.
+- Exit liquidity on Mantle = DEX pool depth (Agni stable pool, Merchant Moe LB, WOOFi). mPilot should monitor depth before sizing positions > $10K.
 
 ### Funding rate risk
-When perp funding goes negative (bear → shorts pay longs), Ethena's yield turns negative; sUSDe yield drops to ~T-bill rate (5%) buffered by insurance fund. Mantle USDC borrow APR on Aave fluctuates 3-15%. **The Concierge wedge only works while sUSDe APY > USDC borrow APR + slippage + gas.** Tick logic must check this **every tick** and auto-deleverage if the spread inverts.
+When perp funding goes negative (bear → shorts pay longs), Ethena's yield turns negative; sUSDe yield drops to ~T-bill rate (5%) buffered by insurance fund. Mantle USDC borrow APR on Aave fluctuates 3-15%. **The mPilot wedge only works while sUSDe APY > USDC borrow APR + slippage + gas.** Tick logic must check this **every tick** and auto-deleverage if the spread inverts.
 
 ## Risks + edge cases
 
-1. **sUSDe depeg**: If Ethena's delta-neutral position breaks (CEX failure, custodian seizure, large liquidation event), sUSDe price can drop sharply. Concierge's auto-deleverage trigger: oracle price drops >2% in 10 min or stays below recent 24h MA by >1%.
-2. **Aave Mantle E-Mode 1 liquidation cascade**: if sUSDe price drops 8% with HF=1.6, HF approaches 1.0. Concierge's HF floor (1.25) gives ~4% buffer before liquidation. Real cushion is thinner than it looks.
-3. **LayerZero bridge halt**: LZ has a security council that can pause OFTs. Concierge spec must include a "DEX-only mode" fallback if `OFT.send` reverts.
+1. **sUSDe depeg**: If Ethena's delta-neutral position breaks (CEX failure, custodian seizure, large liquidation event), sUSDe price can drop sharply. mPilot's auto-deleverage trigger: oracle price drops >2% in 10 min or stays below recent 24h MA by >1%.
+2. **Aave Mantle E-Mode 1 liquidation cascade**: if sUSDe price drops 8% with HF=1.6, HF approaches 1.0. mPilot's HF floor (1.25) gives ~4% buffer before liquidation. Real cushion is thinner than it looks.
+3. **LayerZero bridge halt**: LZ has a security council that can pause OFTs. mPilot spec must include a "DEX-only mode" fallback if `OFT.send` reverts.
 4. **Funding rate inversion (carry trade fails)**: see above. Spec must define when to unwind: 3-tick rolling check of `sUSDeAPY - USDCBorrowAPR < 100bp` → start unwind plan.
-5. **Aave oracle drift vs Ethena canonical price**: Mantle oracle updates may lag the Ethereum vault by minutes. Concierge treats Aave oracle as authoritative for HF; uses Ethena API for APY display only.
-6. **Slippage on exit**: Mantle sUSDe-USDC pool depth ≈ $5M (rough; needs monitoring). Concierge's max single divest = 1% of pool depth → $50K.
+5. **Aave oracle drift vs Ethena canonical price**: Mantle oracle updates may lag the Ethereum vault by minutes. mPilot treats Aave oracle as authoritative for HF; uses Ethena API for APY display only.
+6. **Slippage on exit**: Mantle sUSDe-USDC pool depth ≈ $5M (rough; needs monitoring). mPilot's max single divest = 1% of pool depth → $50K.
 
 ## Reference URLs
 - Ethena docs: https://docs.ethena.fi

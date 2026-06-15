@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Blockchain-Oracle/concierge.git"
+    "url": "https://github.com/Blockchain-Oracle/mpilot.git"
   },
   "engines": {
     "node": ">=22",

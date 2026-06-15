@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** lint + format with a single tool and have files >400 LOC fail CI
 **So that** the codebase stays readable, modular, and consistent without manual policing
 

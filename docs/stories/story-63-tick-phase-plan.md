@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge tick orchestrator
+**As a** mPilot tick orchestrator
 **I want to** a `runPhase('plan', state)` function calls Claude Sonnet 4.6 with a phase-scoped read-only toolset (get_state, get_yields, get_loan_terms, get_carry_vs_aave, get_health_factor) and a single phase-system-prompt segment, returning either `{ intent: 'noop' }` or `{ intent: 'rebalance' | 'top_up_reserve' | 'pay_lender' | 'unwind', hypothesis, suggestedActions[] }`
 **So that** the agent's decision-making is observable, phase-scoped (no execute tools available in plan), and the LLM cannot hallucinate actions it doesn't have read context for
 
@@ -18,7 +18,7 @@
 
 ## File modification map
 
-- `packages/runtime/src/phases/plan.ts` — NEW — `runPlan(state: AgentState): Promise<Plan>`. Internally: builds the plan-phase system prompt (Concierge identity + hard rules + "you are in the PLAN phase, you may only call read tools, no execute"), assembles read-only toolset from provider selectors (NOT the full executable actions), calls `llm.streamText({ model: routeModelForPhase('plan'), tools, system, messages, stopWhen: stepCountIs(3) })`. Parses LLM JSON output via Zod schema validation.
+- `packages/runtime/src/phases/plan.ts` — NEW — `runPlan(state: AgentState): Promise<Plan>`. Internally: builds the plan-phase system prompt (mPilot identity + hard rules + "you are in the PLAN phase, you may only call read tools, no execute"), assembles read-only toolset from provider selectors (NOT the full executable actions), calls `llm.streamText({ model: routeModelForPhase('plan'), tools, system, messages, stopWhen: stepCountIs(3) })`. Parses LLM JSON output via Zod schema validation.
 - `packages/runtime/src/phases/planTools.ts` — NEW — read-only tool definitions composed from provider selectors: `get_state` (from runtime state.ts), `get_yields_susde`, `get_carry_vs_aave`, `get_health_factor`, `get_reserve_data`, `get_aave_user_account_data`. NO supply, borrow, swap, bridge, attest — those are for execute phase only.
 - `packages/runtime/src/phases/planSchema.ts` — NEW — Zod schema for the Plan output: `Plan { intent: enum, hypothesis: string, suggestedActions: ActionDescriptor[] }`. ActionDescriptor is { providerName, actionName, args } — descriptive, not executable.
 - `packages/runtime/src/phases/__tests__/plan.test.ts` — NEW — unit tests with mocked LLM: assert phase-scoped toolset (no execute tools), NOOP return path, malformed LLM output handling

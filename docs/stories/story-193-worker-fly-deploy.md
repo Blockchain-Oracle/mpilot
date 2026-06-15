@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the BullMQ worker process deploys to Fly.io with a production-grade Dockerfile, two machines in the EU region (low latency to Pimlico), structured logging shipped to a log aggregator, secrets configured per environment, autoscaling capped to 4 machines
 **So that** the tick loop runs 24/7 with redundancy, observability, and cost controls — without a single-machine SPOF wiping out all agents on every deploy
 

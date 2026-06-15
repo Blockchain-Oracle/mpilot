@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge contracts engineer
+**As a** mPilot contracts engineer
 **I want to** initialize Foundry at `contracts/` with the right remappings (OZ v5 + Aave V3 Origin) and explicitly NO Chainlink
 **So that** all contracts compile against verified canonical sources without unused dependencies
 

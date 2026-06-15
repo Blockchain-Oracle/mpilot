@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** an `@mpilot/mantle-dex` package exposes `swap` + `quote` actions that aggregate routes across Merchant Moe (Trader Joe V2.2 LB), Agni V3, FusionX V3, WOOFi V2, and Li.Fi (intra-Mantle path) and pick best execution
 **So that** every swap the agent executes goes through the best available price on Mantle without per-DEX branching in the runtime
 

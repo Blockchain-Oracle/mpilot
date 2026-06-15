@@ -46,7 +46,7 @@
 
 ---
 
-## 🥈 Concept 2 · **WalletConcierge** (Morphic-base fork)
+## 🥈 Concept 2 · **WalletmPilot** (Morphic-base fork)
 
 **Fork base:** [`miurla/morphic`](https://github.com/miurla/morphic) — 8,879★, pushed 2026-06-02, live demo at [morphic.sh](https://morphic.sh).
 
@@ -115,14 +115,14 @@
 | Concept | Fork base (stars · push) | Weighted | Top judges aligned | Build risk | Demo wow factor |
 |---|---|---|---|---|---|
 | **1. AgentArena** | kuest (507★ · yesterday) | 8.15 | Allora, Virtuals, Nansen, Animoca | **LOW** | Medium (depends on debate UX) |
-| **2. WalletConcierge** | morphic (8.9K★ · yesterday) | **8.30** | Byreal, Allora, Nansen, Virtuals | Medium | Medium (depends on orchestrator) |
+| **2. WalletmPilot** | morphic (8.9K★ · yesterday) | **8.30** | Byreal, Allora, Nansen, Virtuals | Medium | Medium (depends on orchestrator) |
 | **3. ClanArena** | clan-world (4★ · May 2026) | 8.00 | Animoca, Virtuals, Allora, Z.ai | Medium-high | **HIGH** (gorgeous Pixi.js + live agent drama) |
 
 ---
 
 ## Recommendation
 
-**By weighted math: WalletConcierge wins (8.30) by a hair over AgentArena (8.15).**
+**By weighted math: WalletmPilot wins (8.30) by a hair over AgentArena (8.15).**
 
 **By judge-wow + Community Voting upside: ClanArena (8.00) has the highest demo ceiling** — Pixi.js polish + live agent drama is unmatched. Animoca on the judging panel makes this an automatic Best UI/UX play.
 

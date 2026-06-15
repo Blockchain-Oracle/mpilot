@@ -1,4 +1,4 @@
-# Quickstart — Concierge Mantle Agent (5 minutes)
+# Quickstart — mPilot Mantle Agent (5 minutes)
 
 This walks you from a fresh `npx skills add` to your first agent tick.
 
@@ -19,7 +19,7 @@ Run the post-install configurator:
 ~/.concierge/skill-mantle-agent/scripts/install.sh
 ```
 
-You'll be prompted for your `concierge.xyz` user id. If you don't have one,
+You'll be prompted for your `mpilot.xyz` user id. If you don't have one,
 press Enter to open the OAuth flow in your browser and follow the prompts.
 
 The script writes `~/.concierge/config.json` with your account binding. That
@@ -38,7 +38,7 @@ looks like:
 Agent: 0xAGENT…
 Chain: Mantle Mainnet (5000)
 Tick loop: paused (no session key yet)
-Portfolio: empty (deploy a session key via concierge.xyz to begin)
+Portfolio: empty (deploy a session key via mpilot.xyz to begin)
 ```
 
 If you see a permission error instead, the OAuth flow didn't complete — re-run
@@ -48,7 +48,7 @@ the install script.
 
 Read-only tools (`get_agent_state`, `get_reputation`, `get_attestation`) work
 without a session key. To unlock pause / resume / revoke, visit
-`https://concierge.xyz/dashboard` and issue a session key bound to your EOA.
+`https://mpilot.xyz/dashboard` and issue a session key bound to your EOA.
 
 The session key is **scoped** — it can only call the actions you've allowed
 (target contract + selector + spending limit + expiry). The session key never
@@ -57,7 +57,7 @@ to authorize specific UserOps.
 
 ## 5. Run your first tick
 
-Visit `https://concierge.xyz/dashboard` → "Start tick loop". Concierge runs
+Visit `https://mpilot.xyz/dashboard` → "Start tick loop". mPilot runs
 `plan → simulate → propose → execute → record` against your goal. Every
 successful tick writes an ERC-8004 attestation to chain — auditable from any
 MCP-enabled assistant via `get_reputation`.
@@ -66,5 +66,5 @@ MCP-enabled assistant via `get_reputation`.
 
 - Read [`configuration.md`](./configuration.md) for chain selection, default
   thresholds, and per-protocol settings.
-- The agent's source + docs live at https://github.com/Blockchain-Oracle/concierge.
-- Open issues at https://github.com/Blockchain-Oracle/concierge/issues.
+- The agent's source + docs live at https://github.com/Blockchain-Oracle/mpilot.
+- Open issues at https://github.com/Blockchain-Oracle/mpilot/issues.

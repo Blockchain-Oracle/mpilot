@@ -1,5 +1,5 @@
 /**
- * Wagmi config for the Concierge web app.
+ * Wagmi config for the mPilot web app.
  *
  * Mantle Sepolia is the default chain (every dev flow runs here); Mantle
  * Mainnet is supported for read-only views but we never default to it during

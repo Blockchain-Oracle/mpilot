@@ -1,9 +1,9 @@
-# Ondo USDY — Concierge Domain Knowledge
+# Ondo USDY — mPilot Domain Knowledge
 
 ## What this is
-USDY (US Dollar Yield Token) is Ondo Finance's tokenized exposure to **short-duration US Treasuries + bank deposits**. It is yield-bearing (T-bill rate ~5%), non-USD-redeemable for retail (only mintable/burnable by KYC'd entities via Ondo), but freely transferable on-chain after a 40-day cliff. Concierge uses USDY as the **lowest-risk yield-bearing collateral** alternative to sUSDe for users who want T-bill-only exposure.
+USDY (US Dollar Yield Token) is Ondo Finance's tokenized exposure to **short-duration US Treasuries + bank deposits**. It is yield-bearing (T-bill rate ~5%), non-USD-redeemable for retail (only mintable/burnable by KYC'd entities via Ondo), but freely transferable on-chain after a 40-day cliff. mPilot uses USDY as the **lowest-risk yield-bearing collateral** alternative to sUSDe for users who want T-bill-only exposure.
 
-> **Important**: USDY is **NOT currently a borrowable/collateral asset on Aave V3 Mantle** (not in the `getReservesList()` output). It IS deployed on Mantle as an ERC20 (verified below), tradeable on DEXes. Concierge action provider scope is therefore: (a) acquire USDY via DEX, (b) hold for yield (no Aave loop), (c) divest to USDC. Future scope: build a custom CDP if Aave lists it.
+> **Important**: USDY is **NOT currently a borrowable/collateral asset on Aave V3 Mantle** (not in the `getReservesList()` output). It IS deployed on Mantle as an ERC20 (verified below), tradeable on DEXes. mPilot action provider scope is therefore: (a) acquire USDY via DEX, (b) hold for yield (no Aave loop), (c) divest to USDC. Future scope: build a custom CDP if Aave lists it.
 
 ## Verified facts (with evidence)
 
@@ -33,7 +33,7 @@ Source: Li.Fi token list for chain 5000 (`https://li.quest/v1/tokens?chains=5000
 The Mantle USDY is a bridge-image (not a fresh mint). Ondo controls the bridge — typically Wormhole or LayerZero. **[UNVERIFIED — needs human to confirm the bridge mechanism]**: based on Mantle's ecosystem, likely Wormhole NTT or LayerZero OFT.
 
 ### Mantle Sepolia (5003)
-**[UNVERIFIED]**: no Ondo testnet deployment confirmed. Concierge spec uses a stub on Sepolia.
+**[UNVERIFIED]**: no Ondo testnet deployment confirmed. mPilot spec uses a stub on Sepolia.
 
 ### Source repo
 - Ondo contracts (public portion): https://github.com/ondoprotocol — note Ondo's USDY core mint contracts are NOT fully open-source; only auxiliary contracts (rebasing wrapper, oracles) are public.
@@ -42,7 +42,7 @@ The Mantle USDY is a bridge-image (not a fresh mint). Ondo controls the bridge �
 ## Key functions / ABI surface
 
 ### On Mantle (USDY as ERC20)
-USDY on Mantle behaves like a standard ERC20 — Concierge interacts only with the ERC20 surface:
+USDY on Mantle behaves like a standard ERC20 — mPilot interacts only with the ERC20 surface:
 ```solidity
 function balanceOf(address) returns (uint256);
 function transfer(address to, uint256 amount) returns (bool);
@@ -59,14 +59,14 @@ function quoteSend(SendParam, bool) external view returns (MessagingFee);
 USDY accrues yield off-chain. The on-chain `balanceOf` does NOT rebase. Instead:
 - Each USDY token represents a fractional claim on T-bill yield.
 - Off-chain Ondo publishes the **effective USD price** (e.g. 1 USDY = $1.067 at time of writing) that grows ~5% APR.
-- For transactable display in Concierge UI: pull live price from Ondo's published feed OR from a DEX TWAP (USDY/USDC pool on Agni or Merchant Moe).
+- For transactable display in mPilot UI: pull live price from Ondo's published feed OR from a DEX TWAP (USDY/USDC pool on Agni or Merchant Moe).
 
 ### Transfer restrictions
 Per Ondo's docs:
-- USDY has a **40-day transfer cliff after mint** (regulatory). Once bridged image is in circulation, this cliff is satisfied — Concierge sees no restriction in normal flow.
-- Holders in restricted jurisdictions (US persons without accreditation, OFAC) cannot hold. **Concierge does not mint USDY** — it acquires via DEX, so this restriction doesn't bite directly. But: if Ondo ever blacklists an address, the USDY in that address becomes frozen. Spec must surface this risk to users.
+- USDY has a **40-day transfer cliff after mint** (regulatory). Once bridged image is in circulation, this cliff is satisfied — mPilot sees no restriction in normal flow.
+- Holders in restricted jurisdictions (US persons without accreditation, OFAC) cannot hold. **mPilot does not mint USDY** — it acquires via DEX, so this restriction doesn't bite directly. But: if Ondo ever blacklists an address, the USDY in that address becomes frozen. Spec must surface this risk to users.
 
-## Integration pattern for Concierge
+## Integration pattern for mPilot
 
 ### Package: `@mpilot/ondo-usdy`
 Exports:
@@ -99,10 +99,10 @@ Exports:
   "ts": 1717400000
 }
 ```
-The `deviationBps` field proves Concierge swapped at fair value vs Ondo's published price — a key reputation signal.
+The `deviationBps` field proves mPilot swapped at fair value vs Ondo's published price — a key reputation signal.
 
 ### Error handling
-| Failure | Concierge action |
+| Failure | mPilot action |
 |---|---|
 | DEX route fails (USDY pool too shallow) | Fall back to Li.Fi; if it also fails, abort tick |
 | DEX quote deviates >100bp from Ondo price | Refuse swap; alert user (pool may be illiquid) |
@@ -129,19 +129,19 @@ The `deviationBps` field proves Concierge swapped at fair value vs Ondo's publis
 | Reg framework | RegS / RegD exemption | None (synthetic stable) |
 | Mantle Aave collateral | No | Yes (E-Mode 1, LT 92%) |
 | Best for | Risk-averse hold | Yield maximizer |
-| Concierge wedge fit | Pure hold (no leverage) | Leverage (borrow against) |
+| mPilot wedge fit | Pure hold (no leverage) | Leverage (borrow against) |
 
-### Why hold USDY in Concierge at all?
-The locked wedge centers on sUSDe leverage. USDY exists as a **diversifier**: for users who want partial T-bill backing (lower variance, lower yield), Concierge holds a mix like 60% sUSDe loop / 40% USDY hold. The USDY portion isn't levered — it's pure yield + dollar-stable behavior.
+### Why hold USDY in mPilot at all?
+The locked wedge centers on sUSDe leverage. USDY exists as a **diversifier**: for users who want partial T-bill backing (lower variance, lower yield), mPilot holds a mix like 60% sUSDe loop / 40% USDY hold. The USDY portion isn't levered — it's pure yield + dollar-stable behavior.
 
 ## Risks + edge cases
 
-1. **DEX-pool depth on Mantle**: with only $26M USDY in circulation on Mantle, pool depth is shallow. Concierge max single trade = $50K (configurable). Above that, bridge to Ethereum is required.
+1. **DEX-pool depth on Mantle**: with only $26M USDY in circulation on Mantle, pool depth is shallow. mPilot max single trade = $50K (configurable). Above that, bridge to Ethereum is required.
 2. **Bridge halt**: cross-chain USDY supply is bridge-image. If the bridge pauses, USDY on Mantle becomes "stranded" — still earns yield (price keeps growing) but can't be redeemed to USD without bridging back.
 3. **Regulatory blacklist**: Ondo can blacklist addresses (under US sanctions). Probability low for end-user wallets but non-zero. Spec: warn user that custodial freeze risk applies.
-4. **Price feed staleness**: no Chainlink feed for USDY on Mantle (likely). Concierge falls back to DEX TWAP — vulnerable to short-term manipulation. Mitigate with 30-min TWAP, not spot price.
-5. **Off-chain yield publication lag**: Ondo publishes price daily, not block-by-block. APY display in Concierge may lag actual accrual by 1 day. Acceptable for the UX.
-6. **No Aave path**: future risk — if Aave lists USDY (likely given Mantle's push), Concierge will need a follow-up provider. Plan ahead by keeping the action provider interface uniform with `@mpilot/ethena-susde`.
+4. **Price feed staleness**: no Chainlink feed for USDY on Mantle (likely). mPilot falls back to DEX TWAP — vulnerable to short-term manipulation. Mitigate with 30-min TWAP, not spot price.
+5. **Off-chain yield publication lag**: Ondo publishes price daily, not block-by-block. APY display in mPilot may lag actual accrual by 1 day. Acceptable for the UX.
+6. **No Aave path**: future risk — if Aave lists USDY (likely given Mantle's push), mPilot will need a follow-up provider. Plan ahead by keeping the action provider interface uniform with `@mpilot/ethena-susde`.
 
 ## Reference URLs
 - Ondo Finance docs: https://docs.ondo.finance
@@ -152,9 +152,9 @@ The locked wedge centers on sUSDe leverage. USDY exists as a **diversifier**: fo
 - GitHub (partial): https://github.com/ondoprotocol
 
 ## Open questions for spec writer
-1. **Bridge mechanism**: confirm LayerZero OFT vs Wormhole NTT vs lock-mint custom. Spec must include the bridge contract address if Concierge ever calls `send()`.
+1. **Bridge mechanism**: confirm LayerZero OFT vs Wormhole NTT vs lock-mint custom. Spec must include the bridge contract address if mPilot ever calls `send()`.
 2. **Price feed source**: prefer Ondo API or DEX TWAP? Recommend: DEX TWAP for on-tick decisions (no API dependency), Ondo API for UI display.
 3. **Min trade size**: $1? $10? Recommend $50 floor (gas + slippage dominates below this).
 4. **Allocation policy**: define the default sUSDe/USDY split (suggest configurable, default 70/30).
-5. **Bridge fallback**: if Mantle DEX depth insufficient, should Concierge auto-bridge to Ethereum, swap, and bridge back? Adds complexity + latency. Recommend: NO — surface to user, let them pick.
+5. **Bridge fallback**: if Mantle DEX depth insufficient, should mPilot auto-bridge to Ethereum, swap, and bridge back? Adds complexity + latency. Recommend: NO — surface to user, let them pick.
 6. **Aave listing watcher**: schedule a weekly tick that polls `getReservesList()` for new USDY listing. If detected, alert dev team to enable the leverage path.

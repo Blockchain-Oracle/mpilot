@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge contributor
+**As a** mPilot contributor
 **I want to** GitHub Actions runs `pnpm install + biome check + tsc + test + build` on every push and PR
 **So that** broken code never reaches main and merges are gated on green CI
 

@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** judge or community user wanting to try Concierge on Mantle Sepolia
+**As a** judge or community user wanting to try mPilot on Mantle Sepolia
 **I want to** four mock ERC-20 tokens (sUSDe, USDC, USDY, mETH) with a faucet I can mint from
 **So that** I can fund my Sepolia smart account in seconds and watch the agent operate end-to-end without buying real tokens
 

@@ -1,4 +1,4 @@
-# Architecture — Concierge
+# Architecture — mPilot
 
 **Status:** REWORKED 2026-06-09 — supersedes 2026-06-03 draft. 19 ADRs (was 13). Driving documents: `research/concierge/SPEC-REWORK-BRIEF-2026-06-09.md` (synthesis), `AUDIT-2026-06-09.md` (library + spec verification), `SDK-DX-STUDY-2026-06-09.md` (developer-experience patterns).
 **Last updated:** 2026-06-09
@@ -36,7 +36,7 @@
 | MCP hosting (optional secondary) | Cloudflare Workers + Hono | — | Same `packages/mcp/` core, wrapped in a Worker. Bearer-token v0 → OAuth v1. Required only when users want a URL-paste install. |
 | MCP Apps (`ui://` resources) | `@mcp-ui/server@6.1.0` + `@mcp-ui/client@7.1.1` | per audit | Per ADR-017 Rail 2. SEP-1865 merged 2026-01-28; draft spec. Renders our HTML cards inside Claude Desktop / ChatGPT / Goose / VS Code Insiders sandboxed iframes. |
 | MCP Elicitation | Native to SDK 1.29 | — | Per ADR-017 Rail 3. `mode: 'form'` for high-value confirmations; `mode: 'url'` (SEP-1036) for OAuth / wallet-connect handoff. |
-| Skill CLI | `vercel-labs/skills@1.5.10` | — | `npx skills add Blockchain-Oracle/concierge`. Verified owner: Guillermo Rauch (Vercel CTO). 21,800 stars. Supports 70+ agent hosts. |
+| Skill CLI | `vercel-labs/skills@1.5.10` | — | `npx skills add Blockchain-Oracle/mpilot`. Verified owner: Guillermo Rauch (Vercel CTO). 21,800 stars. Supports 70+ agent hosts. |
 | Wallet connection (web) | Privy or Reown (AppKit) | — | Day-1 spike picks between them based on TG-WebView support + smart-account UX |
 | Cross-chain bridging | Li.Fi HTTP API + Diamond contract | API v1 | `https://li.quest/v1` + Diamond `0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE` on Mantle |
 | Testing — TS | Vitest | latest | Unit + integration; `createTestClient` against Anvil fork for chain-aware tests |
@@ -57,8 +57,8 @@ concierge/
 ├── apps/
 │   ├── web/                          # Next.js 15 app (landing + /app + /docs)
 │   │   ├── app/
-│   │   │   ├── page.tsx              # Landing (concierge.xyz/)
-│   │   │   ├── app/                  # Authed app (concierge.xyz/app)
+│   │   │   ├── page.tsx              # Landing (mpilot.xyz/)
+│   │   │   ├── app/                  # Authed app (mpilot.xyz/app)
 │   │   │   │   ├── page.tsx          # Dashboard
 │   │   │   │   ├── onboarding/       # First-run flow
 │   │   │   │   ├── goal/             # Goal-setting screen
@@ -123,7 +123,7 @@ concierge/
 │   ├── ui/                           # @mpilot/ui — brand tokens only (color, type, motion, spacing) — designer fills
 │   ├── skill/                        # @mpilot/skill — Agent Skill (Track 6 qualifier per ADR-003)
 │   │   ├── SKILL.md
-│   │   ├── package.json              # discoverable by `npx skills add Blockchain-Oracle/concierge`
+│   │   ├── package.json              # discoverable by `npx skills add Blockchain-Oracle/mpilot`
 │   │   └── src/
 │   # === SDK meta (convenience re-export) ===
 │   └── sdk/                          # @mpilot/sdk — convenience meta-package re-exporting agent + tools + vercel-ai
@@ -246,12 +246,12 @@ Coding agent MUST re-query Context7 for any library decision the architecture do
 - ❌ **`Result<T, E>` error style** — no major TS SDK does this. Throw `ConciergeError` with `type` discriminator (per ADR-019)
 - ❌ **Omitting `outputSchema`** on a `ConciergeTool` — load-bearing for MCP `structuredContent` + Vercel AI SDK `InferUITools` + `@mpilot/react-ui` parse-then-render
 - ❌ **Subpath-exporting framework adapters from `@mpilot/sdk`** — keep adapters as separate packages so peer-dep matrices don't explode
-- ❌ **`goal` required at construction** — `createConcierge({ model, registry })` then `agent.setGoal(...)`. Constructor side-effects = test hell (per SDK-DX-STUDY §I)
+- ❌ **`goal` required at construction** — `createmPilot({ model, registry })` then `agent.setGoal(...)`. Constructor side-effects = test hell (per SDK-DX-STUDY §I)
 - ❌ **Tambo / Crayon / model-driven gen-UI libs** — contradict the "tool X always renders card X" contract (per Thread 5)
 - ❌ **Handcrafted `.d.ts`** — `tsup` (or equivalent) generates declarations
 - ❌ **`"sideEffects": true` (or unspecified)** — every published package MUST declare `"sideEffects": false` for tree-shakeability
 
-### Concierge-specific
+### mPilot-specific
 
 - ❌ Hardcoded rate numbers (sUSDe APY, USDC borrow APR) in components — fetch from `/api/rates` always
 - ❌ Direct Chainlink AggregatorV3 reads — use `IAaveOracle.getAssetPrice` (per ADR-008)
@@ -275,15 +275,15 @@ Vercel AI SDK for the interactive chat surface (`streamText` + four UI states). 
 
 ### ADR-003 — Track 6 via RealClaw skill packaging (NOT Byreal Skills CLI)
 
-Byreal Skills CLI is **Solana-only** (`byreal-git/byreal-agent-skills` is "CLMM DEX on Solana"). Byreal Perps CLI is **Hyperliquid-only**. Track 6 qualification path uses the **RealClaw** capability — Concierge packages as a TypeScript skill installable via `npx skills add @mpilot/mantle-agent`. Pattern verified via byreal-agent-skills itself + `Magicianhax/mantle-active-trader`.
+Byreal Skills CLI is **Solana-only** (`byreal-git/byreal-agent-skills` is "CLMM DEX on Solana"). Byreal Perps CLI is **Hyperliquid-only**. Track 6 qualification path uses the **RealClaw** capability — mPilot packages as a TypeScript skill installable via `npx skills add @mpilot/mantle-agent`. Pattern verified via byreal-agent-skills itself + `Magicianhax/mantle-active-trader`.
 
 ### ADR-004 — ERC-8004 attestation as verifiability (NOT zkML)
 
 Every successful tick writes an ERC-8004 `giveFeedback` attestation. This is the verifiability claim. No zkML rabbit hole (Giza's Orion/LuminAIR is decoupled from their consumer product anyway). Allora cares about verifiable output, not runtime proofs; ERC-8004 reputation history + tx hashes = sufficient narrative.
 
-### ADR-005 — Single-domain routing (`concierge.xyz/app`, not `app.concierge.xyz`)
+### ADR-005 — Single-domain routing (`mpilot.xyz/app`, not `app.mpilot.xyz`)
 
-Single Next.js project at `concierge.xyz` with `/app`, `/docs`, `/agent/:id` as top-level routes. MCP server on `mcp.concierge.xyz` as the only subdomain (because SSE long-lived connections need Cloudflare Workers, different from Vercel function semantics).
+Single Next.js project at `mpilot.xyz` with `/app`, `/docs`, `/agent/:id` as top-level routes. MCP server on `mcp.mpilot.xyz` as the only subdomain (because SSE long-lived connections need Cloudflare Workers, different from Vercel function semantics).
 
 ### ADR-006 — Sonnet 4.6 default + Opus 4.7 for hard reasoning + Haiku 4.5 for recap
 
@@ -295,7 +295,7 @@ Biome (single tool, 10× faster than ESLint+Prettier) with nursery rule `noExces
 
 ### ADR-008 — Aave Oracle (NOT direct Chainlink) for price reads on Mantle
 
-There is NO direct Chainlink sUSDe/USD feed on Mantle. Aave Oracle (`0x47a063CfDa980532267970d478EC340C0F80E8df`) routes to Capped composites (sUSDe/USDT/USD + USDC/USD). Concierge reads prices via `IAaveOracle.getAssetPrice(asset)` so health-factor reads align with Aave's liquidation triggers. USDC peg hardcoded at $1 in `@mpilot/aave-v3-mantle` price-read helper as defense-in-depth (matches Aave's own treatment).
+There is NO direct Chainlink sUSDe/USD feed on Mantle. Aave Oracle (`0x47a063CfDa980532267970d478EC340C0F80E8df`) routes to Capped composites (sUSDe/USDT/USD + USDC/USD). mPilot reads prices via `IAaveOracle.getAssetPrice(asset)` so health-factor reads align with Aave's liquidation triggers. USDC peg hardcoded at $1 in `@mpilot/aave-v3-mantle` price-read helper as defense-in-depth (matches Aave's own treatment).
 
 ### ADR-009 — Postgres + Redis for off-chain state (ERC-8004 = canonical on-chain reputation)
 
@@ -309,7 +309,7 @@ ZeroDev SDK is chain-agnostic for the account + permission layer (Kernel v3.1 + 
 
 **Original (superseded):** "MCP server on Cloudflare Workers (NOT Vercel functions)."
 
-**Amendment:** Concierge MCP ships as **`@mpilot/mcp`** — a transport-agnostic core with a stdio binary as the default install path (`claude mcp add concierge -- npx -y @mpilot/mcp`). A Cloudflare Worker wrapper at `apps/mcp/` exposes the same core via Streamable HTTP for users who want a URL-paste install. Both consume the same `@mpilot/tools` registry — only transport + auth differ.
+**Amendment:** mPilot MCP ships as **`@mpilot/mcp`** — a transport-agnostic core with a stdio binary as the default install path (`claude mcp add concierge -- npx -y @mpilot/mcp`). A Cloudflare Worker wrapper at `apps/mcp/` exposes the same core via Streamable HTTP for users who want a URL-paste install. Both consume the same `@mpilot/tools` registry — only transport + auth differ.
 
 **Why stdio is the default:** Verified across pokaldot, kwala, cdr-kit (`07-mcp-server-pattern.md` §3 already specified this; the original ADR-011 collapsed it). Zero infra cost for the consumer, session-key private key never leaves their machine (critical for DeFi), no Vercel 10s SSE limit, universal install across 10+ MCP hosts (Claude Code / Desktop / Cursor / Windsurf / VS Code Copilot / Zed / Cline / Goose / OpenCode / Codex), demoable offline.
 
@@ -321,7 +321,7 @@ ZeroDev SDK is chain-agnostic for the account + permission layer (Kernel v3.1 + 
 
 ### ADR-012 — Mantle Sepolia mock-deploy for zero-capital judge playground (reuse Patron pattern)
 
-Aave V3 is NOT on Mantle Sepolia. To preserve the public clickable demo experience without forcing real-money Mainnet interaction, deploy `MockAavePool` + `MockSUSDe` + `MockUSDC` + `MockAaveOracle` (pattern reusable from `archive/patron-2026-06-02/docs/stories/story-23-deploy-demo-mocks-sepolia.md`) + Concierge contracts to Sepolia. The same Concierge contract bytecode targets both networks via `HelperConfig.s.sol` chain-id routing.
+Aave V3 is NOT on Mantle Sepolia. To preserve the public clickable demo experience without forcing real-money Mainnet interaction, deploy `MockAavePool` + `MockSUSDe` + `MockUSDC` + `MockAaveOracle` (pattern reusable from `archive/patron-2026-06-02/docs/stories/story-23-deploy-demo-mocks-sepolia.md`) + mPilot contracts to Sepolia. The same mPilot contract bytecode targets both networks via `HelperConfig.s.sol` chain-id routing.
 
 ### ADR-013 — Designer agent owns visual implementation; specs describe component intent
 
@@ -329,7 +329,7 @@ Aave V3 is NOT on Mantle Sepolia. To preserve the public clickable demo experien
 
 ### ADR-014 — `@mpilot/tools` framework-agnostic tool registry (NEW 2026-06-09)
 
-**Decision:** Concierge action definitions live in ONE source-of-truth package, `@mpilot/tools`, with the shape:
+**Decision:** mPilot action definitions live in ONE source-of-truth package, `@mpilot/tools`, with the shape:
 
 ```typescript
 export interface ConciergeTool<
@@ -374,7 +374,7 @@ Plus per-tool `SerializableConciergeXxxSchema` exports (one per `uiCardId`) for 
 
 - **`@mpilot/react-ui`** — styled drop-ins. Re-exports `@mpilot/react` headless components wrapped in Radix + shadcn primitives + Tailwind tokens from `@mpilot/ui`. Cards: `<TickCard>`, `<ProposalCard>`, `<PortfolioCard>`, `<ReputationChart>`, `<EmergencyStop>`, `<GoalInput>`, `<MCPInstallSnippet>`.
 
-**Distribution: Path C (selected 2026-06-09).** Primary = npm (`pnpm add @mpilot/react-ui`). v1.1 stretch = complementary shadcn registry at `concierge.xyz/r/*.json` for copy-paste consumers. **`@assistant-ui/tool-ui` is adopted as DESIGN reference only** — pattern (schema-driven serializable schemas, lifecycle states, mobile-first, parse-then-render), not dependency. Components compose shadcn primitives directly (same building blocks tool-ui uses), MIT.
+**Distribution: Path C (selected 2026-06-09).** Primary = npm (`pnpm add @mpilot/react-ui`). v1.1 stretch = complementary shadcn registry at `mpilot.xyz/r/*.json` for copy-paste consumers. **`@assistant-ui/tool-ui` is adopted as DESIGN reference only** — pattern (schema-driven serializable schemas, lifecycle states, mobile-first, parse-then-render), not dependency. Components compose shadcn primitives directly (same building blocks tool-ui uses), MIT.
 
 **Two optional adapter packages** for runtime fan-out:
 - **`@mpilot/react-assistant-ui`** — wraps `@mpilot/react` cards as assistant-ui `defineToolkit({ name: { type: 'backend', render } })`. Covers assistant-ui + LangGraph / LangChain users transitively via the lib's own runtime adapters. ~20 LOC.
@@ -391,7 +391,7 @@ Plus per-tool `SerializableConciergeXxxSchema` exports (one per `uiCardId`) for 
 ```typescript
 import type { LanguageModelV2 } from '@ai-sdk/provider';
 
-export function createConcierge(opts: {
+export function createmPilot(opts: {
   model: LanguageModelV2;
   registry: ConciergeRegistry;
   models?: {
@@ -401,7 +401,7 @@ export function createConcierge(opts: {
     execute?: LanguageModelV2;
     record?: LanguageModelV2;
   };
-}): Concierge;
+}): mPilot;
 ```
 
 **Env auto-detect** via `defaultModel()` helper (the pokaldot/kwala pattern, validated by SDK-DX-STUDY §B):
@@ -433,7 +433,7 @@ const record  = await generateText({ model: opts.models?.record   ?? opts.model,
 
 ### ADR-017 — Three-rail generative UI on structured-JSON `outputSchema` contract (NEW 2026-06-09)
 
-**Decision:** Concierge generative UI ships across THREE rails simultaneously. The load-bearing contract underneath all three is **structured JSON via `outputSchema` per tool** (ADR-014). No rail bets the wedge; if a rail isn't supported on a given host, the structured JSON fallback works.
+**Decision:** mPilot generative UI ships across THREE rails simultaneously. The load-bearing contract underneath all three is **structured JSON via `outputSchema` per tool** (ADR-014). No rail bets the wedge; if a rail isn't supported on a given host, the structured JSON fallback works.
 
 **Rail 1 — Vercel AI SDK `tool-${name}` UI message parts** (`apps/web/` + any AI SDK consumer):
 - Backend: `streamText({ tools: { propose: tool({ inputSchema, outputSchema, execute }), ... } })`
@@ -451,7 +451,7 @@ const record  = await generateText({ model: opts.models?.record   ?? opts.model,
 - `ctx.mcpReq.elicitInput({ mode: 'url', elicitationId, url, message })` (SEP-1036) — wallet-connect / OAuth / session-key import handoff inside Claude Desktop
 - Stable in MCP spec `2025-06-18`. Build against `@modelcontextprotocol/sdk@1.29`.
 
-**The contract:** every Concierge tool ships with (a) `inputSchema` (Zod), (b) `outputSchema` (Zod) feeding MCP `structuredContent`, (c) a Vercel AI SDK tool-part card in `@mpilot/react-ui` (via `uiCardId`), (d) optionally a `ui://` HTML resource for Rail 2.
+**The contract:** every mPilot tool ships with (a) `inputSchema` (Zod), (b) `outputSchema` (Zod) feeding MCP `structuredContent`, (c) a Vercel AI SDK tool-part card in `@mpilot/react-ui` (via `uiCardId`), (d) optionally a `ui://` HTML resource for Rail 2.
 
 **Reject:** rich UI types in MCP `content` blocks beyond `text` / `image` / `resource`. The stable MCP spec (`2025-11-25`) has only those. Rail 2 (MCP Apps) is the right venue.
 
@@ -510,7 +510,7 @@ export type ConciergeErrorType =
 
 Reject `Result<T, E>` style — no major TS SDK uses it; idiomatic in Rust-shaped TS only; our judges + adopters don't expect it.
 
-**Streaming:** Concierge ticks expose BOTH `for await` AsyncIterable AND `.on()` event emitter (per OpenAI + Anthropic pattern, SDK-DX-STUDY §G):
+**Streaming:** mPilot ticks expose BOTH `for await` AsyncIterable AND `.on()` event emitter (per OpenAI + Anthropic pattern, SDK-DX-STUDY §G):
 
 ```typescript
 const tick = concierge.tick();
@@ -533,10 +533,10 @@ Tick event types: `plan-delta` | `plan-done` | `simulate-done` | `proposal` | `d
 **Getting-started DX target** — 5-line minimum, env-auto-detect:
 
 ```typescript
-import { createConcierge, defaultModel } from '@mpilot/sdk';
+import { createmPilot, defaultModel } from '@mpilot/sdk';
 import { ConciergeRegistry } from '@mpilot/sdk/registry';
 
-const concierge = createConcierge({
+const concierge = createmPilot({
   model: defaultModel(),                   // env: AI_MODEL || ANTHROPIC_API_KEY
   registry: ConciergeRegistry.mainnet(),
 });
@@ -698,10 +698,10 @@ jobs:
 ### MCP server + Agent Skill (post-2026-06-09 rework)
 
 - [ ] **Stdio (default):** `claude mcp add concierge -- npx -y @mpilot/mcp` works from Claude Code / Desktop / Cursor / Windsurf / Goose
-- [ ] **Hosted (optional):** `mcp.concierge.xyz/mcp` returns valid MCP handshake when bearer token configured
+- [ ] **Hosted (optional):** `mcp.mpilot.xyz/mcp` returns valid MCP handshake when bearer token configured
 - [ ] **MCP Apps:** at least 4 `ui://concierge/*` HTML resources registered (tick-card / proposal-card / portfolio-snapshot / reputation-receipt); verified to render in Claude Desktop's MCP Apps iframe
 - [ ] **MCP Elicitation:** `mode: 'form'` confirmation for high-value actions; `mode: 'url'` available for wallet-connect / OAuth handoff
-- [ ] **Skill:** `npx skills add Blockchain-Oracle/concierge` installs across Claude Code / Codex / Cursor / OpenCode
+- [ ] **Skill:** `npx skills add Blockchain-Oracle/mpilot` installs across Claude Code / Codex / Cursor / OpenCode
 - [ ] All rails (stdio MCP / hosted MCP / Skill / MCP Apps) documented in `docs` site
 
 ### SDK + npm packages (post-2026-06-09 rework — 15 packages total)
@@ -716,7 +716,7 @@ jobs:
 - [ ] Every tool: ships `inputSchema` AND `outputSchema` per ADR-014
 - [ ] Each package has a README, types, working 5-line example
 - [ ] `pnpm add @mpilot/sdk` from a fresh project + the 5-line `defaultModel()` quickstart works end-to-end
-- [ ] At least one adapter verified working: `pnpm add @mpilot/langchain` in an external LangChain app calls a Concierge tool successfully
+- [ ] At least one adapter verified working: `pnpm add @mpilot/langchain` in an external LangChain app calls a mPilot tool successfully
 
 ### Submission deliverables
 

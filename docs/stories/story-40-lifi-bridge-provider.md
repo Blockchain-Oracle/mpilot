@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** an `@mpilot/lifi-bridge` package exposes `quote`, `bridge`, `getStatus` actions that wrap the Li.Fi HTTP API for cross-chain bridging (Mantle ↔ Ethereum / Base / Arbitrum / Polygon / Optimism), with two-stage attestation (sent + completed) because bridges take minutes to settle
 **So that** the agent can bridge user assets to/from Mantle without managing per-bridge integrations (Stargate, Across, Connext) and the on-chain audit trail captures both the source-chain tx AND the destination-chain settlement
 

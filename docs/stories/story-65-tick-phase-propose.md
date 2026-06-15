@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge tick orchestrator
+**As a** mPilot tick orchestrator
 **I want to** a `runPhase('propose', plan, sim)` function creates a `proposals` row in Postgres, decides if user approval is required (per policy + amount), and emits an SSE event to the user's connected web session
 **So that** the user gets a real-time proposal card in the dashboard AND the agent runtime knows whether to proceed (auto-approved) or wait (manual-approval)
 

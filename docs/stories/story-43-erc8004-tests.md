@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the erc8004 provider has integration tests against the real ERC-8004 registries on Mantle Sepolia (live contracts, not mocks — the addresses are deployed) covering register + attest + read flows, schemaId determinism, and EIP-712 hash determinism
 **So that** the wedge's verifiability claim (per ADR-004) is provably wired correctly before any Mainnet attestation goes live
 

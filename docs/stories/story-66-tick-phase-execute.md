@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge tick orchestrator
+**As a** mPilot tick orchestrator
 **I want to** a `runPhase('execute', proposal)` function signs a UserOperation with the user's session key, submits via the Pimlico bundler, and captures the receipt + actual gas used
 **So that** the agent's intended action lands on Mantle with verifiable typing (UserOp via session key), audit-trail-ready receipt capture, and no untraceable EOA signing happening behind the scenes
 

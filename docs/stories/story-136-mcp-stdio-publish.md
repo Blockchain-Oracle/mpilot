@@ -11,8 +11,8 @@
 ## User story
 
 **As a** Claude Code / Claude Desktop / Cursor / Windsurf / Goose / OpenCode / Codex user
-**I want to** run `claude mcp add concierge -- npx -y @mpilot/mcp` and have Concierge's tools available in my chat client
-**So that** I can drive Concierge from my IDE without leaving it, with zero infrastructure setup
+**I want to** run `claude mcp add concierge -- npx -y @mpilot/mcp` and have mPilot's tools available in my chat client
+**So that** I can drive mPilot from my IDE without leaving it, with zero infrastructure setup
 
 ---
 

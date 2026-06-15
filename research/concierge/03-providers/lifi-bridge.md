@@ -2,7 +2,7 @@
 
 ## What this is
 
-Li.Fi is a cross-chain aggregator that routes bridges + swaps across 30+ chains via a single API. Concierge uses Li.Fi for two flows: (1) bridging assets INTO Mantle so a user with funds on Ethereum/Base/Arbitrum/Polygon can fund their agent without manual bridging; (2) bridging OUT for redemption flows (e.g., bridge USDe to Ethereum for native sUSDe minting). Li.Fi handles route selection, fee estimation, slippage controls, and bridge-vs-DEX-swap composition under the hood.
+Li.Fi is a cross-chain aggregator that routes bridges + swaps across 30+ chains via a single API. mPilot uses Li.Fi for two flows: (1) bridging assets INTO Mantle so a user with funds on Ethereum/Base/Arbitrum/Polygon can fund their agent without manual bridging; (2) bridging OUT for redemption flows (e.g., bridge USDe to Ethereum for native sUSDe minting). Li.Fi handles route selection, fee estimation, slippage controls, and bridge-vs-DEX-swap composition under the hood.
 
 ## Verified facts
 
@@ -19,7 +19,7 @@ Li.Fi is a cross-chain aggregator that routes bridges + swaps across 30+ chains 
 
 **Authentication:** Public API, no key required for basic quoting. Production-grade rate limits require an API key from Li.Fi (free tier 60 req/min).
 
-**Li.Fi Diamond contract on Mantle Mainnet (verified via `/v1/chains` API):** `0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE` — this is the on-chain entrypoint Concierge's `bridgeIn`/`bridgeOut` actions ultimately call (returned in `quote.transactionRequest.to`). Same Diamond address across most chains Li.Fi supports — single canonical deployment per chain.
+**Li.Fi Diamond contract on Mantle Mainnet (verified via `/v1/chains` API):** `0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE` — this is the on-chain entrypoint mPilot's `bridgeIn`/`bridgeOut` actions ultimately call (returned in `quote.transactionRequest.to`). Same Diamond address across most chains Li.Fi supports — single canonical deployment per chain.
 
 ## Key endpoints / actions
 
@@ -68,7 +68,7 @@ GET https://li.quest/v1/quote?fromChain=5000&toChain=5000&fromToken=...&toToken=
 → Same shape, but `tool` is a DEX (e.g., "merchantmoe", "agni") and bridge sub-steps are empty
 ```
 
-## Integration pattern for Concierge
+## Integration pattern for mPilot
 
 ```typescript
 // packages/concierge/lifi-bridge/src/provider.ts
@@ -149,7 +149,7 @@ export function createLifiBridgeProvider(opts: { apiKey?: string; integrator?: s
 
 **Tx submission:** Li.Fi returns a single `transactionRequest` (calldata + value) — the user signs ONE tx on the source chain, Li.Fi's contracts handle the multi-step composition. No follow-up signature needed on the destination chain.
 
-**Status polling:** after submission, `GET /status?txHash` polls the bridge state until `status: 'DONE'`. Concierge's tick `record()` phase polls every 30s for up to 30 minutes.
+**Status polling:** after submission, `GET /status?txHash` polls the bridge state until `status: 'DONE'`. mPilot's tick `record()` phase polls every 30s for up to 30 minutes.
 
 **On-chain contracts:** Li.Fi's diamond contracts are deployed on each supported chain. On Mantle: documented via `GET /tools/bridges` and `GET /tools/exchanges`.
 
@@ -158,7 +158,7 @@ export function createLifiBridgeProvider(opts: { apiKey?: string; integrator?: s
 1. **Multi-step bridge can fail mid-route.** Source tx confirmed but destination delivery fails. Mitigation: Li.Fi has a recovery flow (`POST /recovery`) but it's manual. Document the recovery URL in error states.
 2. **Slippage breach on volatile assets.** Bridge transactions can revert if slippage exceeds tolerance. Mitigation: use Li.Fi's `toAmountMin` as the floor; surface to user before approval if floor is meaningful loss.
 3. **Stale quotes.** Quotes have ~60s validity. If the user delays approval, re-quote before signing.
-4. **API rate limits.** 60 req/min on free tier. Concierge's tick loop (every 60s default) could hit this if multiple users tick simultaneously. Mitigation: production API key + per-user rate limiting on the agent runtime.
+4. **API rate limits.** 60 req/min on free tier. mPilot's tick loop (every 60s default) could hit this if multiple users tick simultaneously. Mitigation: production API key + per-user rate limiting on the agent runtime.
 5. **Bridge solvency.** Some bridges have had insolvency events. Li.Fi routes around known-broken bridges; user is exposed to the chosen bridge's solvency for in-flight funds.
 6. **Asset existence on destination.** Bridging WBTC to Mantle may not work if no canonical WBTC representation exists there. Always check `GET /tokens?chains=5000` first.
 
@@ -167,7 +167,7 @@ export function createLifiBridgeProvider(opts: { apiKey?: string; integrator?: s
 1. **Li.Fi API key application.** Need to confirm free-tier rate limits in production. Action: register an integrator account at https://li.fi/contact.
 2. **Specific Mantle bridges Li.Fi uses.** Confirmation that Stargate / Across / Hop are all live on Mantle for our asset list (USDC, USDe, mETH). Action: `GET /tools/bridges?chains=5000` on integration day.
 3. **Mantle ↔ Solana bridging.** Li.Fi may or may not support Solana destinations from Mantle (Solana isn't EVM). If user wants to off-ramp to Solana, document the path.
-4. **Fee structure.** Integrator fee — Concierge can add a small (`integratorFee=0.001` = 0.1%) fee on Li.Fi quotes for revenue. Decide if/when to enable.
+4. **Fee structure.** Integrator fee — mPilot can add a small (`integratorFee=0.001` = 0.1%) fee on Li.Fi quotes for revenue. Decide if/when to enable.
 
 ## Reference URLs
 

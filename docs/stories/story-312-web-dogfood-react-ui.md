@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Concierge maintainer
-**I want to** the production web app at `concierge.xyz/app` import + render every card directly from `@mpilot/react-ui`, not duplicate the component code inside `apps/web/components/`
+**As a** mPilot maintainer
+**I want to** the production web app at `mpilot.xyz/app` import + render every card directly from `@mpilot/react-ui`, not duplicate the component code inside `apps/web/components/`
 **So that** our flagship is a true reference consumer of our own SDK — proving the components work end-to-end and removing duplication risk
 
 ---

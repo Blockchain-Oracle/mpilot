@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** an `@mpilot/aave-v3-mantle` package exposes `supply`, `borrow`, `repay`, `withdraw`, `setUserEMode`, `claimRewards` as Vercel AI SDK `tool()` definitions with Zod input schemas, viem-based execution, and ERC-8004 attestation hooks
 **So that** the `plan → simulate → propose → execute → record` tick loop can act on Aave V3 Mantle without hand-rolling ABIs or addresses
 

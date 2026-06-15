@@ -11,8 +11,8 @@
 ## User story
 
 **As a** Mantle Turing Test judge
-**I want to** I can click "Try Concierge on Sepolia" from the landing, get test tokens via an in-app faucet (NO native MNT required from me), activate a sample agent, watch a tick, and approve an action — all in under 5 minutes
-**So that** Concierge has a zero-friction "try it now" path for judges who don't want to fund a wallet to evaluate
+**I want to** I can click "Try mPilot on Sepolia" from the landing, get test tokens via an in-app faucet (NO native MNT required from me), activate a sample agent, watch a tick, and approve an action — all in under 5 minutes
+**So that** mPilot has a zero-friction "try it now" path for judges who don't want to fund a wallet to evaluate
 
 ---
 

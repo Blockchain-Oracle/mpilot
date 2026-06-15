@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** an `@mpilot/meth-staking` package exposes `getBalance`, `getExchangeRate`, `getYieldRate`, `unwrapToWETH` (DEX-routed) actions for the Mantle-bridged mETH token
 **So that** the agent can monitor user-held mETH positions, derive staking yield, and unwrap mETH → WETH via DEX swap (Mantle has NO native unstaking — the L1 stake pool is Ethereum-only)
 

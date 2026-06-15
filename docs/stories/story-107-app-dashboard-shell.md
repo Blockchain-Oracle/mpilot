@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user with an activated agent
+**As a** mPilot user with an activated agent
 **I want to** the `/app` route renders a stable 3-column shell (left: agent switcher + nav, center: main content area, right: contextual side panel) with persistent layout across all /app/* sub-routes
 **So that** my agent state stays visible (live tick status in the side panel) regardless of which sub-route I navigate to, and the navigation never reloads the whole page
 

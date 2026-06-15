@@ -1,4 +1,4 @@
-# Configuration — Concierge Mantle Agent
+# Configuration — mPilot Mantle Agent
 
 The skill reads `~/.concierge/config.json` at startup. This document covers
 every field, default, and override.
@@ -8,7 +8,7 @@ every field, default, and override.
 ```json
 {
   "userId": "user_…",
-  "url": "https://concierge.xyz",
+  "url": "https://mpilot.xyz",
   "chain": "mantle",
   "createdAt": "2026-06-13T12:00:00Z",
   "defaults": {
@@ -26,12 +26,12 @@ when absent.
 
 ### `userId` (required)
 
-Your `concierge.xyz` account id. Written by the post-install script. Used to
+Your `mpilot.xyz` account id. Written by the post-install script. Used to
 look up your agent + session keys on every MCP tool call.
 
-### `url` (default: `https://concierge.xyz`)
+### `url` (default: `https://mpilot.xyz`)
 
-The Concierge backend URL. Override via the `CONCIERGE_URL` env var when
+The mPilot backend URL. Override via the `CONCIERGE_URL` env var when
 running against a staging deployment.
 
 ### `chain` (default: `mantle`)
@@ -65,7 +65,7 @@ draining gas.
 
 Per-protocol thresholds (Aave LTV targets, sUSDe carry target, etc.) live on
 the backend, not in this local config. Edit them at
-`https://concierge.xyz/dashboard` → "Strategy".
+`https://mpilot.xyz/dashboard` → "Strategy".
 
 ## Environment variables
 

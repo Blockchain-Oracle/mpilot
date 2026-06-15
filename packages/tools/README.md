@@ -1,6 +1,6 @@
 # @mpilot/tools
 
-Framework-agnostic Concierge tool registry. The single source of truth for
+Framework-agnostic mPilot tool registry. The single source of truth for
 the `ConciergeTool` interface — every adapter (Vercel AI SDK, OpenAI,
 LangChain, Coinbase AgentKit, MCP server, React UI) consumes the same shape,
 with one `inputSchema` + `outputSchema` definition feeding all surfaces.

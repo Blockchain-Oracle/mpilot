@@ -31,7 +31,7 @@ Per AUDIT-2026-06-09 §1 + architecture.md ADR-016/017:
 
 ## User story
 
-**As a** Concierge user
+**As a** mPilot user
 **I want to** the web app's chat surface streams an Anthropic Claude response with all 7 providers' actions registered as tools, four UI states (`input-streaming`, `input-available`, `output-available`, `output-error`) wired through to React components
 **So that** when I message "supply 100 USDC to Aave", the agent picks the right tool, the simulation streams in real time, and the proposal card renders mid-response
 
@@ -41,7 +41,7 @@ Per AUDIT-2026-06-09 §1 + architecture.md ADR-016/017:
 
 - `apps/web/app/api/chat/route.ts` — NEW — Next.js App Router POST handler. Uses Vercel AI SDK `streamText` + `tool()` definitions + `convertToModelMessages` + `stopWhen: stepCountIs(8)` (multi-step tool loop cap)
 - `apps/web/lib/chat/tools.ts` — NEW — registers all 7 providers' actions as Vercel AI SDK tools. Imports each provider's `tool()` definitions from `@mpilot/<provider>` packages and combines into a single `ChatTools` ToolSet. Type via `InferUITools<typeof tools>` so the React side gets typed tool-part rendering.
-- `apps/web/lib/chat/systemPrompt.ts` — NEW — exports the Concierge system prompt template per `research/concierge/04-agent-runtime.md` § 2.3 system prompt skeleton, with the hard rules + tool availability injected dynamically per user/agent
+- `apps/web/lib/chat/systemPrompt.ts` — NEW — exports the mPilot system prompt template per `research/concierge/04-agent-runtime.md` § 2.3 system prompt skeleton, with the hard rules + tool availability injected dynamically per user/agent
 - `apps/web/lib/chat/types.ts` — NEW — `ChatMessage` typed via `UIMessage<never, UIDataTypes, ChatTools>`
 - `apps/web/lib/chat/auth.ts` — NEW — bearer-token + Privy session auth for the chat endpoint (reuses Privy server SDK from the app's existing setup)
 
@@ -124,7 +124,7 @@ bun scripts/check-file-loc.mjs
 - **Vercel AI SDK 6 pattern** per `research/concierge/04-agent-runtime.md` § 1.1: `tools = { actionName: tool({ description, inputSchema: z.object(...), execute: async (args) => {...} }) } satisfies ToolSet`. Each provider exports its tools — combine here.
 - **Four UI states** per `research/concierge/04-agent-runtime.md` § 1.2: `input-streaming`, `input-available`, `output-available`, `output-error`. React components in story-108 switch on `part.state` to render correctly. The API endpoint produces these states automatically through `streamText`; no manual emit needed.
 - **`stopWhen: stepCountIs(8)`** caps multi-step tool loops. Per ADR-006 (token budget) + research/concierge/04-agent-runtime.md § Risks. Without it, an LLM loop could chain 50 tool calls and blow the per-tick budget.
-- **`systemPrompt.ts`** is the canonical Concierge system prompt. Edits here propagate to every chat session. Reference: `research/concierge/04-agent-runtime.md` § 2.3 — the hard rules + tool inventory + agent identity all live here.
+- **`systemPrompt.ts`** is the canonical mPilot system prompt. Edits here propagate to every chat session. Reference: `research/concierge/04-agent-runtime.md` § 2.3 — the hard rules + tool inventory + agent identity all live here.
 - **Auth**: bearer token (worker process calling /api/chat from within the cluster) OR Privy session cookie (browser). Both paths supported; auth gate fails fast for unauthenticated requests with 401.
 - **Hobby plan SSE timeout is 25s**, Pro is 60s. The chat surface is interactive (short responses); the autonomous tick loop runs out-of-band (story-62, BullMQ worker on Fly.io). Don't conflate.
 - Cross-ref: `research/concierge/04-agent-runtime.md` § 1 Vercel AI SDK 6, ADR-002.

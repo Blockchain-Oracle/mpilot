@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge provider author
+**As a** mPilot provider author
 **I want to** import canonical ABIs from `@mpilot/shared` without copying JSON
 **So that** every package uses the same source-of-truth ABI
 

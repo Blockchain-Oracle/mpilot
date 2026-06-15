@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer 24 hours before submission
+**As a** mPilot maintainer 24 hours before submission
 **I want to** a final audit pass runs across 4 axes (security review, anti-slop UI sweep, anti-Patron contamination scan, claims-vs-reality verification) with documented findings + remediations
 **So that** I submit with no known-fatal flaws — and if a judge surfaces an issue later, I have an audit record showing it was a known limitation, not a missed regression
 

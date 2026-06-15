@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user
+**As a** mPilot user
 **I want to** the dashboard's overview card shows my current portfolio: USDC balance, sUSDe balance, mETH balance, Aave debt, current HF, current yield (annualized), 24h delta
 **So that** I can verify "the agent is doing what I asked" at a glance without clicking into specific protocols
 

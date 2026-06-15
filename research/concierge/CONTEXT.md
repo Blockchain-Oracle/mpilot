@@ -1,15 +1,15 @@
-# Concierge — Domain Knowledge Folder
+# mPilot — Domain Knowledge Folder
 
 **Status:** Active — locked wedge as of 2026-06-03. Spec mode (sahil-spec-writer consumes this folder to produce `docs/PRD.md`, `docs/architecture.md`, `docs/ux-spec.md`, `docs/epics.md`, `docs/stories/`).
 
-## What Concierge is (60 seconds)
+## What mPilot is (60 seconds)
 
-Concierge is an **autonomous DeFi agent for Mantle** built for the Mantle Turing Test 2026 hackathon ($100K cash + ~$110K credits prize pool). The user sets a financial goal in plain English (*"maximize my stablecoin yield, stay under 70% Aave LTV"*); Concierge runs a continuous tick loop that plans → simulates → proposes → executes → attests each action on-chain via ERC-8004. The user watches the agent work in real time via streaming generative-UI cards, approves manually or grants autopilot per category, and can hit Emergency Stop at any moment.
+mPilot is an **autonomous DeFi agent for Mantle** built for the Mantle Turing Test 2026 hackathon ($100K cash + ~$110K credits prize pool). The user sets a financial goal in plain English (*"maximize my stablecoin yield, stay under 70% Aave LTV"*); mPilot runs a continuous tick loop that plans → simulates → proposes → executes → attests each action on-chain via ERC-8004. The user watches the agent work in real time via streaming generative-UI cards, approves manually or grants autopilot per category, and can hit Emergency Stop at any moment.
 
 **Four surfaces, one core:**
-1. **Web app** (`concierge.xyz/app`) — consumer-facing agent control + live tick stream
+1. **Web app** (`mpilot.xyz/app`) — consumer-facing agent control + live tick stream
 2. **npm SDK** (`@mpilot/sdk` + 7 `@mpilot/<provider>` packages) — "AgentKit for Mantle" — other Mantle devs install our action providers
-3. **MCP server** (`mcp.concierge.xyz/api/sse`) — Claude Code / OpenClaw / RealClaw can drive Concierge natively
+3. **MCP server** (`mcp.mpilot.xyz/api/sse`) — Claude Code / OpenClaw / RealClaw can drive mPilot natively
 4. **RealClaw skill** (`npx skills add @mpilot/mantle-agent`) — satisfies Mantle Turing Test Track 6 (Agentic Economy) "must use core capabilities of RealClaw" requirement
 
 **Locked architecture:** TypeScript monorepo (Bun) · Next.js 15 app · Vercel AI SDK foundation · viem + ZeroDev ERC-4337 smart accounts · Foundry contracts · Postgres (Neon) + Redis (Upstash) · Claude Sonnet 4.6 (default LLM) · Anthropic SDK · MCP TypeScript SDK · Tambo or assistant-ui or custom shadcn (designer's call).

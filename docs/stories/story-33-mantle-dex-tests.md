@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the mantle-dex provider has integration tests that exercise quote + swap end-to-end against an Anvil fork of Mantle Mainnet, asserting best-venue selection, slippage enforcement, and the re-quote-on-execute pattern
 **So that** the aggregation logic is provably correct against real on-chain liquidity, not just a mocked happy path
 

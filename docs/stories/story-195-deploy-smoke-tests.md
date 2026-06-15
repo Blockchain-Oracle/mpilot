@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Concierge maintainer right after any deploy
-**I want to** a smoke test script hits every public surface (concierge.xyz/, /docs, /app, /api/portfolio with test creds, mcp.concierge.xyz/mcp initialize, worker /health) AND verifies expected responses
+**As a** mPilot maintainer right after any deploy
+**I want to** a smoke test script hits every public surface (mpilot.xyz/, /docs, /app, /api/portfolio with test creds, mcp.mpilot.xyz/mcp initialize, worker /health) AND verifies expected responses
 **So that** I know within 60 seconds whether a deploy broke ANYTHING user-visible — not waiting for users to report a broken landing page
 
 ---
@@ -19,11 +19,11 @@
 ## File modification map
 
 - `scripts/smoke-test.sh` — NEW — orchestrator that runs all surface checks; exits 0 on green, 1 on any failure
-- `scripts/smoke/landing.sh` — NEW — `curl -fs https://concierge.xyz/` + assert H1 present
-- `scripts/smoke/docs.sh` — NEW — `curl -fs https://concierge.xyz/docs` + assert nav present
-- `scripts/smoke/dashboard.sh` — NEW — `curl -fs https://concierge.xyz/app` + assert redirect to landing (no auth → /; HTTP 307)
-- `scripts/smoke/api.sh` — NEW — `curl -fs https://concierge.xyz/api/portfolio` with test creds + assert JSON response
-- `scripts/smoke/mcp.sh` — NEW — POST to https://mcp.concierge.xyz/mcp with initialize JSON-RPC + assert capability descriptor
+- `scripts/smoke/landing.sh` — NEW — `curl -fs https://mpilot.xyz/` + assert H1 present
+- `scripts/smoke/docs.sh` — NEW — `curl -fs https://mpilot.xyz/docs` + assert nav present
+- `scripts/smoke/dashboard.sh` — NEW — `curl -fs https://mpilot.xyz/app` + assert redirect to landing (no auth → /; HTTP 307)
+- `scripts/smoke/api.sh` — NEW — `curl -fs https://mpilot.xyz/api/portfolio` with test creds + assert JSON response
+- `scripts/smoke/mcp.sh` — NEW — POST to https://mcp.mpilot.xyz/mcp with initialize JSON-RPC + assert capability descriptor
 - `scripts/smoke/worker-health.sh` — NEW — `curl -fs https://<worker-fly-url>/health` + assert { redis: 'ok', postgres: 'ok' }
 - `.github/workflows/post-deploy-smoke.yml` — NEW — runs smoke-test.sh after each production deploy; alerts on failure
 
@@ -81,7 +81,7 @@ done
 test -f .github/workflows/post-deploy-smoke.yml
 
 # Smoke test script defaults to production
-grep -q "concierge.xyz" scripts/smoke-test.sh
+grep -q "mpilot.xyz" scripts/smoke-test.sh
 
 # Each surface check is bounded by curl timeout
 for surface in landing docs dashboard api mcp worker-health; do

@@ -30,7 +30,7 @@ describe('SKILL.md manifest — full schema validation (story-151)', () => {
     expect(fm['name']).toBe('concierge-mantle-agent');
     expect(fm['version']).toBe('0.1.0');
     expect(fm['license']).toBe('MIT');
-    expect(fm['mcp_server_url']).toBe('https://mcp.concierge.xyz/mcp');
+    expect(fm['mcp_server_url']).toBe('https://mcp.mpilot.xyz/mcp');
     expect(fm['oauth_client_id']).toBe('concierge-mantle-agent-skill');
     expect(fm['supported_chains']).toEqual([5000, 5003]);
     expect(Array.isArray(fm['tools'])).toBe(true);
@@ -62,7 +62,7 @@ describe('SKILL.md manifest — required field assertions (BDD spec gates)', () 
   });
 
   it('mcp_server_url points to the production MCP endpoint (story-133)', () => {
-    expect(manifest.mcp_server_url).toBe('https://mcp.concierge.xyz/mcp');
+    expect(manifest.mcp_server_url).toBe('https://mcp.mpilot.xyz/mcp');
   });
 
   it('supported_chains lists Mantle Mainnet (5000) AND Mantle Sepolia (5003)', () => {

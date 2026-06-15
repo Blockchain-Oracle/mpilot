@@ -10,9 +10,9 @@
 
 ## User story
 
-**As a** developer adopting Concierge with my OWN LLM provider (OpenAI / Google / xAI, not just Anthropic)
-**I want to** set `OPENAI_API_KEY=sk-... AI_MODEL="openai:gpt-5.1"` and have `createConcierge({ model: defaultModel() })` just work
-**So that** I'm not locked into Anthropic and Concierge is genuinely multi-provider per ADR-016
+**As a** developer adopting mPilot with my OWN LLM provider (OpenAI / Google / xAI, not just Anthropic)
+**I want to** set `OPENAI_API_KEY=sk-... AI_MODEL="openai:gpt-5.1"` and have `createmPilot({ model: defaultModel() })` just work
+**So that** I'm not locked into Anthropic and mPilot is genuinely multi-provider per ADR-016
 
 ---
 
@@ -62,11 +62,11 @@ Given an explicit spec string is passed
 When `defaultModel('anthropic:claude-opus-4-7')` runs
 Then it uses that model regardless of AI_MODEL env
 
-Given a Concierge instance with no per-phase model override
+Given a mPilot instance with no per-phase model override
 When `concierge.tick()` runs
 Then EVERY `generateText` call inside uses the same model (the constructor's `model`)
 
-Given a Concierge instance with `models: { plan: customModel }`
+Given a mPilot instance with `models: { plan: customModel }`
 When the tick's plan phase runs
 Then `generateText({ model: customModel })` is called for plan AND `generateText({ model: defaultModel })` for all other phases
 

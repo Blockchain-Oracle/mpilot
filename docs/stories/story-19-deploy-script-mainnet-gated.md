@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer doing the production Mainnet deploy
+**As a** mPilot maintainer doing the production Mainnet deploy
 **I want to** an interactive wrapper script demands typing `DEPLOY-MAINNET` exactly before broadcasting, then runs the same `DeployAll.s.sol` against Mantle Mainnet, verifies on Mantlescan, writes addresses, and runs a postdeploy smoke check
 **So that** accidental Mainnet broadcasts (the script is the same — only chain id differs) are impossible without explicit human confirmation, and a successful deploy produces a complete artifact set (verified addresses + smoke-test green) on first try
 
@@ -20,7 +20,7 @@
 
 - `contracts/scripts/deploy-mainnet.sh` — NEW — interactive bash wrapper. Steps:
   1. Pre-flight checks: env vars set (`MANTLE_RPC_URL`, `OPS_PRIVATE_KEY`, `MANTLESCAN_API_KEY`), $MNT balance ≥ 0.3, last green CI run on `main` (via `gh run list`), no uncommitted changes
-  2. Print summary: "About to deploy Concierge to Mantle Mainnet. Real $MNT will be spent. Mainnet contracts cannot be undeployed."
+  2. Print summary: "About to deploy mPilot to Mantle Mainnet. Real $MNT will be spent. Mainnet contracts cannot be undeployed."
   3. Prompt: `Type DEPLOY-MAINNET to continue:` — exact string match, NOT y/N (y/N is fat-finger-able). Anything else aborts.
   4. Run `forge script script/DeployAll.s.sol --rpc-url $MANTLE_RPC_URL --broadcast --verify --verifier-url https://api.mantlescan.xyz/api --etherscan-api-key $MANTLESCAN_API_KEY`
   5. Run `node contracts/scripts/write-addresses.mjs --network mainnet`

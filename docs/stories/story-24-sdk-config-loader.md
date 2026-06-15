@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge runtime operator
+**As a** mPilot runtime operator
 **I want to** missing env vars fail at boot (not at first tick) with clear messages
 **So that** misconfigured deployments never silently corrupt state
 

@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** invariant tests prove that no sequence of calls (in any order) can violate the registry's state-machine invariants
 **So that** liveness + safety properties hold even under adversarial action sequences the unit/fuzz tests don't enumerate
 

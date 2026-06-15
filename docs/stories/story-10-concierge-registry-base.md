@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** a Mantle smart contract stores each agent's goal + policy + active state under their `agentId`, with role-gated mutation and global pause
 **So that** the tick loop reads canonical on-chain state every tick and policy changes survive any off-chain database loss
 
@@ -97,7 +97,7 @@ test $? -eq 0
 
 ## Notes for coding agent
 
-- Per ADR-009 + 02-architecture.md § Repo structure: this contract is the on-chain anchor for Concierge agent identity + policy. ERC-8004 attestations (from story-83) reference `agentId` from this contract via `setMetadata(agentId, "concierge.registry", abi.encode(registryAddress))` — they don't replace it.
+- Per ADR-009 + 02-architecture.md § Repo structure: this contract is the on-chain anchor for mPilot agent identity + policy. ERC-8004 attestations (from story-83) reference `agentId` from this contract via `setMetadata(agentId, "concierge.registry", abi.encode(registryAddress))` — they don't replace it.
 - `goalHash` is `keccak256(canonicalJSON(goal))` — the canonical JSON form is computed off-chain in `packages/sdk`; the contract only stores the hash. Full goal text lives in Postgres + IPFS (referenced via the policy data field).
 - `policyData` is opaque bytes (max 4096) — typically `abi.encode(Policy)` from the SDK. Decoded off-chain. Cap enforced on-chain so we don't have unbounded SSTORE costs.
 - **Use OZ v5 errors-not-strings.** Reference: `archive/patron-2026-06-02/docs/architecture.md` confirms OZ v5.1 gives us `AccessControlUnauthorizedAccount`, `EnforcedPause`, `ReentrancyGuardReentrantCall` as native errors. Mirror this in our custom errors.

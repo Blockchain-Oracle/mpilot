@@ -1,4 +1,4 @@
-# Story — Docs ERC-8004 explainer (standard primer + Concierge integration)
+# Story — Docs ERC-8004 explainer (standard primer + mPilot integration)
 
 **ID:** story-174-docs-erc8004-explainer
 **Epic:** Epic E10 — Docs Site
@@ -11,8 +11,8 @@
 ## User story
 
 **As a** developer unfamiliar with ERC-8004 (the agent reputation standard)
-**I want to** a primer doc covering: what ERC-8004 is, registerAgent vs giveFeedback vs readFeedback, how Concierge uses each, why the wedge depends on per-tick attestation
-**So that** I can understand the standard from scratch (no prior ERC-8004 knowledge required) AND can audit Concierge's integration without reading the EIP
+**I want to** a primer doc covering: what ERC-8004 is, registerAgent vs giveFeedback vs readFeedback, how mPilot uses each, why the wedge depends on per-tick attestation
+**So that** I can understand the standard from scratch (no prior ERC-8004 knowledge required) AND can audit mPilot's integration without reading the EIP
 
 ---
 
@@ -21,8 +21,8 @@
 - `apps/web/content/docs/concepts/erc8004/primer.mdx` — NEW — what ERC-8004 is, ecosystem context
 - `apps/web/content/docs/concepts/erc8004/identity.mdx` — NEW — IdentityRegistry + registerAgent flow
 - `apps/web/content/docs/concepts/erc8004/reputation.mdx` — NEW — ReputationRegistry + giveFeedback flow
-- `apps/web/content/docs/concepts/erc8004/concierge-integration.mdx` — NEW — how Concierge uses ERC-8004 (the per-tick attestation pattern)
-- `apps/web/content/docs/concepts/erc8004/verifying-an-attestation.mdx` — NEW — step-by-step: how anyone can verify a Concierge attestation given a tx hash
+- `apps/web/content/docs/concepts/erc8004/concierge-integration.mdx` — NEW — how mPilot uses ERC-8004 (the per-tick attestation pattern)
+- `apps/web/content/docs/concepts/erc8004/verifying-an-attestation.mdx` — NEW — step-by-step: how anyone can verify a mPilot attestation given a tx hash
 - `apps/web/content/docs/concepts/erc8004/_meta.tsx` — NEW — section nav
 - `apps/web/components/docs/AttestationVerifier.tsx` — NEW — interactive embedded tool: paste a tx hash → fetch the attestation → display the verification steps
 
@@ -37,7 +37,7 @@ Then they understand: it's an agent reputation standard, has Identity + Reputati
 
 Given the identity page
 When inspected
-Then it documents: registerAgent function signature, what an agent ID looks like, how Concierge users get an agent ID at onboarding
+Then it documents: registerAgent function signature, what an agent ID looks like, how mPilot users get an agent ID at onboarding
 
 Given the reputation page
 When inspected
@@ -49,7 +49,7 @@ Then it explicitly states: "Per ADR-004, every Mainnet execution MUST be followe
 
 Given the verifying-an-attestation page
 When followed
-Then a reader can take a tx hash from Mantlescan + verify the attestation in 5 manual steps (no Concierge SDK required)
+Then a reader can take a tx hash from Mantlescan + verify the attestation in 5 manual steps (no mPilot SDK required)
 
 Given the AttestationVerifier component
 When the user pastes a tx hash and clicks Verify
@@ -101,7 +101,7 @@ bun scripts/check-file-loc.mjs
 ## Notes for coding agent
 
 - **ERC-8004 is unfamiliar to most devs.** The primer page assumes ZERO prior knowledge. Define every term; show every function signature.
-- **The verifying-an-attestation page is the trust-primitive UX in docs form.** A skeptical judge should be able to take a Mantlescan tx hash + verify the attestation themselves with no Concierge tooling. The 5 manual steps are: (1) read attestation from ReputationRegistry, (2) extract dataURI, (3) fetch IPFS content, (4) compute keccak256(canonical(content)), (5) compare to on-chain dataHash. This is the verifiability claim made tangible.
+- **The verifying-an-attestation page is the trust-primitive UX in docs form.** A skeptical judge should be able to take a Mantlescan tx hash + verify the attestation themselves with no mPilot tooling. The 5 manual steps are: (1) read attestation from ReputationRegistry, (2) extract dataURI, (3) fetch IPFS content, (4) compute keccak256(canonical(content)), (5) compare to on-chain dataHash. This is the verifiability claim made tangible.
 - **AttestationVerifier component** is the docs killer feature — paste a real tx hash, watch the verification run live. Judges love interactive demos.
 - **Don't shy from the ADR-004 quote.** "Without this, the wedge is broken" is the load-bearing dependency; surface it so devs understand the criticality. Per CLAUDE.md no-silent-failures + `feedback_audits_can_be_wrong.md`.
 - **Schema discriminator pattern** (each provider has its own schema like `concierge.aave.v3.borrow.v1`) is a non-obvious detail. Document it as a section with examples per provider.

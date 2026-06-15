@@ -1,6 +1,6 @@
 # @mpilot/mcp
 
-Transport-agnostic MCP server for Concierge, per ADR-011 amended.
+Transport-agnostic MCP server for mPilot, per ADR-011 amended.
 
 - **Default install path**: stdio bin — `npx -y @mpilot/mcp`.
 - **Optional hosted variant**: Cloudflare Worker wrapping

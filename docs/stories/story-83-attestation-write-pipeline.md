@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime's record() phase
+**As a** mPilot agent runtime's record() phase
 **I want to** a `writeAttestation({ agentId, providerSchema, payload, txHash, chainId })` function builds the envelope, pins to IPFS, computes the hash, and submits the on-chain `giveFeedback` tx
 **So that** record() phase has ONE function to call (instead of orchestrating envelope/pin/hash/attest itself), and the pipeline can be tested end-to-end as a unit
 

@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the ondo-usdy provider has tests verifying read accuracy against real USDY state, KYC-allowlist correctness, and the explicit absence of mint/redeem actions
 **So that** the v1 read-only scope is provably enforced (no future PR can silently introduce a mint action that bypasses KYC) and yield-rate derivation matches Ondo's actual ~5% APY
 

@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Mantle user (or judge) evaluating Concierge
+**As a** Mantle user (or judge) evaluating mPilot
 **I want to** see trust signals at the bottom of the landing: deployed Mainnet contract addresses (clickable to Mantlescan), GitHub repo link, license badge, security audit status, social-proof links
 **So that** I can verify "this is real" without leaving the page or hunting through GitHub
 
@@ -54,7 +54,7 @@ Then the address row shows "Mainnet: pending" instead of a 0x0...0 placeholder (
 
 Given Mantle ecosystem mentions
 When inspected
-Then social-proof links include Mantle's official X (@0xMantle) and the Concierge X handle (or "Concierge X" placeholder before launch)
+Then social-proof links include Mantle's official X (@0xMantle) and the mPilot X handle (or "mPilot X" placeholder before launch)
 
 Given file size budget
 When `pnpm scripts/check-file-loc.mjs` runs
@@ -102,7 +102,7 @@ bun scripts/check-file-loc.mjs
 - **`rel="noopener noreferrer"` on external links** is a security best-practice. Prevents the target site from accessing window.opener.
 - **Addresses come from `@mpilot/shared/addresses.ts`** — single source of truth (story-20). Don't hardcode in the component.
 - **The repo URL is configurable via env** so it can be set per-deploy (preview vs main).
-- **Social-proof links** — until the social handles are claimed, use stable placeholders ("Concierge X — coming soon") rather than broken links. Broken links are worse than placeholders.
+- **Social-proof links** — until the social handles are claimed, use stable placeholders ("mPilot X — coming soon") rather than broken links. Broken links are worse than placeholders.
 - **Security disclosure link** points to `SECURITY.md` in the repo (created in story-200 README finalize).
 - **Trust signals are at the BOTTOM** of the landing (before the global footer). The order matters: hero → how-it-works → Klarna disambiguation → developer CTA → trust signals → footer.
 - Cross-ref: `research/concierge/08-ux-component-intent.md` § trust signals, `packages/shared/src/addresses.ts` (story-20).

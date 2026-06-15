@@ -1,6 +1,6 @@
 # @mpilot/sdk
 
-Meta package for the Concierge core: one install re-exporting
+Meta package for the mPilot core: one install re-exporting
 [`@mpilot/tools`](../tools) (the framework-agnostic tool registry) +
 [`@mpilot/vercel-ai`](../vercel-ai) (the Vercel AI SDK adapter) + the
 SDK's own `defaultModel()` / `ConciergeRegistry` / `ConciergeError`.
@@ -44,8 +44,8 @@ const result = streamText({
 });
 ```
 
-> **The agent runtime is not in this package yet.** `createConcierge()` /
-> `Concierge` / `concierge.tick()` (the ADR-019 five-line quickstart) ship
+> **The agent runtime is not in this package yet.** `createmPilot()` /
+> `mPilot` / `concierge.tick()` (the ADR-019 five-line quickstart) ship
 > with `@mpilot/agent` in Epic E5 and will be re-exported here when that
 > package exists. This skeleton deliberately does NOT stub them — a fake
 > runtime in the hot path is forbidden.

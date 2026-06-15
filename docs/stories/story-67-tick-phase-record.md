@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge tick orchestrator
+**As a** mPilot tick orchestrator
 **I want to** a `runPhase('record', proposal, exec)` function inserts an `executions` row with the tx receipt, calls the ERC-8004 attest action with the provider-specific schema + EIP-712 typed-data hash, and closes the tick with structured logging
 **So that** every Mainnet execution produces a permanent on-chain reputation receipt (the wedge's verifiability claim per ADR-004) and the off-chain audit trail mirrors it
 

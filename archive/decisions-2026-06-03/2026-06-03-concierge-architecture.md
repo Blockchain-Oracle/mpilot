@@ -1,6 +1,6 @@
-# Concierge — Mantle Turing Test 2026 Architecture Brief
+# mPilot — Mantle Turing Test 2026 Architecture Brief
 
-**Working name:** Concierge (TBD). Authored 2026-06-03 after Giza-deep-dive research wave.
+**Working name:** mPilot (TBD). Authored 2026-06-03 after Giza-deep-dive research wave.
 
 **One-line pitch:** *"An autonomous AI agent that manages your Mantle wallet — bridges, swaps, lends, borrows, rebalances — on a tick loop you can subscribe to with one click. Every decision is ERC-8004-receipted on-chain, every action streams to you as a Tambo card you can approve or autopilot, and your agent runs from inside Claude Code, OpenClaw, or our web app."*
 
@@ -8,7 +8,7 @@
 
 ## The strategic moat: MCP server as agent surface
 
-Giza's MCP server at `mcp.gizatech.xyz/api/sse` lets Claude Code / Claude Desktop / OpenClaw drive their agent natively. RealClaw (Byreal's flagship) IS OpenClaw-based. Judges + community users on OpenClaw/RealClaw can interact with Concierge without us shipping a single line of UI for them. Free distribution into the exact audience Mantle is courting.
+Giza's MCP server at `mcp.gizatech.xyz/api/sse` lets Claude Code / Claude Desktop / OpenClaw drive their agent natively. RealClaw (Byreal's flagship) IS OpenClaw-based. Judges + community users on OpenClaw/RealClaw can interact with mPilot without us shipping a single line of UI for them. Free distribution into the exact audience Mantle is courting.
 
 No other hackathon team will think to ship MCP as a primary surface — they'll all ship web-only.
 
@@ -167,7 +167,7 @@ User flow: pick a goal (*"maximize stablecoin yield, stay within 70% Aave LTV"*)
 | 4 | First 4 tools: bridge (Li.Fi), swap (Merchant Moe + Agni aggregation), supply (Aave V3), withdraw | Tools callable via Vercel AI SDK |
 | 5 | Tick loop + Postgres + Redis + plan/simulate/propose | Agent ticks once end-to-end |
 | 6 | Tambo cards + approval UX + autopilot per-category | First card stream demo |
-| 7 | MCP server + OAuth + 12-20 tools exposed | Concierge callable from Claude Code |
+| 7 | MCP server + OAuth + 12-20 tools exposed | mPilot callable from Claude Code |
 | 8 | ERC-8004 attestation per tick + reputation read SDK | On-chain reputation visible on MantleScan |
 | 9 | Web app polish: onboarding, goal-setting, history, settings | Polished web UI |
 | 10 | Mainnet deploy (real Aave + real sUSDe + real Merchant Moe/Agni); E-Mode 1 setup; RealClaw skill manifest published; live tick loop | Mainnet end-to-end + skill installable via `npx skills add` |
@@ -180,8 +180,8 @@ User flow: pick a goal (*"maximize stablecoin yield, stay within 70% Aave LTV"*)
 ## Why this beats the alternatives
 
 - vs **AgentArena (Kuest fork)** — higher Tech Depth ceiling, MCP distribution moat, Mantle thesis match is unbeatable. AgentArena stays as plan B if Day-1 spikes blow up.
-- vs **ClanArena (Clan World refactor)** — Concierge is broader-utility; agent that does *finance* is a bigger market than agent that plays *games*. ClanArena's Pixi.js polish is gorgeous but the wedge is narrower.
-- vs **Original WalletConcierge (Morphic fork)** — Morphic is research, not execution. Concierge is the execution architecture you actually want.
+- vs **ClanArena (Clan World refactor)** — mPilot is broader-utility; agent that does *finance* is a bigger market than agent that plays *games*. ClanArena's Pixi.js polish is gorgeous but the wedge is narrower.
+- vs **Original WalletmPilot (Morphic fork)** — Morphic is research, not execution. mPilot is the execution architecture you actually want.
 
 ## Locked v1 action providers (2026-06-03)
 
@@ -197,11 +197,11 @@ Seven providers, each ships as a separate `npm` package under the `@mpilot/*` na
 
 **v1.1 add-ons (post-hackathon or stretch):** `@mpilot/byreal-perps` (if Hyperliquid bridge exists), `@mpilot/pendle` (fixed yield), `@mpilot/nansen-signal` (smart money input), `@mpilot/allora-inference` (depeg probability input).
 
-**Track 6 qualification:** Concierge ships as a RealClaw-compatible skill installable via `npx skills add @mpilot/mantle-agent` — TypeScript, MIT, same pattern as `byreal-git/byreal-agent-skills` (verified 2026-06-03). The skill loads our 7 providers + tick loop + ERC-8004 attestation into Claude Code / OpenClaw / RealClaw. This satisfies "must use core capabilities of RealClaw" without depending on Byreal Skills CLI (Solana-only) or Perps CLI (Hyperliquid-only).
+**Track 6 qualification:** mPilot ships as a RealClaw-compatible skill installable via `npx skills add @mpilot/mantle-agent` — TypeScript, MIT, same pattern as `byreal-git/byreal-agent-skills` (verified 2026-06-03). The skill loads our 7 providers + tick loop + ERC-8004 attestation into Claude Code / OpenClaw / RealClaw. This satisfies "must use core capabilities of RealClaw" without depending on Byreal Skills CLI (Solana-only) or Perps CLI (Hyperliquid-only).
 
 ## Open questions before plan mode
 
-- Name? (Concierge / Steward / Helm / Pilot / Skiff — TBD)
+- Name? (mPilot / Steward / Helm / Pilot / Skiff — TBD)
 - Autopilot default — opt-in or opt-out?
 - v1 scope: which 12-20 tools make the first cut?
 - Sepolia mock-deploy: same as Patron pattern or trim?

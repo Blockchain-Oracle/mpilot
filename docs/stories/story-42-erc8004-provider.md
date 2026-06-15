@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** an `@mpilot/erc8004` package exposes `registerAgent`, `attestAction`, `readReputation`, `readFeedback` actions against the ERC-8004 Identity + Reputation registries on Mantle Mainnet (and Sepolia testnet) using canonical addresses + ABIs
 **So that** every tick the agent runs produces an on-chain reputation attestation (the wedge's verifiability claim per ADR-004) without hand-rolling ABIs or address resolution
 
@@ -25,7 +25,7 @@
 - `packages/providers/erc8004/src/actions/attestAction.ts` — NEW — `attest({ agentId, actionPayload, providerSchema })`. Computes the canonical EIP-712 typed-data hash of `actionPayload`. Calls `ReputationRegistry.attest(agentId, schemaIdFor(providerSchema), dataHash)`. Schema IDs are pre-registered constants in `src/schemas.ts` (one per provider — `concierge.aave.v3.borrow.v1`, `concierge.mantle-dex.<venue>.swap.v1`, etc.). Returns `{ txHash, attestationId }`.
 - `packages/providers/erc8004/src/actions/readReputation.ts` — NEW — pure read: `readReputation({ agentId })` returns `{ totalAttestations, latestAttestation, schemaCounts: Record<schemaName, number> }`. Uses `ReputationRegistry.getAttestationCount(agentId)` + iterates via `getAttestationByIndex(agentId, i)` for the most recent N (default 10).
 - `packages/providers/erc8004/src/actions/readFeedback.ts` — NEW — pure read: `readFeedback({ agentId, fromBlock })` queries `Feedback` events on the ReputationRegistry, returns array of `{ schemaId, dataHash, blockNumber, txHash }`.
-- `packages/providers/erc8004/src/schemas.ts` — NEW — schema name → schemaId mapping (computed at module load via `keccak256(schemaName)`). Exports `schemaIdFor(name)` lookup. Pre-registers all expected Concierge schemas (Aave 6 actions × `concierge.aave.v3.<action>.v1`, DEX 5 venues × `concierge.mantle-dex.<venue>.swap.v1`, Ethena 2 × `concierge.ethena.<action>.v1`, etc.).
+- `packages/providers/erc8004/src/schemas.ts` — NEW — schema name → schemaId mapping (computed at module load via `keccak256(schemaName)`). Exports `schemaIdFor(name)` lookup. Pre-registers all expected mPilot schemas (Aave 6 actions × `concierge.aave.v3.<action>.v1`, DEX 5 venues × `concierge.mantle-dex.<venue>.swap.v1`, Ethena 2 × `concierge.ethena.<action>.v1`, etc.).
 - `packages/providers/erc8004/src/eip712.ts` — NEW — typed-data helpers for `Attestation { agentId; schemaId; dataHash; timestamp }` and per-provider payload schemas. Verifies hash determinism: `hash(payload) === hash(payload)` across runs.
 
 ---

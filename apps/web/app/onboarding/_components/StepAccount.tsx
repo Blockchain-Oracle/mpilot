@@ -62,7 +62,7 @@ export function StepAccount({ onBack, onNext, set }: StepAccountProps) {
     <StepShell
       eyebrow="Smart account"
       title="Deploy your account — on us"
-      lede="Concierge sponsors the deploy through a paymaster. You pay zero MNT in gas."
+      lede="mPilot sponsors the deploy through a paymaster. You pay zero MNT in gas."
       onBack={onBack}
       onNext={phase === 'done' ? onNext : undefined}
     >

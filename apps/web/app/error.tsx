@@ -23,7 +23,7 @@ export default function GlobalError({
     console.error('[apps/web] Unhandled error boundary fired', error);
   }, [error]);
 
-  const reportUrl = new URL('https://github.com/Blockchain-Oracle/concierge/issues/new');
+  const reportUrl = new URL('https://github.com/Blockchain-Oracle/mpilot/issues/new');
   reportUrl.searchParams.set('title', 'Web app error');
   // Include ONLY the server-side digest in the URL body. `error.message`
   // often contains markdown special chars + sensitive context (token

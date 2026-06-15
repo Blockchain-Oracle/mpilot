@@ -12,7 +12,7 @@
 
 **As a** developer with a LangChain JS agent
 **I want to** `pnpm add @mpilot/langchain @mpilot/sdk` and call `getLangChainTools(agent)` to get `StructuredToolInterface[]`
-**So that** my LangChain agent has all Concierge actions composable into its existing toolset
+**So that** my LangChain agent has all mPilot actions composable into its existing toolset
 
 ---
 

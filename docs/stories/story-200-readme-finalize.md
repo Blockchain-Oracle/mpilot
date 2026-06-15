@@ -67,7 +67,7 @@ Then NO matches for "BNPL", "Buy-Now-Pay-Later", "Patron" (the Patron archive is
 
 Given the social card
 When rendered as a Twitter/Slack/Discord preview
-Then it has the Concierge logo + tagline AND is 1200×630 (Open Graph spec)
+Then it has the mPilot logo + tagline AND is 1200×630 (Open Graph spec)
 
 Given file size budget
 When `pnpm scripts/check-file-loc.mjs` runs
@@ -114,7 +114,7 @@ bun scripts/check-file-loc.mjs
 - **Hero screenshot at 1200×800 minimum** — readable detail when viewed on a 13" laptop. Compressed via squoosh.app or similar before commit (target < 200KB).
 - **Demo video link** points to a YouTube or Loom unlisted video showing the full flow (story-201 produces this; story-200 wires it). Hackathon judges watch 60-90s; the demo video is the 5-minute deep-dive for the ones who care.
 - **Quickstart MUST work verbatim.** Test it from a fresh clone before merging. Per `feedback_no_namedrop_without_research.md`: docs that don't work are worse than no docs.
-- **Security policy with PGP key** is non-trivial trust signal. Generate via `gpg --gen-key`; publish the public key in SECURITY.md. Email: security@concierge.xyz (or placeholder).
+- **Security policy with PGP key** is non-trivial trust signal. Generate via `gpg --gen-key`; publish the public key in SECURITY.md. Email: security@mpilot.xyz (or placeholder).
 - **SOCIAL CARD at 1200×630 OG spec.** Designer agent owns the visual; the dimensions are non-negotiable.
 - **Contributing guide includes the test-first rule** (BDD acceptance criteria → failing tests → implementation) per CLAUDE.md.
 - **Completeness CI check** runs on every PR touching README.md. Catches accidental section deletes.

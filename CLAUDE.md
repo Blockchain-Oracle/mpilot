@@ -1,4 +1,4 @@
-# Concierge — Agent Operating Manual
+# mPilot — Agent Operating Manual
 
 Autonomous AI agent for Mantle DeFi, shipped as a **composable primitive** — a core (`@mpilot/tools` + `@mpilot/agent` + `@mpilot/sdk`) consumable from any agent runtime (Vercel AI SDK / OpenAI / LangChain / Coinbase AgentKit / MCP), distributed across **four surfaces**: web app + MCP server (stdio-first) + Agent Skill + npm SDK. 15 packages total. The user sets a plain-English goal; the agent runs `plan → simulate → propose → execute → record` across 7 Mantle protocols (Aave V3, Mantle DEXes, Ethena sUSDe, Ondo USDY, mETH staking, Li.Fi bridging, ERC-8004) with reputation attested per tick. Spec set in `docs/` (19 ADRs, 16 epics, ~110 stories). Verified domain knowledge in `research/concierge/`.
 
@@ -48,7 +48,7 @@ Decide and act. Escalate to Abu ONLY when:
 - **ERC-8004 canonical addresses on Mantle Mainnet** (verified 2026-06-04): Identity `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`, Reputation `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`. Fetch ABIs via `gh api erc-8004/erc-8004-contracts` — never type from memory.
 - **ZeroDev + Pimlico routing.** ZeroDev SDK for account + permissions; route bundler/paymaster through Pimlico (`https://api.pimlico.io/v2/mantle/rpc?apikey=...`) per ADR-010. Pimlico Mantle support verified.
 - **Aave V3 is NOT on Mantle Sepolia.** Use `HelperConfig.s.sol` chain-id routing (5000 → real, 5003 → mocks) + the Patron `MockAavePool` pattern.
-- **MCP transport is stdio-first** per ADR-011 amended. `claude mcp add concierge -- npx -y @mpilot/mcp` is the README default. Cloudflare Worker is the OPTIONAL hosted variant (`mcp.concierge.xyz/mcp`) — same `packages/mcp/` core, different transport. Stdout in stdio bin is RESERVED for MCP — all logs to stderr.
+- **MCP transport is stdio-first** per ADR-011 amended. `claude mcp add concierge -- npx -y @mpilot/mcp` is the README default. Cloudflare Worker is the OPTIONAL hosted variant (`mcp.mpilot.xyz/mcp`) — same `packages/mcp/` core, different transport. Stdout in stdio bin is RESERVED for MCP — all logs to stderr.
 - **Every `ConciergeTool` requires BOTH `inputSchema` AND `outputSchema`** (Zod) per ADR-014. `outputSchema` is load-bearing for MCP `structuredContent` + Vercel AI SDK `InferUITools` + `<XxxCard part={p}>` parse-then-render. Bare `unknown` for tool inputs is BANNED.
 - **Model-agnostic via `LanguageModelV2`** per ADR-016. `@mpilot/sdk` accepts `model: LanguageModelV2` directly; `defaultModel()` helper does env auto-detect (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` / `XAI_API_KEY`) + `AI_MODEL="provider:model"` override. **Per-call model override per tick phase** (NOT sub-clients). Tick worker `apps/worker/` stays Anthropic-only (Claude Agent SDK) — internal.
 - **AgentKit uses `customActionProvider` escape hatch**, NOT `@CreateAction` decorator. No `reflect-metadata`. No `experimentalDecorators`. Per ADR-014.

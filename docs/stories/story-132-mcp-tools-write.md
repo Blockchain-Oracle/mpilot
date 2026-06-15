@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user using Claude Code as my management surface
+**As a** mPilot user using Claude Code as my management surface
 **I want to** I can call `pause_agent`, `resume_agent`, and `revoke_session_key` via MCP — only after OAuth authentication scoping me to my own agents
 **So that** I can stop/start the agent or kill all permissions from natural-language Claude conversations without leaving my terminal, with all the same auth + audit guarantees the web app enforces
 

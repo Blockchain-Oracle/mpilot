@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge package author
+**As a** mPilot package author
 **I want to** import addresses, ABI bindings, and shared types from a single `@mpilot/shared` package
 **So that** no contract address or ABI is duplicated across the codebase
 

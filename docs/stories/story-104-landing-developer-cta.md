@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Mantle developer landing on concierge.xyz
+**As a** Mantle developer landing on mpilot.xyz
 **I want to** see a developer-focused CTA block with code samples (npm install, basic usage) and a clear docs link
 **So that** I can evaluate "can I integrate this into my own product?" without clicking through to the docs first
 
@@ -91,6 +91,6 @@ bun scripts/check-file-loc.mjs
 - **Use shiki for syntax highlighting** — server-side rendered, no client-side cost. Reference: shiki.style.
 - **Copy-to-clipboard with feedback.** When clicked, show a brief "Copied!" toast or icon swap for 2 seconds. Better UX than silent copy.
 - **Mobile horizontal scroll on code blocks** preserves readability. Shrinking font to fit is anti-pattern.
-- **The 5-line example** should do something concrete: register an agent, read its reputation. NOT "import { Concierge } from '@mpilot/sdk'" alone — too abstract. Reference: `research/concierge/03-providers/erc8004.md` § Integration pattern for a real-shape example.
+- **The 5-line example** should do something concrete: register an agent, read its reputation. NOT "import { mPilot } from '@mpilot/sdk'" alone — too abstract. Reference: `research/concierge/03-providers/erc8004.md` § Integration pattern for a real-shape example.
 - **Link to /docs in this story is correct** — the docs site itself doesn't exist yet (story-170+). Stub for now; story-176 wires the actual docs.
 - Cross-ref: `research/concierge/08-ux-component-intent.md` § developer CTA, `packages/sdk/README.md` (story-22 — the README's quickstart should mirror this block).

@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge contributor
+**As a** mPilot contributor
 **I want to** clone the repo and have a working pnpm monorepo skeleton
 **So that** every subsequent package + app slots into a known folder structure
 
@@ -111,6 +111,6 @@ test $? -eq 0
 - `.npmrc` settings (`strict-peer-dependencies=true`, `auto-install-peers=false`) match ADR-018's peer-dep strategy: every adapter package declares framework SDKs as `peerDependencies`, and pnpm should *refuse* to install if the consumer hasn't installed them. `auto-install-peers=false` keeps the lockfile honest.
 - `packageManager` field in `package.json` (e.g. `"pnpm@9.x.x"`) lets Corepack auto-provision the pinned pnpm — anyone with Corepack-enabled Node gets the right version automatically.
 - License is MIT — copy from https://opensource.org/license/mit verbatim.
-- README is a placeholder for now (`Concierge — autonomous AI agent for Mantle. Setup instructions in story-200-readme-finalize.`).
+- README is a placeholder for now (`mPilot — autonomous AI agent for Mantle. Setup instructions in story-200-readme-finalize.`).
 - The `contracts/` folder gets Foundry-initialized in story-03 — leave it as `.gitkeep` for now.
 - `apps/` will hold `web/` + `mcp/` + `worker/`; `packages/` will hold `sdk/`, `shared/`, `ui/`, `skill/`; `packages/providers/` will hold the 7 `@mpilot/<provider>` packages.

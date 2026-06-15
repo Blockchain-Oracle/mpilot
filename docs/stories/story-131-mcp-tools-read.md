@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Claude Code user with the Concierge MCP server installed
+**As a** Claude Code user with the mPilot MCP server installed
 **I want to** I can call `get_agent_state(agentId)`, `get_reputation(agentId, limit, offset)`, and `get_attestation(uid)` from any Claude tool-using conversation
 **So that** Claude can answer "what is agent X doing right now?" or "show me the last 10 actions of this agent" without any custom integration — the MCP server is the read-only audit surface
 

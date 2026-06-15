@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user
+**As a** mPilot user
 **I want to** clicking "Approve" on a proposal triggers a clean state machine: client-side optimistic update → POST /api/proposals/[id]/approve → DB transition to 'approved' → BullMQ job enqueued for execute → next tick picks it up → live tick stream shows execute starting
 **So that** the approve action feels instant (optimistic) but is durable (DB-persisted) and ties cleanly into the tick orchestrator
 

@@ -18,7 +18,7 @@ function getClient(): Resend | null {
   return cached;
 }
 
-const FROM = process.env.RESEND_FROM ?? 'Concierge <onboarding@concierge.xyz>';
+const FROM = process.env.RESEND_FROM ?? 'mPilot <onboarding@mpilot.xyz>';
 
 export interface WelcomeEmailArgs {
   readonly to: string;
@@ -29,17 +29,17 @@ export interface WelcomeEmailArgs {
 }
 
 export async function sendWelcomeEmail(args: WelcomeEmailArgs): Promise<void> {
-  const subject = `Your Concierge agent #${args.agentTokenId} is live`;
+  const subject = `Your mPilot agent #${args.agentTokenId} is live`;
   const html = `
 <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111">
-  <h1 style="font-size:20px;margin:0 0 16px">Welcome to Concierge.</h1>
+  <h1 style="font-size:20px;margin:0 0 16px">Welcome to mPilot.</h1>
   <p>Your autonomous DeFi agent is now active.</p>
   <ul style="line-height:1.7">
     <li><strong>Agent ID:</strong> #${args.agentTokenId}</li>
     <li><strong>Smart account:</strong> <a href="${args.mantleScanBase}/address/${args.smartAccountAddress}">${args.smartAccountAddress}</a></li>
   </ul>
-  <p>The agent will run its first tick within the next minute. Watch the live stream in <a href="https://concierge.xyz/app">your dashboard</a>.</p>
-  <p style="color:#888;font-size:12px;margin-top:32px">Concierge — autonomous DeFi agent on Mantle. ERC-8004 attested.</p>
+  <p>The agent will run its first tick within the next minute. Watch the live stream in <a href="https://mpilot.xyz/app">your dashboard</a>.</p>
+  <p style="color:#888;font-size:12px;margin-top:32px">mPilot — autonomous DeFi agent on Mantle. ERC-8004 attested.</p>
 </div>`;
   const client = getClient();
   if (!client) {

@@ -2,7 +2,7 @@
   "name": "@mpilot/skill-mantle-agent",
   "version": "0.1.0",
   "private": false,
-  "description": "RealClaw skill package for Concierge — see SKILL.md for the user-facing description (source of truth).",
+  "description": "RealClaw skill package for mPilot — see SKILL.md for the user-facing description (source of truth).",
   "engines": {
     "node": ">=22"
   },

@@ -10,9 +10,9 @@
 
 ## User story
 
-**As a** new Concierge user with Claude Code installed
+**As a** new mPilot user with Claude Code installed
 **I want to** running `npx skills add @mpilot/mantle-agent` installs the skill, runs the post-install configuration script, walks me through OAuth, and verifies the MCP connection works
-**So that** the skill experience is one command, from "I want to try Concierge" to "the agent is wired into my Claude Code"
+**So that** the skill experience is one command, from "I want to try mPilot" to "the agent is wired into my Claude Code"
 
 ---
 
@@ -103,7 +103,7 @@ bun scripts/check-file-loc.mjs
 - **Browser-based OAuth callback** uses ephemeral localhost server. Pattern: spawn http.Server listening on a random port, include that port in the redirect_uri, wait for callback, kill server. Standard CLI OAuth pattern.
 - **5-minute timeout** on the OAuth callback. Long enough for slow users; short enough to fail fast on abandoned flows.
 - **Headless fallback** matters for SSH-only environments + CI usage. Print the authorize URL; instruct the user to open it in any browser, paste the callback code back to the script. Less convenient but unblocked.
-- **`verify-mcp` is the smoke test.** If it fails, the user is stuck — provide ACTIONABLE diagnostics: network issue ("can't reach mcp.concierge.xyz; check your internet"), auth issue ("token rejected; try re-installing"), server down ("the MCP server is unreachable; check status at status.concierge.xyz").
+- **`verify-mcp` is the smoke test.** If it fails, the user is stuck — provide ACTIONABLE diagnostics: network issue ("can't reach mcp.mpilot.xyz; check your internet"), auth issue ("token rejected; try re-installing"), server down ("the MCP server is unreachable; check status at status.mpilot.xyz").
 - **Reinstall scenario** is common (token expired, config corrupted). Offer choices instead of silently overwriting — preserves user intent.
 - **Add to PATH or use npx**: per Node convention. `npx skills add ...` ensures latest version pulled.
 - **Idempotence**: re-running the install with the same args should produce the same result (modulo OAuth re-prompt). No "config corruption from repeated installs."

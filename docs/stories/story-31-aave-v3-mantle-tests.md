@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the aave-v3-mantle provider has Vitest integration tests against a Mantle Sepolia Anvil fork covering happy paths + the E-Mode silent-fail trap + health-factor edge cases
 **So that** behavioral regressions in the provider surface at PR time, not when the agent runtime breaks mid-tick on Sepolia
 

@@ -92,7 +92,7 @@ for (const block of message.content) {
   reject with an error listing the known tools. Nothing fails silently.
 - `dispatch` returns the raw `invoke()` value. Serialize it for the tool-result
   message with the re-exported `bigintSafeStringify` — plain `JSON.stringify`
-  **throws on the wei-scale bigints** Concierge tools emit.
+  **throws on the wei-scale bigints** mPilot tools emit.
 
 ## Gotchas
 

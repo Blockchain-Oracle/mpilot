@@ -2,7 +2,7 @@
 
 /**
  * Sticky landing nav. Designer's prototype navigated via hard-coded
- * `Concierge X.html` strings; engineering port routes through Next's
+ * `mPilot X.html` strings; engineering port routes through Next's
  * `next/link` so the same nav works in production + dev + with prefetch.
  */
 import Link from 'next/link';
@@ -45,7 +45,7 @@ export function Nav() {
       >
         <Link
           href="/"
-          aria-label="Concierge home"
+          aria-label="mPilot home"
           style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ink)' }}
         >
           <span
@@ -69,7 +69,7 @@ export function Nav() {
               letterSpacing: '-0.02em',
             }}
           >
-            Concierge
+            mPilot
           </span>
         </Link>
         <nav style={{ display: 'flex', gap: 4, marginLeft: 8 }}>

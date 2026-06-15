@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge runtime author
+**As a** mPilot runtime author
 **I want to** every error from the SDK + providers is a typed class with a stable `code`
 **So that** the tick loop + UI can switch on error type without parsing strings
 

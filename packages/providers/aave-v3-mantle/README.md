@@ -1,6 +1,6 @@
 # @mpilot/aave-v3-mantle
 
-Aave V3 Mantle action provider for the Concierge agent. Exposes 6 `ConciergeTool` actions with Zod schemas, viem-based execution, and ERC-8004 attestation hooks.
+Aave V3 Mantle action provider for the mPilot agent. Exposes 6 `ConciergeTool` actions with Zod schemas, viem-based execution, and ERC-8004 attestation hooks.
 
 ## Quickstart
 

@@ -1,11 +1,11 @@
-# Contributing to Concierge
+# Contributing to mPilot
 
 Short version: one story per branch, conventional commits, PR review fleet, then merge.
 
 ## Setup
 
 ```bash
-git clone https://github.com/Blockchain-Oracle/concierge.git
+git clone https://github.com/Blockchain-Oracle/mpilot.git
 cd concierge
 pnpm install        # bootstraps husky pre-commit hook via the `prepare` script
 ```

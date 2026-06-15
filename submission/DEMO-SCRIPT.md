@@ -1,4 +1,4 @@
-# {{PRODUCT_NAME}} — Demo Video Script
+# mPilot — Demo Video Script
 
 **Target length:** 2:00–2:30. Scene-by-scene, with on-screen action + voiceover (VO).
 
@@ -6,9 +6,9 @@
 
 ## Scene 1 — Hook (0:00–0:15)
 
-**On screen:** {{PRODUCT_NAME}} web app hero at https://{{DOMAIN}}, a live tick streaming — status pill animating `planning → simulating → proposing`.
+**On screen:** mPilot web app hero at https://mpilot.xyz, a live tick streaming — status pill animating `planning → simulating → proposing`.
 
-**VO:** "This is {{PRODUCT_NAME}} — an autonomous AI agent that manages your DeFi on Mantle 24/7. It's working right now, before I've clicked anything. You set a goal in plain English; it does the rest."
+**VO:** "This is mPilot — an autonomous AI agent that manages your DeFi on Mantle 24/7. It's working right now, before I've clicked anything. You set a goal in plain English; it does the rest."
 
 ---
 
@@ -46,7 +46,7 @@
 
 ## Scene 6 — The differentiator: four surfaces (1:55–2:20)
 
-**On screen:** Split view. Left: the web app. Right: Claude Desktop running the MCP server, rendering the same portfolio card and approving an action inside the chat. Then a terminal: `pnpm add {{NPM_SCOPE}}/sdk` and `npx skills add ...`.
+**On screen:** Split view. Left: the web app. Right: Claude Desktop running the MCP server, rendering the same portfolio card and approving an action inside the chat. Then a terminal: `pnpm add @mpilot/sdk` and `npx skills add ...`.
 
 **VO:** "And here's what no single-app competitor can match. The same agent core runs across four surfaces: the web app, an MCP server inside Claude Desktop, an npm SDK any developer can drop into their stack, and an installable agent skill. One core. Same Mantle actions everywhere. That's infrastructure — not just a demo."
 
@@ -54,9 +54,9 @@
 
 ## Scene 7 — Close (2:20–2:30)
 
-**On screen:** {{PRODUCT_NAME}} logo + links: https://{{DOMAIN}}, repo, demo, `#MantleAIHackathon`.
+**On screen:** mPilot logo + links: https://mpilot.xyz, repo, demo, `#MantleAIHackathon`.
 
-**VO:** "{{PRODUCT_NAME}}. Autonomous DeFi on Mantle, attested on-chain, composable everywhere. Built for the Mantle Turing Test 2026, AI-x-RWA track."
+**VO:** "mPilot. Autonomous DeFi on Mantle, attested on-chain, composable everywhere. Built for the Mantle Turing Test 2026, AI-x-RWA track."
 
 ---
 

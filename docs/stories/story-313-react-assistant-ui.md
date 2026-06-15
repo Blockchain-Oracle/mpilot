@@ -11,15 +11,15 @@
 ## User story
 
 **As a** developer using `@assistant-ui/react` for my chat UI
-**I want to** `pnpm add @mpilot/react-assistant-ui` and call `getConciergeToolkit()` to register Concierge cards as `defineToolkit` backend tools
-**So that** my assistant-ui chat instantly renders Concierge proposal/tick/portfolio cards without me building any glue
+**I want to** `pnpm add @mpilot/react-assistant-ui` and call `getConciergeToolkit()` to register mPilot cards as `defineToolkit` backend tools
+**So that** my assistant-ui chat instantly renders mPilot proposal/tick/portfolio cards without me building any glue
 
 ---
 
 ## File modification map
 
 - `packages/react-assistant-ui/package.json` — NEW — ESM-only; peer deps on `@assistant-ui/react ^0.14`, `react`, `@mpilot/react`
-- `packages/react-assistant-ui/src/index.ts` — NEW — `getConciergeToolkit()` returns assistant-ui `Toolkit` registering each Concierge card via `defineToolkit({ proposeAction: { type: 'backend', render: ProposalPart }, ... })`
+- `packages/react-assistant-ui/src/index.ts` — NEW — `getConciergeToolkit()` returns assistant-ui `Toolkit` registering each mPilot card via `defineToolkit({ proposeAction: { type: 'backend', render: ProposalPart }, ... })`
 - `packages/react-assistant-ui/src/__tests__/index.test.ts` — NEW — ≥ 5 cases
 - `packages/react-assistant-ui/README.md` — NEW — quickstart
 
@@ -30,11 +30,11 @@
 ```
 Given `getConciergeToolkit()` runs
 When the result is inspected
-Then it is a `Toolkit` with one entry per Concierge card (proposal, tick, portfolio, reputation) AND each is `{ type: 'backend', render: <PartComponent> }`
+Then it is a `Toolkit` with one entry per mPilot card (proposal, tick, portfolio, reputation) AND each is `{ type: 'backend', render: <PartComponent> }`
 
 Given a consumer does `useAui({ tools: Tools({ toolkit: getConciergeToolkit() }) })`
 When the LLM emits a `tool-proposeAction` part
-Then assistant-ui renders the Concierge `<ProposalPart>` component automatically
+Then assistant-ui renders the mPilot `<ProposalPart>` component automatically
 
 Given API name verification
 When grep runs for `makeAssistantToolUI`

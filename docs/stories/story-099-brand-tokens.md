@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** designer agent producing Concierge's visual identity per `docs/FRONTEND-BRIEF.md`
+**As a** designer agent producing mPilot's visual identity per `docs/FRONTEND-BRIEF.md`
 **I want to** publish brand decisions (color, type, spacing, motion, radii, shadows) into a single tree-shakeable package at `@mpilot/ui` that every styled UI consumer (`@mpilot/react-ui`, `apps/web`, `apps/docs`) imports
 **So that** there is ONE source of truth for brand tokens; visual choices live with the designer (per ADR-018), and code packages only enforce the export shape — never the values
 

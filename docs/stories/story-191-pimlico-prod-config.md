@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer deploying to Mainnet
+**As a** mPilot maintainer deploying to Mainnet
 **I want to** the Pimlico account is configured for production: API key with appropriate rate limits, sponsorship policy set for Sepolia (gasless onboarding) but NOT for Mainnet (users pay), monitoring + alerting wired
 **So that** the bundler doesn't become a $5k/day cost shock, sponsorship only happens where intended, and the team gets paged before a real outage
 

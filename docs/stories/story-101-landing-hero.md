@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Mantle user landing on concierge.xyz
-**I want to** see a hero that explains in 5 seconds what Concierge is (autonomous DeFi agent on Mantle), what it's NOT (not BNPL, not robo-advisor, not yet-another-AI-tools-MCP), and a primary CTA to start onboarding
+**As a** Mantle user landing on mpilot.xyz
+**I want to** see a hero that explains in 5 seconds what mPilot is (autonomous DeFi agent on Mantle), what it's NOT (not BNPL, not robo-advisor, not yet-another-AI-tools-MCP), and a primary CTA to start onboarding
 **So that** I either click "Start" within 5 seconds OR scroll to learn more — the hero filters by intent
 
 ---

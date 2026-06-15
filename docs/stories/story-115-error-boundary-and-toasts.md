@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user encountering an unexpected error (RPC down, IPFS gateway slow, session key expired)
+**As a** mPilot user encountering an unexpected error (RPC down, IPFS gateway slow, session key expired)
 **I want to** a global ErrorBoundary catches React render errors gracefully + a toast system surfaces actionable error messages (mapping typed errors from the SDK to user-friendly copy)
 **So that** I see "Mantle RPC is having issues — try again in a moment" instead of "TypeError: Cannot read property 'address' of undefined" — actionable, never humiliating
 

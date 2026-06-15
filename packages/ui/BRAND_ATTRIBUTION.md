@@ -11,7 +11,7 @@ a styled monogram tile.
 
 If your project owns a trademark listed here and you'd like the glyph
 removed or replaced, open an issue at
-https://github.com/Blockchain-Oracle/concierge.
+https://github.com/Blockchain-Oracle/mpilot.
 
 | Brand | Source |
 |---|---|

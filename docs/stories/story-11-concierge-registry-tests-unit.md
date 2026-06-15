@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** every public function on `ConciergeRegistry` has unit tests asserting happy paths, role-gating, pause behavior, and every typed-error revert path
 **So that** behavioral regressions surface at PR time, not at Mainnet-deploy time
 
@@ -99,7 +99,7 @@ test "${cov%.*}" -ge 95
 - Test naming convention: `test_<function>_<expectedOutcome>_<contextOrInput>`. Foundry's verbose output groups by function — keeps related tests visually grouped.
 - Use `vm.expectEmit(true, true, false, true)` (3 indexed checks + data) when asserting events. The 4th param `true` means assert the data payload exactly.
 - For typed-error reverts with arguments, use `vm.expectRevert(abi.encodeWithSelector(ConciergeErrors.NotAgentOwner.selector, agentId, caller))` — asserts the EXACT error data, not just the selector. Catches the silent bug where the contract reverts with the right selector but wrong arguments.
-- Use OZ v5's native `AccessControlUnauthorizedAccount` selector for role-gate reverts: `bytes4(keccak256("AccessControlUnauthorizedAccount(address,bytes32)"))`. The contract emits this automatically; tests should assert against the OZ selector, NOT a Concierge-custom one.
+- Use OZ v5's native `AccessControlUnauthorizedAccount` selector for role-gate reverts: `bytes4(keccak256("AccessControlUnauthorizedAccount(address,bytes32)"))`. The contract emits this automatically; tests should assert against the OZ selector, NOT a mPilot-custom one.
 - Fixtures live in a separate file because the test file MUST stay under 400 LOC (Biome rule applies to Solidity too via the LOC script — verify by running `pnpm scripts/check-file-loc.mjs`).
 - Reference test patterns: bgd-labs Aave V3 Origin tests + OZ v5 AccessControl test fixtures.
 - Cross-ref: `research/concierge/02-architecture.md` ADR-007 (400 LOC) + ADR-009 (Postgres + Redis off-chain mirrors; on-chain is canonical).

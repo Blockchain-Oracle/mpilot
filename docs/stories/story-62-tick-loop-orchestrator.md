@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge BullMQ worker
+**As a** mPilot BullMQ worker
 **I want to** a single `tick(agentId)` function orchestrates the 6-phase agent run with a Redis NX lock to prevent double-runs across worker processes, structured logging at each phase, and clean fall-through when a phase returns NOOP
 **So that** the tick loop is the canonical entry point for agent execution — testable as a unit, observable in structured logs, and safe under concurrent worker scaling
 

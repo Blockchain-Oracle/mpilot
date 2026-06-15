@@ -6,11 +6,11 @@
 
 **Audit pass applied 2026-06-09 ~11:40am:** `ai 5.x` → `ai 6.x`; dropped `@mpilot/goat` (GOAT SDK 4-15 months stale); `@mpilot/openai` now covers both OpenAI + Anthropic raw tool-use (single adapter, two runtimes); Elicitation supports `mode: 'form'` AND `mode: 'url'` (SEP-1036). Full audit at `AUDIT-2026-06-09.md`.
 
-**Tool-UI investigation 2026-06-09 ~12:50pm (Abu-requested):** `@assistant-ui/tool-ui` is a **shadcn-style registry**, NOT an npm package — components install via `npx shadcn@latest add https://tool-ui.com/r/<name>.json`. Path **C selected**: build `@mpilot/react-ui` as npm-published (primary) using tool-ui's PATTERNS as design reference (schema-driven tool output via `SerializableConciergeXxxSchema`, lifecycle states, parse-then-render gating). Same `SerializableConciergeXxxSchema` schemas live in `@mpilot/tools` and feed MCP `outputSchema` — single source of schema truth across tool definition + MCP server + Vercel AI SDK tool-parts + React component props. v1.1 stretch: complementary shadcn registry at `concierge.xyz/r/*.json` for copy-paste consumers. No new package added; tool-ui is design reference only.
+**Tool-UI investigation 2026-06-09 ~12:50pm (Abu-requested):** `@assistant-ui/tool-ui` is a **shadcn-style registry**, NOT an npm package — components install via `npx shadcn@latest add https://tool-ui.com/r/<name>.json`. Path **C selected**: build `@mpilot/react-ui` as npm-published (primary) using tool-ui's PATTERNS as design reference (schema-driven tool output via `SerializableConciergeXxxSchema`, lifecycle states, parse-then-render gating). Same `SerializableConciergeXxxSchema` schemas live in `@mpilot/tools` and feed MCP `outputSchema` — single source of schema truth across tool definition + MCP server + Vercel AI SDK tool-parts + React component props. v1.1 stretch: complementary shadcn registry at `mpilot.xyz/r/*.json` for copy-paste consumers. No new package added; tool-ui is design reference only.
 
 **SDK DX study in flight 2026-06-09 ~12:55pm (Abu-flagged gap):** background agent studying canonical SDK developer-experience patterns across Vercel AI SDK, LangChain, Mastra, Strands Agents, Anthropic SDK, OpenAI SDK, Stripe Node, Coinbase AgentKit. Output → `research/concierge/SDK-DX-STUDY-2026-06-09.md`. Architecture rewrite paused until study returns, so adapter shapes + model-agnostic config + error handling + streaming patterns can be grounded in primary-source evidence, not guesswork.
 
-**Scope:** Decide whether and how to rework PRD + architecture.md (ADR-011 + package list) + epics + stories to ship Concierge as a **composable primitive** rather than a closed product, so other devs can plug it into LangChain / Vercel AI / OpenAI / Claude Desktop / etc.
+**Scope:** Decide whether and how to rework PRD + architecture.md (ADR-011 + package list) + epics + stories to ship mPilot as a **composable primitive** rather than a closed product, so other devs can plug it into LangChain / Vercel AI / OpenAI / Claude Desktop / etc.
 
 ---
 
@@ -22,11 +22,11 @@
 
 3. **Model-agnostic is non-negotiable for an SDK + MCP product**, and was wrongly deferred to v1.1 in PRD line 54. Both `pokaldot` and `kwala` auto-detect provider from env (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `XAI_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY`) and let the user override via `AI_MODEL="provider:model"`. The autonomous tick loop can still pick its own model per phase; the SDK / MCP surface must NOT lock the consumer to Anthropic.
 
-4. **Plugin architecture should mirror CDR-Kit's `@cdr-kit/tools` + N-adapters pattern.** One framework-agnostic registry (`@mpilot/tools`) defines each Concierge action once with a Zod schema + handler. Then thin adapters (`@mpilot/vercel-ai`, `@mpilot/langchain`, `@mpilot/openai`, `@mpilot/agentkit`, `@mpilot/goat`, `@mpilot/mcp`) wrap that single source for each runtime. **This is the pattern that makes Concierge composable into other devs' agent stacks** — exactly what Abu was pointing at when he said "lan chain will have an MCP… cdr-kit will help you."
+4. **Plugin architecture should mirror CDR-Kit's `@cdr-kit/tools` + N-adapters pattern.** One framework-agnostic registry (`@mpilot/tools`) defines each mPilot action once with a Zod schema + handler. Then thin adapters (`@mpilot/vercel-ai`, `@mpilot/langchain`, `@mpilot/openai`, `@mpilot/agentkit`, `@mpilot/goat`, `@mpilot/mcp`) wrap that single source for each runtime. **This is the pattern that makes mPilot composable into other devs' agent stacks** — exactly what Abu was pointing at when he said "lan chain will have an MCP… cdr-kit will help you."
 
-5. **Generative UI = THREE rails, NOT one.** **Rail 1** = Vercel AI SDK v5+ `tool-${toolName}` UI message parts in the web app (already in stack; verified in pokaldot + kwala). **Rail 2** = MCP Apps (SEP-1865, merged 2026-01-28) `ui://concierge/*` HTML resources rendered in sandboxed iframes by Claude Desktop / ChatGPT / Goose / VS Code Insiders. **Rail 3** = MCP Elicitation (stable since 2025-06-18) for high-value `execute()` confirmation flows. All three are built on a structured-JSON tool-result contract (`outputSchema` per tool) as the load-bearing primitive. Spec contract to adopt: *"every Concierge tool ships with structured JSON + a Vercel AI SDK card + (optional) a `ui://` HTML resource."*
+5. **Generative UI = THREE rails, NOT one.** **Rail 1** = Vercel AI SDK v5+ `tool-${toolName}` UI message parts in the web app (already in stack; verified in pokaldot + kwala). **Rail 2** = MCP Apps (SEP-1865, merged 2026-01-28) `ui://concierge/*` HTML resources rendered in sandboxed iframes by Claude Desktop / ChatGPT / Goose / VS Code Insiders. **Rail 3** = MCP Elicitation (stable since 2025-06-18) for high-value `execute()` confirmation flows. All three are built on a structured-JSON tool-result contract (`outputSchema` per tool) as the load-bearing primitive. Spec contract to adopt: *"every mPilot tool ships with structured JSON + a Vercel AI SDK card + (optional) a `ui://` HTML resource."*
 
-**Architectural pivot:** Concierge is currently spec'd as **an app that happens to expose an SDK + MCP + skill on the side**. The four-surface phrasing in PRD line 17 implies parity, but the *implementation* in architecture.md privileges `apps/web/` and lets the other surfaces inherit. The rework reframes Concierge as **a core (`@mpilot/tools` + `@mpilot/sdk` + `@mpilot/react`) that ships across N runtimes via thin adapters; the web app is the flagship reference consumer of the core, not the source of truth.** This is the same shape as `cdr-kit` → `apps/site/` (flagship dashboard built from the SDK), `pokaldot` → `packages/web` (reference chat built from `packages/core`), `kwala` → `packages/web` (reference UI built from `@kwala-ai/cli`).
+**Architectural pivot:** mPilot is currently spec'd as **an app that happens to expose an SDK + MCP + skill on the side**. The four-surface phrasing in PRD line 17 implies parity, but the *implementation* in architecture.md privileges `apps/web/` and lets the other surfaces inherit. The rework reframes mPilot as **a core (`@mpilot/tools` + `@mpilot/sdk` + `@mpilot/react`) that ships across N runtimes via thin adapters; the web app is the flagship reference consumer of the core, not the source of truth.** This is the same shape as `cdr-kit` → `apps/site/` (flagship dashboard built from the SDK), `pokaldot` → `packages/web` (reference chat built from `packages/core`), `kwala` → `packages/web` (reference UI built from `@kwala-ai/cli`).
 
 ---
 
@@ -75,7 +75,7 @@
 
 1. **One-line install for users who don't want to install Node tools.** Paste URL + bearer token.
 2. **Multi-tenant analytics + abuse rate-limit.** Centralized observability.
-3. **Demo URL for judges who don't want to install anything.** `claude mcp add concierge https://mcp.concierge.xyz/mcp` is dramatic.
+3. **Demo URL for judges who don't want to install anything.** `claude mcp add concierge https://mcp.mpilot.xyz/mcp` is dramatic.
 
 **Recommendation:** **Ship both. Default the README + docs install to stdio.** Hosted is for users who explicitly want a URL.
 
@@ -84,8 +84,8 @@
 ```
 ADR-011 — MCP server: stdio-first, hosted optional
 
-Concierge MCP ships as @mpilot/mcp (stdio, npx-installable, the default in all docs)
-AND a hosted Streamable-HTTP endpoint at mcp.concierge.xyz/mcp (Cloudflare Workers + Hono,
+mPilot MCP ships as @mpilot/mcp (stdio, npx-installable, the default in all docs)
+AND a hosted Streamable-HTTP endpoint at mcp.mpilot.xyz/mcp (Cloudflare Workers + Hono,
 the same code with WebStandard transport).
 
 Stdio variant:
@@ -97,7 +97,7 @@ Stdio variant:
 Hosted variant:
 - apps/mcp/ (Cloudflare Worker), wraps the same packages/mcp factory
 - Bearer-token auth v0; OAuth v1 (mcpAuthRouter or equivalent)
-- The user generates a bearer token in concierge.xyz/app/settings; pastes into their MCP client
+- The user generates a bearer token in mpilot.xyz/app/settings; pastes into their MCP client
 
 The tool registry is identical; only transport + auth differ.
 
@@ -123,9 +123,9 @@ portaldot-mcp.
 
 ### Why ship a separate React package
 
-1. **Dev experience.** A Mantle dev building an agent app can `npm install @mpilot/react @mpilot/sdk` and render Concierge's tick stream + proposal cards in their own chat UI.
+1. **Dev experience.** A Mantle dev building an agent app can `npm install @mpilot/react @mpilot/sdk` and render mPilot's tick stream + proposal cards in their own chat UI.
 2. **MCP host gen-UI.** When Claude Desktop / Claude.ai render an MCP tool result, the host needs SOMETHING to render. (Verifying what MCP hosts actually render is **Thread A**, agent running in background.) Even if hosts only render JSON today, having React components shipped means devs *consuming* the MCP server in their own apps get the UI for free.
-3. **Reputation page.** `concierge.xyz/agent/:id` is currently in `apps/web`, but the agent reputation card is the kind of thing a third-party dApp would want to embed.
+3. **Reputation page.** `mpilot.xyz/agent/:id` is currently in `apps/web`, but the agent reputation card is the kind of thing a third-party dApp would want to embed.
 4. **AgentArena-style aggregator support.** If anyone builds an "all Mantle agents" leaderboard, they'd want to embed our `<AgentNFTCard>` + `<ReputationChart>` directly.
 
 ### Recommended package split
@@ -220,8 +220,8 @@ export interface Action<TActionSchema extends z.ZodSchema = z.ZodSchema> {
 **GOAT** (`goat-sdk/goat:typescript/packages/core/src/classes/ToolBase.ts`): same 4 fields, named `parameters` instead of `schema`.
 
 The two differences worth noting:
-- **CDR-Kit returns `Promise<unknown>`; AgentKit returns `Promise<string>`.** CDR-Kit's choice is better for Concierge (we have bigints in positions / HF / prices; serialization happens at the adapter boundary).
-- **AgentKit adds `supportsNetwork(chainId: number) => boolean`** on the action provider. Worth borrowing — Concierge providers are gated to chain 5000 (Mainnet) vs 5003 (Sepolia mocks).
+- **CDR-Kit returns `Promise<unknown>`; AgentKit returns `Promise<string>`.** CDR-Kit's choice is better for mPilot (we have bigints in positions / HF / prices; serialization happens at the adapter boundary).
+- **AgentKit adds `supportsNetwork(chainId: number) => boolean`** on the action provider. Worth borrowing — mPilot providers are gated to chain 5000 (Mainnet) vs 5003 (Sepolia mocks).
 
 ### Recommended `ConciergeTool` shape — AMENDED with schema-aware UI gating (per Abu, 2026-06-09)
 
@@ -232,7 +232,7 @@ export interface ConciergeTool<TInput = unknown, TOutput = unknown> {
   inputSchema: z.ZodObject<z.ZodRawShape>;
   /** Output schema — feeds MCP `outputSchema`, Vercel AI SDK `tool-${name}` typing, and `<XxxCard part={p} />` parse-then-render. The SAME schema is used everywhere. */
   outputSchema: z.ZodObject<z.ZodRawShape>;
-  /** Optional Concierge-card binding. If set, `@mpilot/react-ui` can render the canonical card for this tool's output. */
+  /** Optional mPilot-card binding. If set, `@mpilot/react-ui` can render the canonical card for this tool's output. */
   uiCardId?: string;  // e.g., 'proposal' | 'tick' | 'portfolio' | 'reputation'
   invoke: (input: TInput) => Promise<TOutput>;
   supportsNetwork?: (chainId: number) => boolean;
@@ -312,11 +312,11 @@ server.registerTool(t.name, { description: t.description, inputSchema: t.inputSc
 
 Each adapter is **15-40 LOC**. The total adapter package count is small; the maintenance cost is low.
 
-### Why this pattern is the right answer for Concierge
+### Why this pattern is the right answer for mPilot
 
-1. **The 7 Concierge action providers** (`@mpilot/aave-v3-mantle`, etc.) each expose 3-8 actions. Total ~30-40 actions. Defining them in 5 different framework formats is 5× the maintenance.
+1. **The 7 mPilot action providers** (`@mpilot/aave-v3-mantle`, etc.) each expose 3-8 actions. Total ~30-40 actions. Defining them in 5 different framework formats is 5× the maintenance.
 2. **The MCP server, the SDK, the chat API, and the Skill bundle ALL want the same actions.** Single source eliminates drift.
-3. **Distribution leverage.** A LangChain dev who uses `@mpilot/langchain` can compose Concierge actions into their existing agent without learning our SDK. Same for OpenAI Assistants, AgentKit, GOAT, and Vercel AI users.
+3. **Distribution leverage.** A LangChain dev who uses `@mpilot/langchain` can compose mPilot actions into their existing agent without learning our SDK. Same for OpenAI Assistants, AgentKit, GOAT, and Vercel AI users.
 4. **MCP Apps `ui://` resources (per Thread 5 Rail 2)** key off the same tool name — one tool definition, one card, one HTML resource, one row in the docs.
 
 ### What NOT to do
@@ -325,11 +325,11 @@ Each adapter is **15-40 LOC**. The total adapter package count is small; the mai
 - **Don't invent.** Both reference implementations converged on the same shape. Deviating costs trust.
 - **Don't support Eliza in v1.** Eliza's `Action` is runtime-specific (handler + validate + examples + similes). Adapter would be one-way and feature-loss. Defer.
 
-### Why this is the right shape for Concierge
+### Why this is the right shape for mPilot
 
-1. **The 7 Concierge action providers** (`@mpilot/aave-v3-mantle`, `@mpilot/mantle-dex`, etc.) each expose 3-8 actions. Total ~30 actions. Defining them in 5 different formats is 5× the maintenance.
+1. **The 7 mPilot action providers** (`@mpilot/aave-v3-mantle`, `@mpilot/mantle-dex`, etc.) each expose 3-8 actions. Total ~30 actions. Defining them in 5 different formats is 5× the maintenance.
 2. **The MCP server, the SDK, and the Vercel AI SDK chat all want the same actions.** Single source eliminates drift.
-3. **Distribution leverage.** A LangChain dev who uses our `@mpilot/langchain` package can compose Concierge actions into their existing agent without learning our SDK. Same for OpenAI Assistants and AgentKit users.
+3. **Distribution leverage.** A LangChain dev who uses our `@mpilot/langchain` package can compose mPilot actions into their existing agent without learning our SDK. Same for OpenAI Assistants and AgentKit users.
 
 ### Recommended package list (final, code-verified)
 
@@ -367,7 +367,7 @@ Total: **5 existing + 11 new packages** (or 16 total). Each framework adapter is
 
 ## Thread 5 — Generative UI (FIRM — three rails)
 
-There are THREE distinct generative-UI rails Concierge can ship, each targeting a different host. They are NOT mutually exclusive; the recommendation is to ship all three with structured JSON as the load-bearing contract.
+There are THREE distinct generative-UI rails mPilot can ship, each targeting a different host. They are NOT mutually exclusive; the recommendation is to ship all three with structured JSON as the load-bearing contract.
 
 ### Rail 1 — Vercel AI SDK `tool-${toolName}` UI message parts (web app)
 
@@ -378,7 +378,7 @@ Working in both pokaldot and kwala. The pattern (verified from `Blockchain-Oracl
 3. Render: `messages.map(m => m.parts.map(p => p.type === 'tool-takeAction' ? <TakeActionCard {...p.input} state={p.state} /> : ...))`.
 4. Each tool part has a state: `input-streaming → input-available → output-available → output-error` (already named in `architecture.md` line 17).
 
-**This rail is for the web app (`concierge.xyz/app` + `concierge.xyz/chat`).** Already in stack, half-spec'd. Missing: the package boundary (move components to `packages/react/`) + the hard rule (every Concierge tool ships with a paired card).
+**This rail is for the web app (`mpilot.xyz/app` + `mpilot.xyz/chat`).** Already in stack, half-spec'd. Missing: the package boundary (move components to `packages/react/`) + the hard rule (every mPilot tool ships with a paired card).
 
 ### Rail 2 — MCP Apps `ui://` resources (Claude Desktop, ChatGPT, Goose, VS Code Insiders)
 
@@ -394,7 +394,7 @@ How it works:
 - No Anthropic first-party MCP server using this pattern yet. Community SDK (`mcp-ui`) is the de-facto reference.
 - Don't bet the wedge on it. Ship as an opportunistic bonus.
 
-**For Concierge: ship 3-4 `ui://concierge/*` resources** (tick-card, proposal-card, portfolio-snapshot, reputation-receipt). Even if some hosts don't render them, the structured JSON fallback works everywhere. The hosts that DO render iframes give us a **major demo "wow" inside the judge's existing Claude Desktop** — they don't have to leave their IDE.
+**For mPilot: ship 3-4 `ui://concierge/*` resources** (tick-card, proposal-card, portfolio-snapshot, reputation-receipt). Even if some hosts don't render them, the structured JSON fallback works everywhere. The hosts that DO render iframes give us a **major demo "wow" inside the judge's existing Claude Desktop** — they don't have to leave their IDE.
 
 ### Rail 3 — MCP Elicitation (stable, ship it)
 
@@ -405,7 +405,7 @@ How it works:
 - Client (Claude Desktop, etc.) renders a structured form for the user.
 - User responds with `accept` / `decline` / `cancel`.
 
-**For Concierge:** use for **high-value `execute()` confirmation** (e.g., any action above a user-set $ threshold, any session-key revoke, any policy change). Schema: `{ confirm: boolean, maxSlippageBps: number, justification: string }`. Replaces the need for a custom approval modal when the user is in Claude Desktop instead of the web app.
+**For mPilot:** use for **high-value `execute()` confirmation** (e.g., any action above a user-set $ threshold, any session-key revoke, any policy change). Schema: `{ confirm: boolean, maxSlippageBps: number, justification: string }`. Replaces the need for a custom approval modal when the user is in Claude Desktop instead of the web app.
 
 This is **strictly better** than relying on the LLM to "remember to ask" — Elicitation gives the user a structured form, not a free-text prompt.
 
@@ -413,14 +413,14 @@ This is **strictly better** than relying on the LLM to "remember to ask" — Eli
 
 | Surface | Rail | Contract |
 |---|---|---|
-| `concierge.xyz/app` web app | Rail 1 (Vercel AI SDK tool parts) | `@mpilot/react-ui` cards per tool |
+| `mpilot.xyz/app` web app | Rail 1 (Vercel AI SDK tool parts) | `@mpilot/react-ui` cards per tool |
 | Claude Desktop / ChatGPT / Goose | Rail 2 (MCP Apps `ui://` resources) | `packages/mcp/src/ui/*.html` per card |
 | Any MCP host with elicitation support | Rail 3 (Elicitation) | Used for high-value confirmation flows |
 | Any MCP host (fallback) | Structured JSON tool result | `structuredContent` + `outputSchema` per tool — **the load-bearing contract every rail builds on** |
 
 ### What's missing in the spec
 
-- **The contract:** every Concierge tool MUST ship with (a) structured JSON via `outputSchema`, (b) a Vercel AI SDK card in `@mpilot/react-ui`, and (c) an optional `ui://` HTML resource for MCP Apps. Adopt pokaldot's hard rule extended to three rails.
+- **The contract:** every mPilot tool MUST ship with (a) structured JSON via `outputSchema`, (b) a Vercel AI SDK card in `@mpilot/react-ui`, and (c) an optional `ui://` HTML resource for MCP Apps. Adopt pokaldot's hard rule extended to three rails.
 - **The package boundary:** components currently live in `apps/web/components/`. Move to `packages/react/` + `packages/react-ui/` so consumers can install them.
 - **The Elicitation story:** new story for replacing the auto-approval/manual-approval logic in the MCP server with Elicitation when the host supports it.
 
@@ -438,11 +438,11 @@ This is **strictly better** than relying on the LLM to "remember to ask" — Eli
 
 **Primary primitive: Vercel AI SDK typed `tool-${name}` parts.** Already the pattern in `portaldot-mcp` + `kwala`. 25× larger weekly downloads than next contender. Zero styling opinion. Apache-2.0.
 
-**Skip Tambo + Crayon.** Both are *model-driven* (LLM picks the component / model returns the UI spec), which contradicts the Concierge contract that *every Concierge tool ALWAYS renders the same card*. Mixing the paradigms would break the per-tool acceptance criteria pattern.
+**Skip Tambo + Crayon.** Both are *model-driven* (LLM picks the component / model returns the UI spec), which contradicts the mPilot contract that *every mPilot tool ALWAYS renders the same card*. Mixing the paradigms would break the per-tool acceptance criteria pattern.
 
 **Ship TWO optional adapter packages** for the runtime fan-out:
 
-- **`@mpilot/react-assistant-ui`** — registers each Concierge tool as an assistant-ui backend toolkit entry: `defineToolkit({ propose: { type: "backend", render: ProposalPart }, … })`. Covers assistant-ui users AND (via the lib's `react-langgraph` / `react-langchain` adapters) LangChain/LangGraph users transitively. 7-15 LOC.
+- **`@mpilot/react-assistant-ui`** — registers each mPilot tool as an assistant-ui backend toolkit entry: `defineToolkit({ propose: { type: "backend", render: ProposalPart }, … })`. Covers assistant-ui users AND (via the lib's `react-langgraph` / `react-langchain` adapters) LangChain/LangGraph users transitively. 7-15 LOC.
 - **`@mpilot/react-copilotkit`** — exposes `useConciergeActions()` that registers our tools via `useCopilotAction({ name, render })`. Covers AG-UI users — which means LangGraph + CrewAI + Mastra + Pydantic AI + AutoGen2 + Microsoft Agent Framework users transitively via CopilotKit's runtime fan-out. 15-30 LOC.
 
 ### Install snippet for an external Vercel AI SDK dev
@@ -481,13 +481,13 @@ CopilotKit devs: `pnpm add @mpilot/react-copilotkit` then `useConciergeActions()
 
 These came out of reading the reference repos + thinking about what Mantle Track 6 judges will reward.
 
-1. **First-class Claude Code plugin (story-cdr ships an 11-skill plugin).** `packages/plugin/concierge/` — multiple skills (yield-optimizer, risk-monitor, attestation-viewer) auto-installed via `npx skills add Blockchain-Oracle/concierge`. Already partially scoped by stories 150-154 but only as a single skill. **Suggest:** expand to 4-5 skills (one per major use case) so users compose their own bundle.
-2. **Built-in chat UI in the MCP package.** Pokaldot ships `packages/web` alongside `packages/mcp` — the same tools render as a standalone chat at `localhost:3000`. Users who don't have Claude Code can still drive Concierge. Already in spec as `apps/web/app/chat/`? Verify and if not, add.
-3. **Composability demo: chain with a public MCP** (e.g. Etherscan MCP, Defi Llama MCP, Telegram MCP). Same `07-mcp-server-pattern.md` §8.2 calls this out. Concrete demo: *"if my Concierge yield drops below 6%, Concierge messages me on Telegram and proposes a rebalance"* — orchestrated by Claude Code stitching our MCP + a Telegram MCP. **Judges love a multi-MCP demo.**
-4. **Scaffolder.** `npm create concierge-app@latest` — CDR-Kit ships 9 templates. We could ship: `starter` (web + SDK quickstart), `mcp-only` (just the MCP), `react-embed` (drop our components into an existing app), `vercel-ai-agent` (a Vercel AI agent app pre-wired to Concierge), `langchain-agent`. **Drastically lowers integration cost** for other Mantle devs.
-5. **Live tick stream embed for any agent's reputation page.** Public `<iframe>` or React embed showing the agent's last N attestations. Other dApps can include this to show "this agent runs on Concierge." Reputation as a network effect.
+1. **First-class Claude Code plugin (story-cdr ships an 11-skill plugin).** `packages/plugin/concierge/` — multiple skills (yield-optimizer, risk-monitor, attestation-viewer) auto-installed via `npx skills add Blockchain-Oracle/mpilot`. Already partially scoped by stories 150-154 but only as a single skill. **Suggest:** expand to 4-5 skills (one per major use case) so users compose their own bundle.
+2. **Built-in chat UI in the MCP package.** Pokaldot ships `packages/web` alongside `packages/mcp` — the same tools render as a standalone chat at `localhost:3000`. Users who don't have Claude Code can still drive mPilot. Already in spec as `apps/web/app/chat/`? Verify and if not, add.
+3. **Composability demo: chain with a public MCP** (e.g. Etherscan MCP, Defi Llama MCP, Telegram MCP). Same `07-mcp-server-pattern.md` §8.2 calls this out. Concrete demo: *"if my mPilot yield drops below 6%, mPilot messages me on Telegram and proposes a rebalance"* — orchestrated by Claude Code stitching our MCP + a Telegram MCP. **Judges love a multi-MCP demo.**
+4. **Scaffolder.** `npm create concierge-app@latest` — CDR-Kit ships 9 templates. We could ship: `starter` (web + SDK quickstart), `mcp-only` (just the MCP), `react-embed` (drop our components into an existing app), `vercel-ai-agent` (a Vercel AI agent app pre-wired to mPilot), `langchain-agent`. **Drastically lowers integration cost** for other Mantle devs.
+5. **Live tick stream embed for any agent's reputation page.** Public `<iframe>` or React embed showing the agent's last N attestations. Other dApps can include this to show "this agent runs on mPilot." Reputation as a network effect.
 6. **One-click "fork this strategy" from a public agent page.** A judge sees an agent with great reputation; clicks "fork goal." Their own agent boots with the same goal. Viral mechanic.
-7. **Adapter for the OpenAI Apps SDK (`apps.openai.com`).** If we ship a Vercel AI adapter, an OpenAI Apps adapter is ~50 lines. Concierge becomes installable inside ChatGPT custom GPTs / Apps. **Distribution beyond Claude.**
+7. **Adapter for the OpenAI Apps SDK (`apps.openai.com`).** If we ship a Vercel AI adapter, an OpenAI Apps adapter is ~50 lines. mPilot becomes installable inside ChatGPT custom GPTs / Apps. **Distribution beyond Claude.**
 
 ---
 
@@ -556,7 +556,7 @@ These came out of reading the reference repos + thinking about what Mantle Track
 
 - **MCP Apps client capability negotiation** in current Claude Desktop build (2026-06-09). The blog post (2026-01-26) says "available today on web and desktop" but Agent A couldn't re-test against the user's specific build. Mitigation: structured JSON fallback works regardless.
 - **GOAT SDK zod major alignment.** CDR-Kit comments that GOAT 0.5 was on a different zod major. Verify current GOAT zod peer before writing the adapter; if aligned, drop the `as unknown as` cast.
-- **MCP SDK API surface drift.** `@modelcontextprotocol/sdk` `registerTool` API has churned twice in 2025. CDR-Kit pins to spec `2025-11-25`. Pin Concierge's version explicitly before publishing.
+- **MCP SDK API surface drift.** `@modelcontextprotocol/sdk` `registerTool` API has churned twice in 2025. CDR-Kit pins to spec `2025-11-25`. Pin mPilot's version explicitly before publishing.
 - **Vercel AI SDK v5 vs v6 peer pin.** Both CDR-Kit and AgentKit use `tool({ inputSchema, execute })` — v5+ shape. Pin `ai >= 5` in `@mpilot/vercel-ai`'s peerDeps; consider `>= 6` since pokaldot uses v6.
 
 ---

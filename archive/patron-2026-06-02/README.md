@@ -2,7 +2,7 @@
 
 **Status:** PAUSED 2026-06-03 — wedge abandoned after sUSDe yield compression made the carry-trade pitch fragile + Aave V3 missing on Mantle Sepolia killed clean testnet UX.
 
-**Current direction:** Concierge — autonomous DeFi agent on Mantle (Giza-shape architecture). See `workspace/candidates/2026-06-03-concierge-architecture.md` for the new wedge brief.
+**Current direction:** mPilot — autonomous DeFi agent on Mantle (Giza-shape architecture). See `workspace/candidates/2026-06-03-concierge-architecture.md` for the new wedge brief.
 
 ## Contents
 
@@ -11,10 +11,10 @@
 
 ## Why kept (not deleted)
 
-The Patron spec demonstrates a complete BMad-style spec artifact set as a template reference. The Mantle on-chain verification work (ERC-8004 addresses, Aave V3 Pool, sUSDe, USDC) transfers directly to Concierge — those facts are still true. The Sepolia mock-deploy pattern from Patron is reusable for Concierge's testnet playground.
+The Patron spec demonstrates a complete BMad-style spec artifact set as a template reference. The Mantle on-chain verification work (ERC-8004 addresses, Aave V3 Pool, sUSDe, USDC) transfers directly to mPilot — those facts are still true. The Sepolia mock-deploy pattern from Patron is reusable for mPilot's testnet playground.
 
 ## What changed
 
-- Wedge: spend-without-selling (BNPL) → autonomous multi-tool DeFi agent (Concierge)
+- Wedge: spend-without-selling (BNPL) → autonomous multi-tool DeFi agent (mPilot)
 - Track 6 qualification: was via Byreal Skills CLI (turned out to be Solana-only) → now via RealClaw skill packaging
 - Architecture: contracts-first → agent-runtime-first with SDK + MCP server + web app + RealClaw skill (4 surfaces)

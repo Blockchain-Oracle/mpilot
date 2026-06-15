@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** a single `forge script script/DeployAll.s.sol --rpc-url $MANTLE_SEPOLIA_RPC_URL --broadcast --verify` command deploys all 4 mocks + MockAaveOracle + ConciergeRegistry to Sepolia, verifies them on Mantlescan, and writes the addresses back to `packages/shared/src/addresses.ts`
 **So that** a Sepolia playground refresh is one command, not a 30-minute manual sequence
 

@@ -1,7 +1,7 @@
-# Mantle DEX Aggregation — Concierge Domain Knowledge
+# Mantle DEX Aggregation — mPilot Domain Knowledge
 
 ## What this is
-The "swap" action provider. Concierge needs to convert any token to any other (USDC→USDT0, mETH→USDC for spending, USDe→sUSDe before deposit) on Mantle Mainnet, at best-execution price, with bounded slippage. We aggregate **four** Mantle-native venues — Merchant Moe (Trader-Joe-fork, LB), Agni Finance (Uniswap-V3-fork CLMM), FusionX (Uniswap-V3-fork CLMM), WOOFi (sPMM oracle-priced AMM) — plus optionally Li.Fi as a meta-aggregator fallback.
+The "swap" action provider. mPilot needs to convert any token to any other (USDC→USDT0, mETH→USDC for spending, USDe→sUSDe before deposit) on Mantle Mainnet, at best-execution price, with bounded slippage. We aggregate **four** Mantle-native venues — Merchant Moe (Trader-Joe-fork, LB), Agni Finance (Uniswap-V3-fork CLMM), FusionX (Uniswap-V3-fork CLMM), WOOFi (sPMM oracle-priced AMM) — plus optionally Li.Fi as a meta-aggregator fallback.
 
 ## Verified facts (with evidence)
 
@@ -136,7 +136,7 @@ GET https://li.quest/v1/quote
   &slippage=0.005    // 0.5%
   &order=CHEAPEST    // or FASTEST, SAFEST, RECOMMENDED
 ```
-Returns `{transactionRequest: {to, data, value, gasLimit}}` — Concierge passes `to`/`data` straight into UserOp `callData`. The diamond verifies signatures and routes to the appropriate DEX adapter on-chain.
+Returns `{transactionRequest: {to, data, value, gasLimit}}` — mPilot passes `to`/`data` straight into UserOp `callData`. The diamond verifies signatures and routes to the appropriate DEX adapter on-chain.
 
 ### Gotchas
 - **Agni / FusionX deadlines**: pass `block.timestamp + 600` (10 min). Tighter = MEV-targeted reverts.
@@ -146,7 +146,7 @@ Returns `{transactionRequest: {to, data, value, gasLimit}}` — Concierge passes
 - **Li.Fi `sendingAmount` minimum**: $1 effective. Below threshold the API returns 422.
 - **Native MNT**: WooRouterV2 accepts `msg.value` on swap-from-MNT. V3 routers require WMNT wrap first.
 
-## Integration pattern for Concierge
+## Integration pattern for mPilot
 
 ### Package: `@mpilot/mantle-dex`
 Aggregator strategy — every swap intent runs through `quoteAllVenues()`:
@@ -163,7 +163,7 @@ async function quoteAllVenues({ tokenIn, tokenOut, amountIn }) {
   return [...].sort(byAmountOutDesc);
 }
 ```
-Pick venue with best `amountOut` net of (a) gas, (b) Concierge's static `slippage` buffer (default 50bp), (c) venue reliability score (last 100 ticks).
+Pick venue with best `amountOut` net of (a) gas, (b) mPilot's static `slippage` buffer (default 50bp), (c) venue reliability score (last 100 ticks).
 
 ### Action types
 - `swap.exactIn({tokenIn, tokenOut, amountIn, minAmountOut, recipient})`
@@ -171,9 +171,9 @@ Pick venue with best `amountOut` net of (a) gas, (b) Concierge's static `slippag
 - `swap.batch([...])` — atomic multi-hop using Li.Fi or a custom multicall
 
 ### Plan → Simulate → Propose → Execute
-1. **Plan**: call `quoteAllVenues`. Concierge planner picks venue. Compute `minAmountOut = quote * (1 - slippageBps/10000)`.
+1. **Plan**: call `quoteAllVenues`. mPilot planner picks venue. Compute `minAmountOut = quote * (1 - slippageBps/10000)`.
 2. **Simulate**: `eth_call` against forked Mantle RPC with the encoded swap calldata. Reject if revert OR if `amountOut < minAmountOut * 0.995` (sandwich attack guard).
-3. **Propose**: build UserOp. Session key scoped to the chosen router's `swapExactTokensForTokens` / `exactInputSingle` / `swap` 4-byte selector ONLY. Concierge must whitelist all 4 router addresses in session-key policy upfront.
+3. **Propose**: build UserOp. Session key scoped to the chosen router's `swapExactTokensForTokens` / `exactInputSingle` / `swap` 4-byte selector ONLY. mPilot must whitelist all 4 router addresses in session-key policy upfront.
 4. **Execute**: send. Read `amountOut` from the receipt's `Swap` event (every router emits one).
 
 ### ERC-8004 attestation
@@ -210,25 +210,25 @@ Pick venue with best `amountOut` net of (a) gas, (b) Concierge's static `slippag
 Trader Joe's "bin-based" AMM. LPs deposit into discrete price bins (binSteps in bps). Concentrates liquidity like V3 but with **zero slippage within a bin** — different math than CLMM. For stable pairs (USDC/USDT0) bins are 1bp wide → essentially zero-slip on small swaps. For volatile (MNT/USDC) bins are 25-100bp.
 
 ### Agni Finance & FusionX — Uniswap V3 clones
-Standard CLMM: liquidity in ranges, fees in 1bp/5bp/30bp/100bp tiers. Best for stable-stable (5bp tier) and majors (30bp). Their TVL is the secondary signal — Agni historically deeper on stable pairs, FusionX deeper on MNT pairs. Concierge does not rebalance — just consumes quotes.
+Standard CLMM: liquidity in ranges, fees in 1bp/5bp/30bp/100bp tiers. Best for stable-stable (5bp tier) and majors (30bp). Their TVL is the secondary signal — Agni historically deeper on stable pairs, FusionX deeper on MNT pairs. mPilot does not rebalance — just consumes quotes.
 
 ### WOOFi — sPMM (oracle-priced)
 WOOFi prices off Chainlink + their internal feed, then quotes via a synthetic proactive market-maker formula. No LP slippage on small trades. **Best for large trades on majors** (WETH/USDC, BTC/USDC, MNT/USDC). Falls behind on long-tail tokens (sUSDe, USDe, USDY) where feeds don't exist.
 
 ### Li.Fi
-Off-chain DEX aggregator with on-chain settlement diamond. Internally evaluates ~30 sources (including the four above plus Stargate, OKX DEX, Squid, etc.). Concierge uses Li.Fi for: (a) routes our four-venue scan misses, (b) cross-chain swap-and-bridge in one UserOp (see `lifi-bridge.md`), (c) fallback when on-chain quoters revert.
+Off-chain DEX aggregator with on-chain settlement diamond. Internally evaluates ~30 sources (including the four above plus Stargate, OKX DEX, Squid, etc.). mPilot uses Li.Fi for: (a) routes our four-venue scan misses, (b) cross-chain swap-and-bridge in one UserOp (see `lifi-bridge.md`), (c) fallback when on-chain quoters revert.
 
 ### Sandwich resistance
-Concierge's slippage default = 50bp. With smart-account batching, the swap is part of a larger UserOp (e.g. bridge-then-swap-then-supply) — atomic via 4337 bundler. MEV searchers can't sandwich the swap leg directly; they can only sandwich the whole UserOp, which requires reordering bundler txs (high-cost for the value Concierge moves).
+mPilot's slippage default = 50bp. With smart-account batching, the swap is part of a larger UserOp (e.g. bridge-then-swap-then-supply) — atomic via 4337 bundler. MEV searchers can't sandwich the swap leg directly; they can only sandwich the whole UserOp, which requires reordering bundler txs (high-cost for the value mPilot moves).
 
 ## Risks + edge cases
 
 1. **Stale quotes**: any cached quote > 6 seconds → re-quote. Block time on Mantle is ~2s.
-2. **Long-tail tokens**: sUSDe, USDY, mETH, cmETH have shallow pools — Li.Fi route may fail. Concierge must (a) check if Li.Fi returns a route, (b) if not, fall back to a 2-hop via USDC.
-3. **Venue downtime**: any single router pause cascades to a degraded swap provider. Concierge marks the venue with a 10-min cooldown after 3 consecutive failures.
-4. **Router upgrade**: Agni / FusionX are forks — they could deploy new routers and deprecate old ones. Concierge spec must include a "refresh router addresses from Li.Fi `/v1/connections` weekly" task.
+2. **Long-tail tokens**: sUSDe, USDY, mETH, cmETH have shallow pools — Li.Fi route may fail. mPilot must (a) check if Li.Fi returns a route, (b) if not, fall back to a 2-hop via USDC.
+3. **Venue downtime**: any single router pause cascades to a degraded swap provider. mPilot marks the venue with a 10-min cooldown after 3 consecutive failures.
+4. **Router upgrade**: Agni / FusionX are forks — they could deploy new routers and deprecate old ones. mPilot spec must include a "refresh router addresses from Li.Fi `/v1/connections` weekly" task.
 5. **Fee-on-transfer tokens**: USDe and sUSDe are NOT fee-on-transfer. None of Mantle's listed Aave reserves are. Safe to assume `balanceOf` deltas match `amountOut`.
-6. **Mantle MNT precompile**: WMNT wrap costs ~30k gas; un-wrap ~25k. Concierge gas estimate must include this.
+6. **Mantle MNT precompile**: WMNT wrap costs ~30k gas; un-wrap ~25k. mPilot gas estimate must include this.
 
 ## Reference URLs
 - Merchant Moe docs: https://docs.merchantmoe.com/resources/contracts.md

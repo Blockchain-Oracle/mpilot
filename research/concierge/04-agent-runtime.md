@@ -2,7 +2,7 @@
 
 > **⚠️ 2026-06-09 — partial supersession:** Specific version references in this file (`Vercel AI SDK 5`) are SUPERSEDED by `AUDIT-2026-06-09.md` §1 (now on v6) + `SDK-DX-STUDY-2026-06-09.md` (model-agnostic via `LanguageModelV2`). The **patterns** below (six-phase tick loop, streamText shape, useChat tool-parts) are still correct; the **VERSIONS** are pinned in `architecture.md` stack table + `AUDIT-2026-06-09.md`. Trust the audit/architecture for version specifics; trust this file for the runtime/architecture patterns.
 
-**Purpose:** Concrete patterns for the Concierge agent runtime. Read by `sahil-spec-writer` before generating `docs/architecture.md` and the tick-loop stories.
+**Purpose:** Concrete patterns for the mPilot agent runtime. Read by `sahil-spec-writer` before generating `docs/architecture.md` and the tick-loop stories.
 
 **Stack:** Next.js (App Router) on Vercel + Vercel AI SDK 5 (`ai`) for the chat surface + `@anthropic-ai/claude-agent-sdk` for the autonomous loop + Postgres (Drizzle) for state + Redis (Upstash) for in-flight locks + BullMQ for cron ticks.
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
   const { messages }: { messages: ChatMessage[] } = await req.json();
   const result = streamText({
     model: 'anthropic/claude-sonnet-4-5',
-    system: 'You are Concierge — a stablecoin yield agent...',
+    system: 'You are mPilot — a stablecoin yield agent...',
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(8),   // multi-step tool loop ceiling
     tools,
@@ -98,7 +98,7 @@ From the same docs page, the React-side state machine for each tool invocation:
 })}
 ```
 
-This is the entire foundation of the Concierge approval card UX — every proposal renders mid-stream from these four states, no extra plumbing.
+This is the entire foundation of the mPilot approval card UX — every proposal renders mid-stream from these four states, no extra plumbing.
 
 ### 1.3 `useChat` + SSE wire format
 
@@ -177,14 +177,14 @@ const response = await client.messages.create({
 
 ### 2.2 Prompt caching for the tick loop
 
-Prompt caching is the single biggest cost lever. The Concierge system prompt + tool schemas + policy doc will be ~6–10k tokens; caching them drops per-tick cost by ~10x at the cache-hit rate Claude advertises.
+Prompt caching is the single biggest cost lever. The mPilot system prompt + tool schemas + policy doc will be ~6–10k tokens; caching them drops per-tick cost by ~10x at the cache-hit rate Claude advertises.
 
-Pattern (from Anthropic docs): mark long stable prefixes with `cache_control: { type: 'ephemeral' }` on the last content block of the prefix. Reads cost 0.1× input price; cache lifetime is 5 minutes (refreshes on hit). For Concierge, the tick interval (e.g. 60s) keeps the cache hot.
+Pattern (from Anthropic docs): mark long stable prefixes with `cache_control: { type: 'ephemeral' }` on the last content block of the prefix. Reads cost 0.1× input price; cache lifetime is 5 minutes (refreshes on hit). For mPilot, the tick interval (e.g. 60s) keeps the cache hot.
 
 ### 2.3 System prompt skeleton
 
 ```
-You are Concierge, an autonomous DeFi agent on Mantle.
+You are mPilot, an autonomous DeFi agent on Mantle.
 
 You manage one user's stablecoin position. Your job each tick:
 1. Read current state (balances, debt, yield positions, pending bills).
@@ -268,7 +268,7 @@ Drizzle migrations: `drizzle-kit push`. Hosted Postgres on Neon (Vercel-native) 
 
 Docs: https://docs.bullmq.io/guide/jobs/repeatable
 
-Concierge needs a per-agent cron tick (e.g. every 60s). BullMQ's repeatable jobs handle this:
+mPilot needs a per-agent cron tick (e.g. every 60s). BullMQ's repeatable jobs handle this:
 
 ```typescript
 import { Queue, Worker } from 'bullmq';

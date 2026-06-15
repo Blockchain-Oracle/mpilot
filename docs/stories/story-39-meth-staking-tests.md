@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the meth-staking provider has tests verifying read accuracy, the MissingDependency fail-fast pattern, the no-native-unstake invariant, and the unwrap-via-DEX composition
 **So that** the L2-bridge-image semantics are provably enforced (no agent confuses Mantle mETH with L1 stETH) and the dependency injection contract holds
 
@@ -107,9 +107,9 @@ bun scripts/check-file-loc.mjs
 
 ## Notes for coding agent
 
-- **The `NoL1Actions` invariant test** parallels Ondo's `NoMutationActions`. Single test, blocks future regressions that add nativeUnstake to Concierge agent (which would break across the entire Sepolia path — mETH on L2 has no such function).
+- **The `NoL1Actions` invariant test** parallels Ondo's `NoMutationActions`. Single test, blocks future regressions that add nativeUnstake to mPilot agent (which would break across the entire Sepolia path — mETH on L2 has no such function).
 - **The `RoutesThroughDexProvider` spy test** uses Vitest's `vi.spyOn(dexProvider.actions.swap, 'execute')` to verify the unwrap composes correctly. If a future PR silently routes unwrap to a custom contract instead of the dex provider, this test catches it.
 - **`PropagatesSlippageBreach`** is the no-silent-failure guard for cross-provider composition. If the dex swap throws, the unwrap should propagate, not eat the error and return a successful-looking response.
 - **Tolerance windows** are wide on yield rate (50 bps) because live Mantle rate is volatile across days. The MATH is asserted on hardcoded fixtures; the live-data test is a sanity check.
-- **No native staking flow tests** — there's nothing to test on L2 mETH. The user acquires mETH off-chain (bridge or buy); Concierge observes + can unwrap-via-DEX.
+- **No native staking flow tests** — there's nothing to test on L2 mETH. The user acquires mETH off-chain (bridge or buy); mPilot observes + can unwrap-via-DEX.
 - Cross-ref: `research/concierge/03-providers/meth-staking.md` § Open questions.

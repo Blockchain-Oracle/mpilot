@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user reviewing a pending proposal
+**As a** mPilot user reviewing a pending proposal
 **I want to** a proposal card shows: agent's hypothesis (why), before/after state preview (what changes), action details (which protocol, how much), expiresAt countdown, primary "Approve" + secondary "Reject" CTAs
 **So that** I can make a 5-second informed decision: approve when the hypothesis matches my goal, reject when something feels off
 
@@ -100,7 +100,7 @@ bun scripts/check-file-loc.mjs
 ## Notes for coding agent
 
 - **The hypothesis is the trust primitive.** A user reading "Carry positive at 4.2%" understands WHY the agent wants to act. A user reading "Action recommended" doesn't. Don't truncate the hypothesis aggressively — it's literally the most important text in this component.
-- **Before/after diff for HF and balances** is the second trust primitive. Numbers don't lie. Showing "HF 2.0 → 1.8" before clicking approve is what separates Concierge from "trust the AI" UIs.
+- **Before/after diff for HF and balances** is the second trust primitive. Numbers don't lie. Showing "HF 2.0 → 1.8" before clicking approve is what separates mPilot from "trust the AI" UIs.
 - **Color semantics matter.** HF dropping from 2.0 → 1.8 is NOT red (it's still safe). HF dropping below the floor IS red. Don't conflate "decreased" with "dangerous."
 - **Countdown is live**, not snapshot-on-render. Use a 1s interval (or `useEffect` with `setInterval`) to update. Cleanup the interval on unmount to prevent leaks.
 - **Rejection requires confirmation**, approval doesn't. Approving is reversible (you can revoke the session key, manually undo); rejection means the proposal is gone — agent might re-plan and miss the window.

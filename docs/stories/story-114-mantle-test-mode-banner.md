@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge user OR judge testing the playground
+**As a** mPilot user OR judge testing the playground
 **I want to** an explicit "Test Mode (Mantle Sepolia)" banner at the top of /app when the agent is on Sepolia, with a clear "Switch to Mainnet" CTA that walks the user through the transition (new agent on Mainnet, since session keys are chain-scoped)
 **So that** there's NEVER ambiguity about which chain you're operating on AND the path from playground to production is visible (not buried in settings)
 

@@ -1,4 +1,4 @@
-# UX Spec — Concierge
+# UX Spec — mPilot
 
 **Anchor source:** Component intent + states + flows are fully specified at `research/concierge/08-ux-component-intent.md` (the designer's brief). This file documents the **structural locks** + **route shape** + **demo shape rule** + **visual loop validation gate**. **Visual design tokens (color, type, motion language, iconography) are owned by the designer agent** — coding agent reads `@mpilot/ui/tokens` (the published design-tokens module from the designer) at build time.
 **Last updated:** 2026-06-09 (amended; previous 2026-06-03)
@@ -8,7 +8,7 @@
 
 ## ⚠️ 2026-06-09 AMENDMENT
 
-Per architecture.md ADR-013 (amended) + ADR-015 (new), the visual implementation layer ships as **`@mpilot/react-ui`** — NOT scattered across `apps/web/components/`. Designer owns the visual layer of that package; coding agents consume the package; the web app at `concierge.xyz/app` DOGFOODS the package per the web-app-dogfood requirement.
+Per architecture.md ADR-013 (amended) + ADR-015 (new), the visual implementation layer ships as **`@mpilot/react-ui`** — NOT scattered across `apps/web/components/`. Designer owns the visual layer of that package; coding agents consume the package; the web app at `mpilot.xyz/app` DOGFOODS the package per the web-app-dogfood requirement.
 
 - **Headless behavior + ARIA + state machines** → `@mpilot/react` (story-310)
 - **Styled drop-in cards** (Radix + shadcn + `@mpilot/ui` tokens) → `@mpilot/react-ui` (story-311)
@@ -21,7 +21,7 @@ Cross-refs: ADR-015 (Epic E14 — Composable UI), story-310, story-311, story-31
 
 ## Anchor product
 
-**Anchor:** **Designer's choice.** Concierge's visual direction is not pinned to a specific competitor or reference site. The designer agent picks the anchor (likely from the Linear / Stripe / Vercel / Granola / v0.dev quality band, but the specific anchor is theirs to choose) and publishes the resulting design tokens + component library back to `@mpilot/ui`.
+**Anchor:** **Designer's choice.** mPilot's visual direction is not pinned to a specific competitor or reference site. The designer agent picks the anchor (likely from the Linear / Stripe / Vercel / Granola / v0.dev quality band, but the specific anchor is theirs to choose) and publishes the resulting design tokens + component library back to `@mpilot/ui`.
 
 **Why no pinned anchor:** Per Abu's pacing preference and `08-ux-component-intent.md`, the designer is expert and does not need a reference-app catalog from the spec writer. The component intent file describes *what each component must do*; the designer translates that into visual implementation with whatever anchor they find most aligned with the brand they're designing.
 
@@ -89,7 +89,7 @@ export const tokens = {
 
 | Route | Purpose | Auth |
 |---|---|---|
-| `mcp.concierge.xyz/api/sse` | MCP server — Streamable HTTP transport | Bearer token v0 / OAuth v1 |
+| `mcp.mpilot.xyz/api/sse` | MCP server — Streamable HTTP transport | Bearer token v0 / OAuth v1 |
 
 ---
 
@@ -132,9 +132,9 @@ Landing always renders immediately; the gate runs only the redirect *side-effect
 The 90-second judge walkthrough (per `PRD.md` § Demo moment) lives on these routes in this order:
 
 1. `/` (hero) — judge sees live tick streaming on Sepolia
-2. `/app/onboarding/*` — sponsored connect → smart account → identity → goal → activate (Concierge sponsors gas; judge pays nothing)
+2. `/app/onboarding/*` — sponsored connect → smart account → identity → goal → activate (mPilot sponsors gas; judge pays nothing)
 3. `/app` — judge watches first tick stream in real time, approves manually
-4. Judge runs `npx skills add @mpilot/mantle-agent` in their terminal, then drives Concierge from Claude Code via `mcp.concierge.xyz/api/sse`
+4. Judge runs `npx skills add @mpilot/mantle-agent` in their terminal, then drives mPilot from Claude Code via `mcp.mpilot.xyz/api/sse`
 
 **The wow moment:** judge sees the same agent (same `agentId` in ERC-8004 reputation) operating across two surfaces (web + MCP-driven Claude Code) within 90 seconds.
 
@@ -160,7 +160,7 @@ Heights: **64px desktop / 56px mobile.** Header is sticky after scroll on landin
 | Variant | Used on | Contents |
 |---|---|---|
 | `full` | `/` | Sections: Product (links to /app, /docs, /agent), Resources (GitHub, X, Discord), Legal (License, Terms-stub) · MCP install snippet · copyright + MIT license note |
-| `minimal` | `/docs`, `/agent/:id` | Single-line: "Concierge — built for Mantle Turing Test 2026 · MIT License · GitHub" |
+| `minimal` | `/docs`, `/agent/:id` | Single-line: "mPilot — built for Mantle Turing Test 2026 · MIT License · GitHub" |
 | (none) | `/app/*` | App routes have no footer (Emergency Stop is the persistent footer-adjacent element) |
 
 ### Always-visible app elements

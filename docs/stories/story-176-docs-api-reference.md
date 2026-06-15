@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** developer integrating Concierge
+**As a** developer integrating mPilot
 **I want to** the API reference auto-generates from the SDK's TypeScript exports via TypeDoc (or equivalent), with hand-written supplements for the per-provider tool surfaces + MCP tools + REST endpoints
 **So that** every public function has docs that NEVER drift from the source code, and I can hit "Reference" in the sidebar to look up exact signatures
 

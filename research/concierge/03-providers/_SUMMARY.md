@@ -1,6 +1,6 @@
-# Concierge Action Providers — Research Summary
+# mPilot Action Providers — Research Summary
 
-Seven deep domain-knowledge files for Concierge's locked action providers on Mantle Mainnet (chain 5000). Each is consumed by `sahil-spec-writer` to produce production-grade specs. All on-chain claims verified via `cast call` against `https://rpc.mantle.xyz` on 2026-06-03. Cross-references to canonical source repos (bgd-labs/aave-address-book, erc-8004/erc-8004-contracts, mantle-lsp/contracts, lifinance/contracts) included where applicable.
+Seven deep domain-knowledge files for mPilot's locked action providers on Mantle Mainnet (chain 5000). Each is consumed by `sahil-spec-writer` to produce production-grade specs. All on-chain claims verified via `cast call` against `https://rpc.mantle.xyz` on 2026-06-03. Cross-references to canonical source repos (bgd-labs/aave-address-book, erc-8004/erc-8004-contracts, mantle-lsp/contracts, lifinance/contracts) included where applicable.
 
 ## Files (all under `/Users/abu/dev/hackathon/mantel/research/concierge/03-providers/`)
 
@@ -8,7 +8,7 @@ Seven deep domain-knowledge files for Concierge's locked action providers on Man
 2. **`mantle-dex.md`** (~12.9KB) — Aggregation across Merchant Moe (Trader Joe v2.2 LB), Agni V3, FusionX V3, WOOFi V2. Li.Fi diamond as meta-fallback. All router/factory addresses verified except Agni QuoterV2 + NPM (flagged UNVERIFIED).
 3. **`ethena-susde.md`** (~12.4KB) — sUSDe as LayerZero V2 OFT on Mantle (`0x211Cc4...`). Yield mechanic (basis trade + T-bills + insurance fund) explained. Aave E-Mode 1 collateral. Funding-rate inversion risk and unwind logic specified.
 4. **`ondo-usdy.md`** (~10.5KB) — USDY on Mantle confirmed via Li.Fi token list (`0x5bE26527...`). 25.89M total supply. T-bill backed, ~5% APY. **NOT an Aave reserve** — pure spot hold provider (no leverage loop).
-5. **`meth-staking.md`** (~10.8KB) — mETH on Mantle (`0xcDA86A...`) as bridge image; canonical Staking on Ethereum L1 (`0xe3cBd06D...`) verified live (exchange rate 1.0929 mETH/ETH, 229,599 ETH staked). Concierge action surface = Mantle-side DEX swap only; L1 staking out of MVP scope. cmETH (restaked) addressed.
+5. **`meth-staking.md`** (~10.8KB) — mETH on Mantle (`0xcDA86A...`) as bridge image; canonical Staking on Ethereum L1 (`0xe3cBd06D...`) verified live (exchange rate 1.0929 mETH/ETH, 229,599 ETH staked). mPilot action surface = Mantle-side DEX swap only; L1 staking out of MVP scope. cmETH (restaked) addressed.
 6. **`lifi-bridge.md`** (~9.8KB) — LiFi Diamond `0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE` confirmed via Li.Fi `/v1/chains` API. HTTP API integration pattern detailed. Session-key scoping by parsed function selector. Two-stage attestation (sent + completed) for cross-chain.
 7. **`erc8004.md`** (~12.3KB) — Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (verified `name()="AgentIdentity"`). Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` (bytecode confirmed). Sepolia counterparts verified. Schema namespace conventions defined for all 6 providers. Self-attestation MVP path; client-attestation deferred.
 

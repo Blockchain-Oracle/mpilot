@@ -48,7 +48,7 @@ export function Hero() {
             Wake up richer.
           </h1>
           <p className="ds-lede" style={{ marginTop: 24, maxWidth: 560 }}>
-            Concierge plans, simulates, proposes, and executes across seven Mantle protocols every
+            mPilot plans, simulates, proposes, and executes across seven Mantle protocols every
             tick. Every move is attested on-chain via ERC-8004 — so the reputation is yours, not the
             wallet&apos;s.
           </p>
@@ -82,7 +82,7 @@ export function Hero() {
 
         <section
           className="card"
-          aria-label="Concierge live tick preview"
+          aria-label="mPilot live tick preview"
           style={{
             position: 'relative',
             padding: 22,

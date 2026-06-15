@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge tick-loop runtime
+**As a** mPilot tick-loop runtime
 **I want to** an `@mpilot/llm` package wraps `@anthropic-ai/sdk` + `@anthropic-ai/claude-agent-sdk` with phase-specific model routing (Sonnet 4.6 default, Opus 4.7 for hard reasoning, Haiku 4.5 for recap) and prompt caching enabled by default
 **So that** per-tick LLM cost is minimized + reasoning quality scales with phase complexity without each tick-phase file re-implementing model selection logic
 

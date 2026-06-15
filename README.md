@@ -1,4 +1,4 @@
-# Concierge
+# mPilot
 
 Autonomous AI agent for Mantle DeFi — a composable primitive consumable from any agent runtime (Vercel AI SDK, OpenAI, LangChain, Coinbase AgentKit, MCP), distributed across four surfaces: web app, MCP server (stdio-first), Claude Agent Skill, and npm SDK.
 

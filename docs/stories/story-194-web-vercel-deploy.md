@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Concierge maintainer
-**I want to** the web app deploys to Vercel at concierge.xyz (production) + preview URLs for every PR, with per-env secrets, edge functions for /api/* routes, and proper cache policy
+**As a** mPilot maintainer
+**I want to** the web app deploys to Vercel at mpilot.xyz (production) + preview URLs for every PR, with per-env secrets, edge functions for /api/* routes, and proper cache policy
 **So that** marketing/dashboard/docs are live at the locked domain, PR previews let reviewers click through changes before merge, and the deploy itself is a non-event (Vercel does the lifting)
 
 ---
@@ -43,10 +43,10 @@ Then it serves the PR branch's code (NOT main's)
 
 Given a merge to main
 When the production deploy runs
-Then concierge.xyz reflects the merged code AND the deploy completes within 3 minutes
+Then mpilot.xyz reflects the merged code AND the deploy completes within 3 minutes
 
 Given the custom domain
-When https://concierge.xyz is requested
+When https://mpilot.xyz is requested
 Then it serves the production deploy with proper SSL (Vercel auto-provisions Let's Encrypt cert)
 
 Given the /api/* routes
@@ -103,9 +103,9 @@ bun scripts/check-file-loc.mjs
 - **Vercel GitHub integration** does the heavy lifting — install once, deploys automate. The workflow YAMLs are just for: comment-on-PR, custom secret rotation triggers, deploy gates.
 - **Edge runtime for /api/*** matters for chat streaming (story-61) — Edge functions don't have the Vercel 10s timeout for streaming responses that Node functions have. Per CLAUDE.md: chat is interactive on the edge; long-running tick loop is on Fly.io worker.
 - **Cache policy**: HTML = 0s (Next.js handles ISR per-page if needed); JS/CSS = 1 year (content-hashed); API responses depend on the endpoint (portfolio data ~60s; reputation feed ~5min).
-- **Preview URL format** matters for the developer experience. Vercel's default is fine; configure custom domains only if needed (e.g., `pr-NNN.preview.concierge.xyz`).
+- **Preview URL format** matters for the developer experience. Vercel's default is fine; configure custom domains only if needed (e.g., `pr-NNN.preview.mpilot.xyz`).
 - **Production deploy on merge to main**, NOT on a release tag. Hackathon velocity: every merge is a release. Post-launch we add tag-gated production deploys.
-- **DNS setup is documented** in DEPLOY-WEB-RUNBOOK.md — pointing concierge.xyz to Vercel's nameservers, verifying with `dig`, certbot fallback if Vercel cert provisioning fails.
+- **DNS setup is documented** in DEPLOY-WEB-RUNBOOK.md — pointing mpilot.xyz to Vercel's nameservers, verifying with `dig`, certbot fallback if Vercel cert provisioning fails.
 - **Zero-downtime is Vercel's default** for failed builds. Document this in the runbook so the team doesn't panic-rollback.
 - **Privy + Anthropic keys** are the critical secrets. Without them the app loads but auth and chat are broken — surface failures with clear toasts (story-115) so users see useful errors.
 - Cross-ref: ADR-011 (web on Vercel; worker on Fly.io; MCP on Workers — three different runtimes for three different needs), story-61 (chat API edge runtime).

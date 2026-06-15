@@ -1,4 +1,4 @@
-# Concierge — Constraints, Requirements, Standards
+# mPilot — Constraints, Requirements, Standards
 
 ## Submission requirements (the *what*, not the *when*)
 
@@ -7,24 +7,24 @@ Mantle Turing Test 2026 submission requires all of the following per the prize d
 ### Mantle deployment (Grand Champion + all track prizes)
 - ✅ Smart contract deployed on **Mantle Mainnet (chain id 5000)**
 - ✅ Contract **verified** on MantleScan (https://mantlescan.xyz)
-- ✅ At least one **AI-powered function callable on-chain** — Concierge tick → ERC-8004 `giveFeedback` write IS the AI-powered function on-chain
+- ✅ At least one **AI-powered function callable on-chain** — mPilot tick → ERC-8004 `giveFeedback` write IS the AI-powered function on-chain
 - ✅ Submit **open-source repo** (GitHub, public) with **comprehensive README** (setup instructions, architecture overview, deployed contract addresses)
 - ✅ Submit **runnable demo** (public URL — not localhost)
 - ✅ Submit **project pitch** (DoraHacks form)
 - ✅ Must be **nominated from at least one track**
 
 ### Agentic Economy (Byreal) track-specific
-- ✅ Must use **core capabilities** of at least one of: Byreal Agent Skills / Byreal Perps CLI / **RealClaw** — Concierge qualifies via RealClaw skill packaging
+- ✅ Must use **core capabilities** of at least one of: Byreal Agent Skills / Byreal Perps CLI / **RealClaw** — mPilot qualifies via RealClaw skill packaging
 - ✅ Deploy on **Mantle** (or Solana — Mantle is our choice)
 - ✅ Open-source repo + runnable demo + one-line pitch (in DoraHacks form)
 - ✅ Answer in submission: *"Which Byreal on-chain capabilities does your project use? What scenario are they applied to?"*
 
 ### Best UI/UX
-- ✅ Runnable **frontend interface** (`concierge.xyz/app`)
+- ✅ Runnable **frontend interface** (`mpilot.xyz/app`)
 - ✅ Submit demo video OR publicly accessible link (both ship)
 
 ### 20-Project Deployment Award (first-come 20 spots)
-- ✅ Smart contract on Mantle Mainnet OR Testnet — Concierge deploys to both
+- ✅ Smart contract on Mantle Mainnet OR Testnet — mPilot deploys to both
 - ✅ Verified on Mantle Explorer
 - ✅ AI-powered function callable on-chain
 - ✅ Frontend publicly accessible
@@ -50,10 +50,10 @@ Each item must exist + be public when we submit:
 - [ ] **Mainnet contract addresses** verified on MantleScan
   - `ConciergeRegistry.sol` (agent identity + goal/policy storage)
   - Session-key validator contract (if custom; or ZeroDev's stock validator)
-- [ ] **Public frontend** at `concierge.xyz` — Vercel
-- [ ] **Public app surface** at `concierge.xyz/app`
-- [ ] **Public docs** at `concierge.xyz/docs`
-- [ ] **MCP server** live at `mcp.concierge.xyz/api/sse`
+- [ ] **Public frontend** at `mpilot.xyz` — Vercel
+- [ ] **Public app surface** at `mpilot.xyz/app`
+- [ ] **Public docs** at `mpilot.xyz/docs`
+- [ ] **MCP server** live at `mcp.mpilot.xyz/api/sse`
 - [ ] **`npx skills add @mpilot/mantle-agent`** installable + verified by demo install
 - [ ] **7 npm packages published** under `@mpilot/*` scope
 - [ ] **GitHub repo** public, MIT licensed, with full README (setup, architecture, addresses, screenshots)

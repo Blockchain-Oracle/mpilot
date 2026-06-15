@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer + future-me looking back at this submission
+**As a** mPilot maintainer + future-me looking back at this submission
 **I want to** sprint-status.yaml is updated with the final state (every COMPLETE story has merged_at + pr_url; any incomplete stories explicitly marked DEFERRED with rationale), a coverage report summarizing test + LOC across the codebase, and a one-page "what shipped" summary
 **So that** the submission carries a transparent record of "what we said we'd build vs what we shipped" — credible to judges, useful for post-launch planning, honest about the scope cuts made
 

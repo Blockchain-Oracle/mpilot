@@ -10,9 +10,9 @@
 
 ## User story
 
-**As a** developer integrating Concierge into a third-party agent skill (RealClaw, Claude Skills, OpenAI custom GPTs, or a custom in-house skill registry)
+**As a** developer integrating mPilot into a third-party agent skill (RealClaw, Claude Skills, OpenAI custom GPTs, or a custom in-house skill registry)
 **I want to** `pnpm add @mpilot/skill` and call `generateSkillManifest({ tools, profile })` to emit a valid SKILL.md from any subset of `@mpilot/tools`, plus `validateSkillOutput(skill, json)` to assert that a tool's JSON output conforms to its declared `outputSchema`
-**So that** any team can ship a Concierge-powered skill in under 30 LOC, the JSON output contract (per ADR-014 / 017) is enforced at the skill boundary, and `packages/skill-mantle-agent` becomes a thin caller of this framework rather than hand-authored YAML
+**So that** any team can ship a mPilot-powered skill in under 30 LOC, the JSON output contract (per ADR-014 / 017) is enforced at the skill boundary, and `packages/skill-mantle-agent` becomes a thin caller of this framework rather than hand-authored YAML
 
 ---
 

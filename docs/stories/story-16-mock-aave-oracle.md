@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime ticking on Sepolia
+**As a** mPilot agent runtime ticking on Sepolia
 **I want to** a mock contract implements `IAaveOracle.getAssetPrice(asset)` returning deterministic but admin-tunable USD prices for sUSDe / USDC / USDY / mETH
 **So that** the agent's plan + simulate phases produce consistent demo results AND admins can simulate price drift (depeg, mETH appreciation) for compelling judge demos
 
@@ -103,10 +103,10 @@ forge test --match-contract MockAaveOracleTest 2>&1 | grep -E "\[PASS\]" | wc -l
 ## Notes for coding agent
 
 - **The `Capped sUSDe/USDT/USD` composite mechanic is NOT replicated.** The mock just returns the final 8-decimal USD price. The agent runtime (via `@mpilot/aave-v3-mantle` provider) calls `getAssetPrice(asset)` which is the same interface real Aave Oracle exposes — so the agent doesn't branch.
-- **Seeded prices match Mainnet snapshot from 2026-06-03 audit** so Sepolia demos feel real-shaped. If Abu wants to demo a depeg, he calls `setAssetPrice(mockSUSDe, 95000000)` mid-demo and the agent's depeg monitor (story-48 in the original Patron stories — equivalent will live in Concierge's tick loop story-65 propose phase) fires the rotate path.
+- **Seeded prices match Mainnet snapshot from 2026-06-03 audit** so Sepolia demos feel real-shaped. If Abu wants to demo a depeg, he calls `setAssetPrice(mockSUSDe, 95000000)` mid-demo and the agent's depeg monitor (story-48 in the original Patron stories — equivalent will live in mPilot's tick loop story-65 propose phase) fires the rotate path.
 - **`AssetPriceUnavailable` is a typed error, NOT a silent `return 0`.** Real Aave Oracle reverts on stale composite reads; the mock does the same. The agent's `simulate()` phase catches this and treats it as `oracle_unavailable` per ADR-008 + `research/concierge/03-providers/aave-v3-mantle.md` § IAaveOracle staleness caveat.
-- **`PriceUpdated` event** lets off-chain observers (Concierge dashboard / Sepolia faucet UI) react to admin price changes.
+- **`PriceUpdated` event** lets off-chain observers (mPilot dashboard / Sepolia faucet UI) react to admin price changes.
 - **`ORACLE_ADMIN_ROLE`** is granted to the deployer in story-18's deploy script. A dedicated role (not just DEFAULT_ADMIN_ROLE) lets us delegate price-curation without granting broader admin authority.
-- **NO Chainlink / Redstone integration.** Per ADR-008, Concierge never reads raw Chainlink anywhere. The mock is a flat key-value store; price drift is admin-driven, not feed-driven.
+- **NO Chainlink / Redstone integration.** Per ADR-008, mPilot never reads raw Chainlink anywhere. The mock is a flat key-value store; price drift is admin-driven, not feed-driven.
 - Cross-ref: ADR-008 (Aave Oracle is the price source on Mantle), `research/concierge/03-providers/aave-v3-mantle.md` § Verified facts (Mainnet AaveOracle = `0x47a063CfDa980532267970d478EC340C0F80E8df`, returns 8-decimal prices, base = USD).
 - File MUST stay under 400 LOC.

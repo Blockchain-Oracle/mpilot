@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** a `computeFeedbackHash(envelope)` function returns the EXACT bytes32 hash that ReputationRegistry's giveFeedback expects, using viem's `hashTypedData` against the canonical envelope content
 **So that** the on-chain hash (stored in the attestation NFT's metadata) matches the off-chain IPFS content byte-for-byte, enabling anyone to verify "this CID is what the agent attested" without ambiguity
 

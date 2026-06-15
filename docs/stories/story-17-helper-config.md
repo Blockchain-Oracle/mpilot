@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge contracts deployer
+**As a** mPilot contracts deployer
 **I want to** a single `HelperConfig.s.sol` resolves dependency addresses (Aave Pool, Aave Oracle, sUSDe, USDC, USDY, mETH, ERC-8004 registries) per chain id
 **So that** `DeployAll.s.sol` deploys identically across Mainnet (5000 → real addresses) and Sepolia (5003 → mock addresses) without per-chain branching in the deploy script itself
 
@@ -105,7 +105,7 @@ test "$files" = "contracts/script/lib/Addresses.sol"
   ```
 - **`UnsupportedChain` reverts on unknown chain ids** — no silent fallthrough. Reference: `research/concierge/AUDIT-2026-06-04.md` § findings (no-silent-failures principle).
 - **Mainnet seed prices on Sepolia mocks** make demos feel real-shaped without dragging in oracle complexity. If Abu wants drift, he calls `MockAaveOracle.setAssetPrice` post-deploy (story-16).
-- **mETH on Mantle is technically a bridge image** (per `research/concierge/03-providers/meth-staking.md`); Concierge treats it as a regular ERC-20 token for the action surface. The Sepolia mock is a simplified ERC-20 — no L1 bridge mechanics replicated.
+- **mETH on Mantle is technically a bridge image** (per `research/concierge/03-providers/meth-staking.md`); mPilot treats it as a regular ERC-20 token for the action surface. The Sepolia mock is a simplified ERC-20 — no L1 bridge mechanics replicated.
 - **E-Mode stablecoin category id (1) is a constant in the struct** so the agent runtime can read it once per chain via `helperConfig.getConfig().emodeStablecoinCategory` instead of hardcoding `1` everywhere.
 - Cross-ref: ADR-012 (Sepolia mock-deploy pattern); `archive/patron-2026-06-02/docs/stories/story-17-helper-config.md` (predecessor implementation — similar shape, Patron-specific reserves).
 - File MUST stay under 400 LOC. If `HelperConfig.s.sol` approaches limit, extract Sepolia-deploy logic to `script/lib/SepoliaDeploy.sol`.

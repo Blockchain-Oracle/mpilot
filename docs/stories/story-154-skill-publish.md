@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge maintainer
+**As a** mPilot maintainer
 **I want to** the skill publishes to npm + the RealClaw registry via a single `pnpm run publish-skill` command, with automatic version bump + changelog + signed release commit
 **So that** the Track-6 RealClaw submission has a clean publish trail and users get a discoverable artifact
 

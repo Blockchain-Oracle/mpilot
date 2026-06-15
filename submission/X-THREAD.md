@@ -1,9 +1,9 @@
-# {{PRODUCT_NAME}} — X Thread (#MantleAIHackathon)
+# mPilot — X Thread (#MantleAIHackathon)
 
 ---
 
 **1/**
-Meet {{PRODUCT_NAME}}: an autonomous AI agent that manages your DeFi on @Mantle_Official 24/7.
+Meet mPilot: an autonomous AI agent that manages your DeFi on @Mantle_Official 24/7.
 
 Set a goal in plain English. It runs plan → simulate → propose → execute → record across 7 Mantle protocols — and attests every move on-chain.
 
@@ -32,7 +32,7 @@ Not a black box — a verifiable, forever audit trail of what the agent did and 
 **4/**
 The differentiator: most entries are a single web app.
 
-{{PRODUCT_NAME}} ships the SAME agent core across 4 surfaces:
+mPilot ships the SAME agent core across 4 surfaces:
 • 🌐 Web app
 • 🔌 MCP server (runs in Claude Desktop)
 • 📦 npm SDK
@@ -56,9 +56,9 @@ Proof it's real — already live on Mantle mainnet:
 **6/**
 Watch it tick live, then run it yourself:
 
-🎥 Demo: {{DEMO_URL}}
-🌐 App: https://{{DOMAIN}}
-💻 Repo: {{REPO_URL}}
-🔌 MCP: npx -y {{NPM_SCOPE}}/mcp
+🎥 Demo: https://mpilot.xyz
+🌐 App: https://mpilot.xyz
+💻 Repo: https://github.com/Blockchain-Oracle/mpilot
+🔌 MCP: npx -y @mpilot/mcp
 
 Built for the Mantle Turing Test 2026 — AI x RWA track. #MantleAIHackathon

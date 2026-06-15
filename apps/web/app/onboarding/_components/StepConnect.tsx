@@ -83,7 +83,7 @@ export function StepConnect({ data, set, onNext }: StepConnectProps) {
     <StepShell
       eyebrow="No account yet"
       title="Connect a wallet to begin"
-      lede="Your wallet signs every move. Concierge never takes custody — you stay the principal."
+      lede="Your wallet signs every move. mPilot never takes custody — you stay the principal."
       onNext={onNext}
       nextDisabled={!data.walletAddress}
     >

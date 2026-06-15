@@ -10,9 +10,9 @@
 
 ## User story
 
-**As a** Concierge user who hasn't set up a smart account (or chose to disable it)
+**As a** mPilot user who hasn't set up a smart account (or chose to disable it)
 **I want to** the agent can still act by proposing transactions to me — I sign them in my wallet, and a Postgres queue tracks the signed-but-not-yet-executed txs through to confirmation
-**So that** Concierge works for EOA-only users without forcing them into ERC-4337 onboarding (Day-1 fallback if ZeroDev integration hits unexpected issues)
+**So that** mPilot works for EOA-only users without forcing them into ERC-4337 onboarding (Day-1 fallback if ZeroDev integration hits unexpected issues)
 
 ---
 

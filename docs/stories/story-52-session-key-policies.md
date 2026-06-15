@@ -10,8 +10,8 @@
 
 ## User story
 
-**As a** Concierge user
-**I want to** session keys issued to my Concierge agent are restricted to specific contract addresses, specific function selectors, and a daily spending limit
+**As a** mPilot user
+**I want to** session keys issued to my mPilot agent are restricted to specific contract addresses, specific function selectors, and a daily spending limit
 **So that** if my session key leaks, the attacker can only do what the agent could do (NOT drain my wallet) — the policy enforces the agent's intended scope at the EVM level, not just the application level
 
 ---

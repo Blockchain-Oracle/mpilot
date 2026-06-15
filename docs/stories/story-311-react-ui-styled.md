@@ -10,9 +10,9 @@
 
 ## User story
 
-**As a** developer who wants Concierge's official look-and-feel
-**I want to** `pnpm add @mpilot/react-ui` and drop `<TickCard />`, `<ProposalCard />`, `<PortfolioCard />` etc. into my app, styled with Concierge brand tokens
-**So that** I get the canonical Concierge visual without owning the source
+**As a** developer who wants mPilot's official look-and-feel
+**I want to** `pnpm add @mpilot/react-ui` and drop `<TickCard />`, `<ProposalCard />`, `<PortfolioCard />` etc. into my app, styled with mPilot brand tokens
+**So that** I get the canonical mPilot visual without owning the source
 
 ---
 

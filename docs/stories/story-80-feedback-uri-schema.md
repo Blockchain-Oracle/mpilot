@@ -10,7 +10,7 @@
 
 ## User story
 
-**As a** Concierge agent runtime
+**As a** mPilot agent runtime
 **I want to** a canonical JSON schema defines what goes in every off-chain feedback URI (the data referenced by an on-chain ERC-8004 attestation), with Zod validation so malformed payloads NEVER hit the IPFS pinner
 **So that** the off-chain attestation content is queryable, type-safe, version-tagged, and downstream auditors (judges, users, future agents) can verify the data without reverse-engineering the format
 

@@ -17,7 +17,7 @@ Per architecture.md ADR-011 amendment (rework 2026-06-09), the MCP server archit
 2. **Two binaries / entry points share one server factory**:
    - `packages/mcp/src/server.ts` — the `createConciergeMcpServer({ tools, env })` factory consuming `@mpilot/tools`
    - `packages/mcp/src/stdio.ts` — stdio bin entry (the **DEFAULT** install path: `claude mcp add concierge -- npx -y @mpilot/mcp`)
-   - `apps/mcp/src/index.ts` — Cloudflare Worker wrapper consuming the same factory (the **OPTIONAL secondary** install: `https://mcp.concierge.xyz/mcp`)
+   - `apps/mcp/src/index.ts` — Cloudflare Worker wrapper consuming the same factory (the **OPTIONAL secondary** install: `https://mcp.mpilot.xyz/mcp`)
 3. **`packages/mcp/package.json` `bin` field**:
    ```jsonc
    { "bin": { "concierge-mcp": "./dist/stdio.js" } }
@@ -82,7 +82,7 @@ Then both exit 0
 
 ## User story
 
-**As a** Claude Code user wanting Concierge as an MCP tool
+**As a** Claude Code user wanting mPilot as an MCP tool
 **I want to** the MCP server skeleton at `apps/mcp-server` is built with Hono + `@modelcontextprotocol/sdk` v2, exposes the canonical MCP endpoints (`/mcp` for JSON-RPC, `/sse` for streaming), and runs locally for development
 **So that** subsequent stories (read tools, write tools, OAuth) have a working scaffold to build on, and the Track-3 MCP listing has a concrete artifact to point at
 
