@@ -82,6 +82,12 @@ importers:
       '@ai-sdk/anthropic':
         specifier: ^3.0.82
         version: 3.0.82(zod@4.4.3)
+      '@ai-sdk/google':
+        specifier: ^3.0.80
+        version: 3.0.80(zod@4.4.3)
+      '@ai-sdk/openai':
+        specifier: ^3.0.69
+        version: 3.0.69(zod@4.4.3)
       '@concierge-mantle/aave-v3-mantle':
         specifier: workspace:*
         version: link:../../packages/providers/aave-v3-mantle
@@ -112,6 +118,12 @@ importers:
       '@concierge-mantle/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@concierge-mantle/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
+      '@concierge-mantle/vercel-ai':
+        specifier: workspace:*
+        version: link:../../packages/vercel-ai
       ai:
         specifier: ^6.0.0
         version: 6.0.199(zod@4.4.3)
@@ -619,9 +631,15 @@ importers:
         specifier: workspace:*
         version: link:../shared
     devDependencies:
+      '@types/node':
+        specifier: 22.19.20
+        version: 22.19.20
       tsup:
         specifier: 8.5.0
         version: 8.5.0(jiti@2.6.1)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.9.0)
+      vitest:
+        specifier: 4.1.8
+        version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@22.19.20)(happy-dom@20.10.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))(msw@2.14.6(@types/node@22.19.20)(typescript@6.0.3))(vite@8.0.16(@types/node@22.19.20)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.22.4)(yaml@2.9.0))
       zod:
         specifier: 4.4.3
         version: 4.4.3

@@ -36,7 +36,8 @@ async function executeRepay(ctx: ActionContext, args: z.infer<typeof RepayInput>
   const { walletClient, account } = await requireWallet(ctx, 'repay');
 
   const { asset, amount } = args;
-  const rawAmount = amount === 'max' ? maxUint256 : amount;
+  // POSITIVE_BIGINT became a decimal string — convert at the EVM boundary.
+  const rawAmount = amount === 'max' ? maxUint256 : BigInt(amount);
   const [preState, eMode] = await Promise.all([
     getUserAccountData(publicClient, poolAddress, account),
     getUserEMode(publicClient, poolAddress, account),

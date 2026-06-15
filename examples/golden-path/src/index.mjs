@@ -44,25 +44,26 @@ if (!PK) {
   process.exit(1);
 }
 
-// Pick whichever real key is available — try Anthropic first, then Google.
-// (The harness exists to prove the loop end-to-end against ANY model; the
-// production agent runtime picks per-tick model via ADR-016.)
+// Pick whichever real key is available. Preference: OpenAI > Anthropic > Google.
+const { createOpenAI } = await import('@ai-sdk/openai');
 const { createAnthropic } = await import('@ai-sdk/anthropic');
 const { createGoogleGenerativeAI } = await import('@ai-sdk/google');
+const OPENAI_KEY = process.env.OPENAI_API_KEY;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const GOOGLE_KEY = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 let model;
 let modelLabel;
-if (ANTHROPIC_KEY && ANTHROPIC_KEY.startsWith('sk-ant-')) {
+if (OPENAI_KEY && OPENAI_KEY.startsWith('sk-')) {
+  model = createOpenAI({ apiKey: OPENAI_KEY })('gpt-4o');
+  modelLabel = 'openai gpt-4o';
+} else if (ANTHROPIC_KEY && ANTHROPIC_KEY.startsWith('sk-ant-')) {
   model = createAnthropic({ apiKey: ANTHROPIC_KEY })('claude-sonnet-4-5');
   modelLabel = 'anthropic claude-sonnet-4-5';
 } else if (GOOGLE_KEY && GOOGLE_KEY.length > 20) {
   model = createGoogleGenerativeAI({ apiKey: GOOGLE_KEY })('gemini-2.5-flash');
   modelLabel = 'google gemini-2.5-flash';
 } else {
-  console.error(
-    'No usable LLM key. Set ANTHROPIC_API_KEY (sk-ant-...) in apps/worker/.env OR GEMINI_API_KEY in the shell env.',
-  );
+  console.error('No usable LLM key. Set OPENAI_API_KEY in apps/worker/.env.');
   process.exit(1);
 }
 

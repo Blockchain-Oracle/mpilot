@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.82",
     "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.69",
     "@concierge-mantle/aave-v3-mantle": "workspace:*",
     "@concierge-mantle/agent": "workspace:*",
     "@concierge-mantle/erc8004": "workspace:*",

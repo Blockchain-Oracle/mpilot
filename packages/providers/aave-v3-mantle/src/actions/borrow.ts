@@ -71,7 +71,9 @@ export function createBorrowTool(ctx: ActionContext) {
     inputSchema: BorrowInput,
     outputSchema: BorrowOutput,
     supportsNetwork: (chainId) => chainId === ctx.chainId,
-    async invoke({ asset, amount }) {
+    async invoke({ asset, amount: amountStr }) {
+      // POSITIVE_BIGINT became a decimal string for JSON Schema compatibility.
+      const amount = BigInt(amountStr);
       const { publicClient, chainId, poolAddress, sUsdeAddress } = ctx;
       const { walletClient, account } = await requireWallet(ctx, 'borrow');
 

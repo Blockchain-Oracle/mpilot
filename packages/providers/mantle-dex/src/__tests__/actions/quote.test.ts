@@ -35,7 +35,7 @@ describe('quote action (Mainnet fork integration)', () => {
     const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: USDe,
-      amountIn: USDC_AMOUNT,
+      amountIn: USDC_AMOUNT.toString(),
       slippageBps: 50,
     });
 
@@ -50,7 +50,7 @@ describe('quote action (Mainnet fork integration)', () => {
     const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: USDe,
-      amountIn: USDC_AMOUNT,
+      amountIn: USDC_AMOUNT.toString(),
       slippageBps: 50,
     });
 
@@ -67,7 +67,7 @@ describe('quote action (Mainnet fork integration)', () => {
     const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: USDe,
-      amountIn: USDC_AMOUNT,
+      amountIn: USDC_AMOUNT.toString(),
       slippageBps: 50,
     });
 
@@ -80,7 +80,7 @@ describe('quote action (Mainnet fork integration)', () => {
     const result = await makeProvider().actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: USDe,
-      amountIn: USDC_AMOUNT,
+      amountIn: USDC_AMOUNT.toString(),
       slippageBps: 50,
     });
 
@@ -99,7 +99,7 @@ describe('quote action (Mainnet fork integration)', () => {
       makeProvider().actions.quote.invoke({
         tokenIn: USDC,
         tokenOut: NONEXISTENT,
-        amountIn: USDC_AMOUNT,
+        amountIn: USDC_AMOUNT.toString(),
         slippageBps: 50,
       }),
     ).rejects.toMatchObject({ type: 'InsufficientLiquidity' });

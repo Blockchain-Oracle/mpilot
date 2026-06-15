@@ -57,7 +57,9 @@ async function executeWithdraw(ctx: ActionContext, args: z.infer<typeof Withdraw
   const { publicClient, chainId, poolAddress } = ctx;
   const { walletClient, account } = await requireWallet(ctx, 'withdraw');
 
-  const { asset, amount, to } = args;
+  const { asset, amount: amountIn, to } = args;
+  // POSITIVE_BIGINT became a decimal string for JSON Schema compatibility.
+  const amount = amountIn === 'max' ? ('max' as const) : BigInt(amountIn);
   const rawAmount = amount === 'max' ? maxUint256 : amount;
   const [preState, eMode] = await Promise.all([
     getUserAccountData(publicClient, poolAddress, account),

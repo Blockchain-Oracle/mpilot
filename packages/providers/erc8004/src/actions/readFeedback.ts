@@ -5,8 +5,12 @@ import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 
 export const ReadFeedbackInput = z.object({
-  agentId: z.bigint().describe('Agent NFT token ID'),
-  fromBlock: z.bigint().optional().describe('Start block for event scan (defaults to genesis)'),
+  agentId: z.string().regex(/^\d+$/).describe('Agent NFT token ID'),
+  fromBlock: z
+    .string()
+    .regex(/^\d+$/)
+    .optional()
+    .describe('Start block for event scan (defaults to genesis)'),
 });
 
 export const FeedbackEntrySchema = z.object({
@@ -18,9 +22,9 @@ export const FeedbackEntrySchema = z.object({
   feedbackURI: z
     .string()
     .describe('Off-chain pointer to feedback content (typically `ipfs://<cid>`)'),
-  feedbackIndex: z.bigint().describe('Feedback index in the ReputationRegistry'),
+  feedbackIndex: z.string().regex(/^\d+$/).describe('Feedback index in the ReputationRegistry'),
   clientAddress: z.string().describe('Address that submitted the feedback'),
-  blockNumber: z.bigint().describe('Block number of the NewFeedback event'),
+  blockNumber: z.string().regex(/^\d+$/).describe('Block number of the NewFeedback event'),
   txHash: z
     .string()
     .regex(/^0x[0-9a-fA-F]{64}$/)
@@ -69,14 +73,17 @@ export async function executeReadFeedback(
   ctx: ActionContext,
   input: z.infer<typeof ReadFeedbackInput>,
 ): Promise<z.infer<typeof ReadFeedbackOutput>> {
-  const fromBlock = input.fromBlock ?? 0n;
+  // input.agentId + input.fromBlock are decimal strings per the schema (JSON
+  // Schema has no bigint). Convert at the contract-call boundary.
+  const agentIdBig = BigInt(input.agentId);
+  const fromBlock = input.fromBlock ? BigInt(input.fromBlock) : 0n;
 
   const logs = await ctx.publicClient
     .getContractEvents({
       address: ctx.reputationRegistry,
       abi: reputationRegistryAbi,
       eventName: 'NewFeedback',
-      args: { agentId: input.agentId },
+      args: { agentId: agentIdBig },
       fromBlock,
     })
     .catch((err: unknown) => {
@@ -87,7 +94,7 @@ export async function executeReadFeedback(
       );
     });
 
-  const revokedIndexes = await fetchRevokedIndexes(ctx, input.agentId, fromBlock);
+  const revokedIndexes = await fetchRevokedIndexes(ctx, agentIdBig, fromBlock);
 
   const entries = logs.flatMap((log) => {
     const { args, blockNumber, transactionHash } = log;
@@ -107,9 +114,10 @@ export async function executeReadFeedback(
         schema: args.tag2,
         feedbackHash: args.feedbackHash,
         feedbackURI: args.feedbackURI,
-        feedbackIndex: args.feedbackIndex,
+        // Output schema is decimal strings — convert from bigint at the boundary.
+        feedbackIndex: args.feedbackIndex.toString(),
         clientAddress: args.clientAddress,
-        blockNumber,
+        blockNumber: blockNumber.toString(),
         txHash: transactionHash,
         revoked: revokedIndexes.has(args.feedbackIndex),
       },
