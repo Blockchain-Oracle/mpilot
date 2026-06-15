@@ -13,7 +13,7 @@
  * Verified provider endpoints via Context7 / official docs 2026-06-15:
  *   Anthropic    GET https://api.anthropic.com/v1/models  (header: x-api-key)
  *   OpenAI       GET https://api.openai.com/v1/models     (header: Authorization)
- *   Google AI    GET https://generativelanguage.googleapis.com/v1beta/models?key=
+ *   Google AI    GET https://generativelanguage.googleapis.com/v1beta/models (header: x-goog-api-key)
  *   xAI          GET https://api.x.ai/v1/models           (header: Authorization)
  */
 
@@ -64,12 +64,13 @@ export async function validateOpenAi(key: string): Promise<ValidationResult> {
 }
 
 export async function validateGoogle(key: string): Promise<ValidationResult> {
-  // Google AI Studio uses ?key=... rather than a header. The key never appears
-  // in our logs because Next.js doesn't log outbound fetch URLs by default and
-  // we don't pass `key` into any error message we throw.
-  const url = new URL('https://generativelanguage.googleapis.com/v1beta/models');
-  url.searchParams.set('key', key);
-  const res = await fetchWithTimeout(url.toString(), { method: 'GET' });
+  // Use the `x-goog-api-key` HEADER, NOT the `?key=` query param. URL params
+  // surface in every HTTP-instrumentation breadcrumb (Sentry, OpenTelemetry,
+  // proxy logs, Google's own access logs); a header keeps the key out of
+  // the URL surface entirely.
+  const res = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models', {
+    headers: { 'x-goog-api-key': key },
+  });
   if (!res.ok) return { ok: false, reason: pickReason(res.status, `http ${res.status}`) };
   const body = (await res.json()) as { models?: ReadonlyArray<unknown> };
   return { ok: true, modelCount: Array.isArray(body.models) ? body.models.length : 0 };
@@ -92,5 +93,12 @@ const VALIDATORS: Readonly<Record<ProviderId, (key: string) => Promise<Validatio
 };
 
 export async function validate(provider: ProviderId, key: string): Promise<ValidationResult> {
-  return VALIDATORS[provider](key);
+  const fn = VALIDATORS[provider];
+  if (!fn) {
+    // Defense in depth: even though the route's Zod schema gates `provider`,
+    // direct callers (tests, future SDK consumers) could pass an unknown
+    // value. Fail with a clean ValidationResult instead of `TypeError`.
+    return { ok: false, reason: 'unknown provider' };
+  }
+  return fn(key);
 }

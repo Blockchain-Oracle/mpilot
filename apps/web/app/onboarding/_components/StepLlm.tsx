@@ -67,6 +67,10 @@ export function StepLlm({ data, set, onBack, onNext }: StepLlmProps) {
       void (async () => {
         try {
           const token = await getAccessToken();
+          // Bail if a newer change() aborted us while getAccessToken() was
+          // pending — otherwise we'd land an `invalid` flicker for a stale
+          // snapshot of the input.
+          if (ctl.signal.aborted) return;
           if (!token) {
             set((prev) => ({ keyStatus: { ...prev.keyStatus, [id]: 'invalid' } }));
             return;
@@ -90,8 +94,11 @@ export function StepLlm({ data, set, onBack, onNext }: StepLlmProps) {
           }));
         } catch (err) {
           if (ctl.signal.aborted) return;
+          // Log only the error NAME, never the full chain. Some fetch errors
+          // carry the request object in `.cause`, which can include the
+          // body — and the body has the user's key.
           // biome-ignore lint/suspicious/noConsole: developer-facing observability
-          console.error('[StepLlm] verify failed', err);
+          console.error('[StepLlm] verify failed', err instanceof Error ? err.name : 'unknown');
           set((prev) => ({ keyStatus: { ...prev.keyStatus, [id]: 'invalid' } }));
         }
       })();

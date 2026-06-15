@@ -7,7 +7,9 @@ import {
   validateXai,
 } from './_validators';
 
-const KEY = 'sk-test-1234567890abcdefghij';
+// Synthetic test key — must NOT match any real provider's prefix shape so
+// secret-scanning hooks (gitleaks, GitGuardian) don't flag it.
+const KEY = 'TEST_NOT_A_REAL_PROVIDER_KEY_1234567890_abcdefghij';
 
 describe('validators never echo the key in their result', () => {
   // Spy on fetch so each test can assert ok/reason without hitting the network.
@@ -63,5 +65,22 @@ describe('validators never echo the key in their result', () => {
       async () => new Response(JSON.stringify({ data: [] }), { status: 200 }),
     ) as typeof fetch;
     expect((await validate('openai', KEY)).ok).toBe(true);
+  });
+
+  it('validate returns ok:false instead of throwing on unknown provider', async () => {
+    const r = await validate('mistral' as 'openai', KEY);
+    expect(r).toEqual({ ok: false, reason: 'unknown provider' });
+  });
+
+  it('Google: never puts the key in the request URL', async () => {
+    const captured: string[] = [];
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      captured.push(typeof input === 'string' ? input : input.toString());
+      return new Response(JSON.stringify({ models: [] }), { status: 200 });
+    }) as typeof fetch;
+    await validateGoogle(KEY);
+    for (const url of captured) {
+      expect(url).not.toContain(KEY);
+    }
   });
 });

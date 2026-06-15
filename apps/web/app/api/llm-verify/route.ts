@@ -22,14 +22,26 @@ const requestSchema = z.object({
   key: z.string().min(16).max(512),
 });
 
-// Tiny in-memory rate limiter — sufficient for dev + the demo. Production
-// swaps for a Redis token bucket once we boot apps/web on multiple instances.
+// In-memory rate limiter — sufficient for the dev path. Production replaces
+// with the Upstash token bucket that r4 already needs for queueing. This is
+// PER-NODE-INSTANCE; serverless deploys with cold starts/fanout lose limiter
+// state on each scale event, so it's a defense-in-depth signal rather than
+// the load-bearing brute-force guard.
 const RATE: Map<string, { count: number; resetAt: number }> = new Map();
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 10;
+const RATE_MAX_ENTRIES = 10_000;
 
 function checkRate(userId: string): boolean {
   const now = Date.now();
+  // Probabilistic sweep — every ~1% of calls or any time the map exceeds the
+  // soft cap, drop expired entries to bound memory under attacker-driven
+  // userId churn.
+  if (RATE.size > RATE_MAX_ENTRIES) {
+    for (const [k, v] of RATE) {
+      if (v.resetAt < now) RATE.delete(k);
+    }
+  }
   const entry = RATE.get(userId);
   if (!entry || entry.resetAt < now) {
     RATE.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
