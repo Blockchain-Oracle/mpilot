@@ -38,9 +38,27 @@ function getRootKey(): Buffer {
  *
  * For 32-byte output, a single HMAC-SHA256 round is enough.
  */
+/**
+ * Length-prefixed canonical encoding. Privy userIds contain `:` characters
+ * (`did:privy:cmqe…`) so a `:`-joined encoding has ambiguity: `did|privy|x:y`
+ * collides with `did|privy:x|y`. Length-prefix each component to make the
+ * encoding injective — `len(a)||a||len(b)||b||…`. UTF-8 lengths fit in 4
+ * bytes since we cap each field upstream.
+ */
+function lpEncode(parts: ReadonlyArray<string>): Buffer {
+  const chunks: Buffer[] = [];
+  for (const p of parts) {
+    const buf = Buffer.from(p, 'utf8');
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(buf.length, 0);
+    chunks.push(len, buf);
+  }
+  return Buffer.concat(chunks);
+}
+
 function deriveKey(userId: string): Buffer {
   const root = getRootKey();
-  const info = Buffer.from(`llm-key:${userId}`, 'utf8');
+  const info = lpEncode(['llm-key', userId]);
   // T(1) = HMAC(root, info || 0x01)
   return createHmac('sha256', root)
     .update(Buffer.concat([info, Buffer.from([0x01])]))
@@ -48,7 +66,7 @@ function deriveKey(userId: string): Buffer {
 }
 
 function buildAad(parts: { userId: string; agentId: string; provider: string }): Buffer {
-  return Buffer.from(`${parts.userId}:${parts.agentId}:${parts.provider}`, 'utf8');
+  return lpEncode([parts.userId, parts.agentId, parts.provider]);
 }
 
 export interface KmsEnvelopeParts {
