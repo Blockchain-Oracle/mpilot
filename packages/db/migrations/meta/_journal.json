@@ -8,6 +8,20 @@
       "when": 1781296229177,
       "tag": "0000_initial",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781512654782,
+      "tag": "0001_r4_llm_keys_chat_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781521444925,
+      "tag": "0002_nervous_chameleon",
+      "breakpoints": true
     }
   ]
 }

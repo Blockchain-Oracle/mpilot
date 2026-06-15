@@ -573,10 +573,19 @@ stories:
     issue_url: ""
     pr_url: ""
     merged_at: ""
-  - id: story-115-emergency-stop-flow
+  - id: story-115-error-boundary-and-toasts
+    epic: "Epic E7 — Web App"
+    status: PENDING
+    depends_on: [story-107-app-dashboard]
+    notes: "Renamed 2026-06-15 — matches actual story file at docs/stories/story-115-error-boundary-and-toasts.md. Emergency-stop FAB is now story-116."
+    issue_url: ""
+    pr_url: ""
+    merged_at: ""
+  - id: story-116-emergency-stop-fab
     epic: "Epic E7 — Web App"
     status: PENDING
     depends_on: [story-107-app-dashboard, story-54-session-key-revocation-flow]
+    notes: "Allocated 2026-06-15 — emergency-stop FAB + confirm modal + post-stop banner + Resume UX (split from former story-115)."
     issue_url: ""
     pr_url: ""
     merged_at: ""
@@ -764,7 +773,7 @@ stories:
   - id: story-193-mainnet-deploy-execution
     epic: "Epic E11 — Mainnet Deployment + Sepolia Playground"
     status: PENDING
-    depends_on: [story-190-mainnet-deploy-runbook, story-70-runtime-integration-tests, story-83-attestation-write-pipeline, story-115-emergency-stop-flow]
+    depends_on: [story-190-mainnet-deploy-runbook, story-70-runtime-integration-tests, story-83-attestation-write-pipeline, story-116-emergency-stop-fab]
     issue_url: ""
     pr_url: ""
     merged_at: ""

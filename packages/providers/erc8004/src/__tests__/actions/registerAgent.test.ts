@@ -69,7 +69,7 @@ describe('registerAgent — happy path', () => {
   it('returns agentId from Transfer mint event', async () => {
     const ctx = makeCtx();
     const result = await executeRegisterAgent(ctx, {});
-    expect(result.agentId).toBe(AGENT_ID);
+    expect(result.agentId).toBe(AGENT_ID.toString());
     expect(result.txHash).toBe(TX_HASH);
   });
 
@@ -160,7 +160,7 @@ describe('registerAgent — log parsing', () => {
       }),
     });
     const result = await executeRegisterAgent(ctx, {});
-    expect(result.agentId).toBe(AGENT_ID);
+    expect(result.agentId).toBe(AGENT_ID.toString());
   });
 
   it('skips Transfer logs from contracts other than identityRegistry', async () => {
@@ -173,7 +173,7 @@ describe('registerAgent — log parsing', () => {
       }),
     });
     const result = await executeRegisterAgent(ctx, {});
-    expect(result.agentId).toBe(AGENT_ID);
+    expect(result.agentId).toBe(AGENT_ID.toString());
   });
 });
 
@@ -202,7 +202,7 @@ describe('registerAgent — fork: live Sepolia IdentityRegistry', () => {
   it('registers a fresh agent and returns agentId > 0', async () => {
     const ctx = makeForkedCtx();
     const result = await executeRegisterAgent(ctx, {});
-    expect(result.agentId).toBeGreaterThan(0n);
+    expect(BigInt(result.agentId)).toBeGreaterThan(0n);
     expect(result.txHash).toMatch(/^0x[0-9a-fA-F]{64}$/);
   });
 
@@ -223,6 +223,6 @@ describe('registerAgent — fork: live Sepolia IdentityRegistry', () => {
     const ctx = makeForkedCtx();
     const { agentId: id1 } = await executeRegisterAgent(ctx, {});
     const { agentId: id2 } = await executeRegisterAgent(ctx, {});
-    expect(id2).toBe(id1 + 1n);
+    expect(BigInt(id2)).toBe(BigInt(id1) + 1n);
   });
 });

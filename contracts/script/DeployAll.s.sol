@@ -41,13 +41,15 @@ contract DeployAll is Script {
             deployer.balance >= 0.1 ether, "DeployAll: deployer balance < 0.1 MNT, top up first"
         );
 
-        // HelperConfig must be created BEFORE broadcast so it is not itself broadcast.
-        HelperConfig helperConfig = new HelperConfig();
-
+        // 2026-06-15 FIX: HelperConfig MUST be deployed INSIDE the broadcast.
+        // Previously created off-broadcast, which meant the internal `new MockX(...)`
+        // CREATE opcodes inside `_getSepoliaConfig()` ran in the forge simulation
+        // VM only — the addresses logged below were correct under simulation but
+        // no code landed on Sepolia. Moving the instantiation into the broadcast
+        // makes the nested CREATEs real txs.
         vm.startBroadcast();
 
-        // getConfig() inside broadcast: on Sepolia, mock deployments are captured
-        // as CREATE transactions. HelperConfig uses tx.origin (== deployer) for role grants.
+        HelperConfig helperConfig = new HelperConfig();
         NetworkConfig memory cfg = helperConfig.getConfig();
 
         // ConciergeRegistry: deploy implementation then wire through UUPS proxy.

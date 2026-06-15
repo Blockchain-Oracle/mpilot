@@ -11,10 +11,10 @@ import {
 } from '../attestation.ts';
 
 export const GetUnwrapToWETHInput = z.object({
-  amountMeth: z.coerce
-    .bigint()
-    .positive()
-    .describe('Amount of mETH to swap to WETH, in base units (18 decimals)'),
+  amountMeth: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .describe('Amount of mETH to swap to WETH (18 decimals) — decimal string'),
   slippageBps: z
     .number()
     .int()
@@ -47,7 +47,8 @@ export async function executeGetUnwrapToWETH(
   ctx: ActionContext,
   args: z.infer<typeof GetUnwrapToWETHInput>,
 ): Promise<z.infer<typeof GetUnwrapToWETHOutput>> {
-  const { amountMeth, slippageBps, recipient } = args;
+  const { amountMeth: amountMethStr, slippageBps, recipient } = args;
+  const amountMeth = BigInt(amountMethStr);
 
   // Compute oracle-based expected output BEFORE the swap for attestation anchoring.
   // Both pool read and rate computation are pre-swap — any failure here is safe to retry.

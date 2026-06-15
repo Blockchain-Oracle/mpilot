@@ -59,7 +59,10 @@ async function executeSupply(ctx: ActionContext, args: z.infer<typeof SupplyInpu
   const { publicClient, chainId, poolAddress } = ctx;
   const { walletClient, account } = await requireWallet(ctx, 'supply');
 
-  const { asset, amount } = args;
+  // POSITIVE_BIGINT is now a decimal string for JSON Schema compatibility
+  // (OpenAI strict-mode rejects bigint). Convert at the EVM boundary.
+  const { asset, amount: amountStr } = args;
+  const amount = BigInt(amountStr);
   const [preState, eMode] = await Promise.all([
     getUserAccountData(publicClient, poolAddress, account),
     getUserEMode(publicClient, poolAddress, account),

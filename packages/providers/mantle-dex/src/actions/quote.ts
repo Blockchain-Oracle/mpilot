@@ -13,7 +13,10 @@ import { createWooFiVenue } from '../venues/woofi.ts';
 export const QuoteInput = z.object({
   tokenIn: NON_ZERO_ADDRESS.describe('ERC-20 token to sell'),
   tokenOut: NON_ZERO_ADDRESS.describe('ERC-20 token to receive'),
-  amountIn: z.coerce.bigint().positive().describe('Amount of tokenIn in base units'),
+  amountIn: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .describe('Amount of tokenIn in base units (decimal string of uint256)'),
   slippageBps: z
     .number()
     .int()
@@ -72,7 +75,8 @@ export async function executeQuote(
   ctx: ActionContext,
   args: z.infer<typeof QuoteInput>,
 ): Promise<QuoteOutputType> {
-  const { tokenIn, tokenOut, amountIn, account, slippageBps } = args;
+  const { tokenIn, tokenOut, amountIn: amountInStr, account, slippageBps } = args;
+  const amountIn = BigInt(amountInStr);
   const venues = buildVenues(ctx);
 
   const baseParams = { tokenIn, tokenOut, amountIn, slippageBps };

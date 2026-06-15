@@ -11,10 +11,15 @@ export const NON_ZERO_ADDRESS = HEX_ADDRESS.refine(
   { message: 'address must not be the zero address' },
 ) as z.ZodType<Address>;
 
-// Accepts string, number, or bigint — compatible with MCP JSON transport (no native bigint in JSON).
-export const POSITIVE_BIGINT = z.coerce
-  .bigint()
-  .refine((v) => v > 0n, { message: 'must be a positive integer' });
+// Positive uint256 as a decimal string. Was `z.coerce.bigint()` — that
+// rendered as JSON Schema "integer" which OpenAI strict-mode rejects with
+// "BigInt cannot be represented in JSON Schema", killing every tool call
+// that referenced the schema. Decimal string is JSON-native; consumers
+// `BigInt(value)` at the EVM boundary.
+export const POSITIVE_BIGINT = z
+  .string()
+  .regex(/^[1-9]\d*$/)
+  .describe('Positive uint256 as a decimal string (e.g. "1000000" for 1 USDC)');
 
 export const NON_NEG_INT_STR = z
   .string()

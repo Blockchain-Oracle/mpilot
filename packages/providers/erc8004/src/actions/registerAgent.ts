@@ -16,7 +16,13 @@ export const RegisterAgentInput = z.object({
 });
 
 export const RegisterAgentOutput = z.object({
-  agentId: z.bigint().describe('Agent NFT token ID — used as agentId across all Reputation calls'),
+  // Decimal string of the uint256 token id — bigint is not representable in
+  // JSON Schema, which broke Vercel AI SDK tool calling end-to-end. Callers
+  // who need a bigint pass through `BigInt(agentId)`.
+  agentId: z
+    .string()
+    .regex(/^\d+$/)
+    .describe('Agent NFT token id (decimal string of uint256) — pass to all Reputation calls'),
   txHash: z
     .string()
     .regex(/^0x[0-9a-fA-F]{64}$/)
@@ -111,7 +117,7 @@ export async function executeRegisterAgent(
       `[@concierge-mantle/erc8004] registerAgent: no Transfer mint event found in receipt ${txHash} — the register() call may have reverted silently`,
     );
   }
-  return { agentId, txHash };
+  return { agentId: agentId.toString(), txHash };
 }
 
 export function createRegisterAgentTool(ctx: ActionContext) {

@@ -1,0 +1,46 @@
+{
+  "name": "@concierge-mantle/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@concierge-mantle/agent": "workspace:*",
+    "@concierge-mantle/db": "workspace:*",
+    "@concierge-mantle/erc8004": "workspace:*",
+    "@concierge-mantle/sdk": "workspace:*",
+    "@concierge-mantle/shared": "workspace:*",
+    "@concierge-mantle/smart-account": "workspace:*",
+    "@concierge-mantle/ui": "workspace:*",
+    "@privy-io/node": "^0.21.0",
+    "@privy-io/react-auth": "^3.30.0",
+    "@privy-io/wagmi": "^4.0.12",
+    "@tanstack/react-query": "^5.101.0",
+    "bullmq": "5.78.0",
+    "ioredis": "5.10.1",
+    "next": "15.5.18",
+    "pg": "8.13.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "resend": "^4.0.0",
+    "viem": "2.52.2",
+    "wagmi": "^2.19.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.20",
+    "@types/pg": "8.11.10",
+    "@types/react": "19.2.5",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.8"
+  }
+}
