@@ -6,7 +6,14 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { createMethStakingProvider } from '../provider.ts';
 
 const L1_FORBIDDEN_ACTIONS = ['stake', 'nativeUnstake', 'unstake', 'claimEth'] as const;
-const EXPECTED_ACTIONS = ['getBalance', 'getExchangeRate', 'getUnwrapToWETH', 'getYieldRate'];
+// `acquire` is a DEX swap (WETH→mETH), NOT an L1 stake — allowed on L2.
+const EXPECTED_ACTIONS = [
+  'acquire',
+  'getBalance',
+  'getExchangeRate',
+  'getUnwrapToWETH',
+  'getYieldRate',
+];
 
 describe('MethStakingProvider — v1 L2-only scope invariant', () => {
   let provider: ReturnType<typeof createMethStakingProvider>;
@@ -22,7 +29,7 @@ describe('MethStakingProvider — v1 L2-only scope invariant', () => {
     );
   });
 
-  it('provider.actions contains ONLY the four expected actions (NoL1Actions guard)', () => {
+  it('provider.actions contains ONLY the expected non-L1 actions (NoL1Actions guard)', () => {
     expect(Object.keys(provider.actions).sort()).toEqual(EXPECTED_ACTIONS.sort());
     const actionKeys = Object.keys(provider.actions);
     for (const forbidden of L1_FORBIDDEN_ACTIONS) {

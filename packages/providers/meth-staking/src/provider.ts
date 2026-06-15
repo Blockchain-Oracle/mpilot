@@ -7,6 +7,7 @@ import {
 } from '@concierge-mantle/shared';
 import { type Chain, createPublicClient, http, type PublicClient } from 'viem';
 import type { ActionContext, DexProviderLike, MethAddresses } from './_context.ts';
+import { createAcquireTool } from './actions/acquire.ts';
 import { createGetBalanceTool } from './actions/getBalance.ts';
 import { createGetExchangeRateTool } from './actions/getExchangeRate.ts';
 import { createGetYieldRateTool } from './actions/getYieldRate.ts';
@@ -36,6 +37,7 @@ export interface MethStakingProvider {
     readonly getBalance: ReturnType<typeof createGetBalanceTool>;
     readonly getExchangeRate: ReturnType<typeof createGetExchangeRateTool>;
     readonly getYieldRate: ReturnType<typeof createGetYieldRateTool>;
+    readonly acquire: ReturnType<typeof createAcquireTool>;
     readonly getUnwrapToWETH: ReturnType<typeof createGetUnwrapToWETHTool>;
   };
 }
@@ -120,6 +122,7 @@ export function createMethStakingProvider(
       getBalance: createGetBalanceTool(ctx),
       getExchangeRate: createGetExchangeRateTool(ctx),
       getYieldRate: createGetYieldRateTool(ctx),
+      acquire: createAcquireTool(ctx),
       getUnwrapToWETH: createGetUnwrapToWETHTool(ctx),
     }),
   });

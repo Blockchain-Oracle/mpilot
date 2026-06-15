@@ -1,7 +1,13 @@
 export type { ActionContext, DexProviderLike, MethAddresses } from './_context.ts';
-export type { ReadAttestationPayload, UnwrapAttestationPayload } from './attestation.ts';
+export type {
+  AcquireAttestationPayload,
+  ReadAttestationPayload,
+  UnwrapAttestationPayload,
+} from './attestation.ts';
 export {
+  AcquireAttestationPayloadSchema,
   buildReadAttestationPayload,
+  METH_ACQUIRE_SCHEMA,
   METH_READ_SCHEMA,
   METH_UNWRAP_SCHEMA,
   ReadAttestationPayloadSchema,

@@ -5,6 +5,7 @@ import { NON_NEG_INT_STR, NON_ZERO_ADDRESS, POSITIVE_INT_STR } from './_validato
 
 export const METH_READ_SCHEMA = 'concierge.meth.read.v1' as const;
 export const METH_UNWRAP_SCHEMA = 'concierge.meth.unwrap-via-dex.v1' as const;
+export const METH_ACQUIRE_SCHEMA = 'concierge.meth.acquire-via-dex.v1' as const;
 
 export const ReadAttestationPayloadSchema = z.object({
   schema: z.literal(METH_READ_SCHEMA),
@@ -27,8 +28,20 @@ export const UnwrapAttestationPayloadSchema = z.object({
   ts: z.number().int().positive(),
 });
 
+export const AcquireAttestationPayloadSchema = z.object({
+  schema: z.literal(METH_ACQUIRE_SCHEMA),
+  chain: z.literal(5000),
+  dexTxHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+  amountWethIn: POSITIVE_INT_STR,
+  expectedMethOut: NON_NEG_INT_STR,
+  actualMethOut: NON_NEG_INT_STR,
+  slippageBps: z.number().int().min(1).max(5000),
+  ts: z.number().int().positive(),
+});
+
 export type ReadAttestationPayload = z.infer<typeof ReadAttestationPayloadSchema>;
 export type UnwrapAttestationPayload = z.infer<typeof UnwrapAttestationPayloadSchema>;
+export type AcquireAttestationPayload = z.infer<typeof AcquireAttestationPayloadSchema>;
 
 export interface ReadAttestationContext {
   chainId: EvmChainId;

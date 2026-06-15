@@ -26,12 +26,13 @@ function makeMockDex() {
 }
 
 describe('createMethStakingProvider — action surface', () => {
-  it("exposes exactly ['getBalance','getExchangeRate','getUnwrapToWETH','getYieldRate']", () => {
+  it("exposes exactly ['acquire','getBalance','getExchangeRate','getUnwrapToWETH','getYieldRate']", () => {
     const p = createMethStakingProvider(
       { chain: 'mantle-mainnet' },
       { dexProvider: makeMockDex() },
     );
     expect(Object.keys(p.actions).sort()).toEqual([
+      'acquire',
       'getBalance',
       'getExchangeRate',
       'getUnwrapToWETH',
