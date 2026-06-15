@@ -25,8 +25,11 @@ const createAgentSchema = z.object({
   agentTokenId: z.string().regex(/^\d+$/),
   chain: z.enum(['mantle-mainnet', 'mantle-sepolia']),
   goal: z.string().min(1).max(2000),
+  // partialRecord, NOT record: in zod 4 `z.record(z.enum(...), v)` is exhaustive
+  // (requires ALL providers present), which would 400 every single-key BYOK
+  // onboarding. partialRecord allows any subset; the refine enforces ≥1.
   llmKeys: z
-    .record(z.enum(['anthropic', 'openai', 'google', 'xai']), z.string().min(16).max(2048))
+    .partialRecord(z.enum(['anthropic', 'openai', 'google', 'xai']), z.string().min(16).max(2048))
     .refine((o) => Object.keys(o).length >= 1, { message: 'at least one LLM key required' }),
   policies: z.record(z.string(), z.string()).optional(),
   caps: z
@@ -97,7 +100,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         .values({
           userId,
           smartAccountAddr: body.smartAccountAddress,
-          erc8004AgentId: BigInt(body.agentTokenId),
+          erc8004AgentId: body.agentTokenId,
           ownerEoa: body.walletAddress,
           chain: body.chain,
           goalJson: { goal: body.goal, caps: body.caps ?? null },

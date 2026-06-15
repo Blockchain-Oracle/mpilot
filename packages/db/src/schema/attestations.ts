@@ -8,7 +8,7 @@ import { check, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
  *
  * `agentId` is `text` to preserve flexibility if the registry ever issues
  * non-numeric ids, but a CHECK constraint enforces the uint256-shape contract
- * with `agents.erc8004AgentId` (bigint). Without this, two writers using
+ * with `agents.erc8004AgentId` (also a uint256 decimal string). Without this, two writers using
  * different encodings ('10' vs '0xa') silently miss each other in joins, and
  * `ORDER BY agent_id` sorts lexicographically (silently wrong since `'10' < '2'`).
  */
