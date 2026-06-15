@@ -5,13 +5,21 @@ import { z } from 'zod';
 import type { ActionContext } from '../_context.ts';
 
 export const ReadReputationInput = z.object({
-  agentId: z.bigint().describe('Agent NFT token ID'),
+  // Decimal string of uint256 — JSON Schema has no bigint type. Internal
+  // callers `BigInt(agentId)` at the EVM boundary.
+  agentId: z.string().regex(/^\d+$/).describe('Agent NFT token id (decimal string of uint256)'),
 });
 
 export const LatestAttestationSchema = z.object({
   schema: z.string().describe('Provider schema used for the most recent attestation (tag2)'),
-  feedbackIndex: z.bigint().describe('Feedback index in the ReputationRegistry'),
-  value: z.bigint().describe('Feedback value (signed int128 stored as bigint)'),
+  feedbackIndex: z
+    .string()
+    .regex(/^\d+$/)
+    .describe('Feedback index in the ReputationRegistry (decimal string of uint256)'),
+  value: z
+    .string()
+    .regex(/^-?\d+$/)
+    .describe('Feedback value (signed int128 as decimal string; negative allowed)'),
 });
 
 export const ReadReputationOutput = z.object({
@@ -101,9 +109,16 @@ function summarizeFeedback(arrays: FeedbackArrays): FeedbackSummary {
       );
     }
     schemaCounts[schema] = (schemaCounts[schema] ?? 0) + 1;
-    // feedbackIndex is monotonically assigned per agent — highest = most recent
-    if (latestAttestation === null || feedbackIndex > latestAttestation.feedbackIndex) {
-      latestAttestation = { schema, feedbackIndex, value };
+    // feedbackIndex is monotonically assigned per agent — highest = most recent.
+    // Schema exposes decimal-string for JSON Schema compatibility; do the
+    // ordering comparison against the bigint form so we don't lexicographically
+    // compare "10" < "9".
+    if (latestAttestation === null || feedbackIndex > BigInt(latestAttestation.feedbackIndex)) {
+      latestAttestation = {
+        schema,
+        feedbackIndex: feedbackIndex.toString(),
+        value: value.toString(),
+      };
     }
   }
   const totalAttestations = Object.values(schemaCounts).reduce((sum, n) => sum + n, 0);
@@ -120,13 +135,15 @@ export async function executeReadReputation(
   ctx: ActionContext,
   input: z.infer<typeof ReadReputationInput>,
 ): Promise<z.infer<typeof ReadReputationOutput>> {
+  // input.agentId is a decimal string per the schema. The contract takes uint256.
+  const agentIdBig = BigInt(input.agentId);
   const clients = await (async () => {
     try {
       return await ctx.publicClient.readContract({
         address: ctx.reputationRegistry,
         abi: reputationRegistryAbi,
         functionName: 'getClients',
-        args: [input.agentId],
+        args: [agentIdBig],
       });
     } catch (err) {
       throw new ConciergeError(
@@ -139,7 +156,7 @@ export async function executeReadReputation(
 
   if (clients.length === 0) return EMPTY_RESULT;
 
-  const arrays = await fetchFeedbackArrays(ctx, input.agentId, clients);
+  const arrays = await fetchFeedbackArrays(ctx, agentIdBig, clients);
   if (arrays.feedbackIndexes.length === 0) return EMPTY_RESULT;
 
   const { schemaCounts, latestAttestation, totalAttestations } = summarizeFeedback(arrays);

@@ -73,7 +73,7 @@ describe('wrapToSusde — happy path (mocked WooFi liquidity)', () => {
     vi.spyOn(walletClient, 'writeContract').mockResolvedValue(TX_HASH);
 
     const result = await executeWrapToSusde(ctx, {
-      amountUSDe: WRAP_AMOUNT,
+      amountUSDe: WRAP_AMOUNT.toString(),
       slippageBps: 50,
       recipient: TEST_ACCOUNT,
     });
@@ -103,7 +103,7 @@ describe('wrapToSusde — fork (real WooFi on Mantle mainnet)', () => {
     // WooFi on Mantle does not have a USDe/sUSDe pool — querySwap reverts.
     await expect(
       executeWrapToSusde(ctx, {
-        amountUSDe: WRAP_AMOUNT,
+        amountUSDe: WRAP_AMOUNT.toString(),
         slippageBps: 50,
         recipient: TEST_ACCOUNT,
       }),

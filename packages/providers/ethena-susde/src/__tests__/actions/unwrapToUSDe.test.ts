@@ -75,7 +75,7 @@ describe('unwrapToUSDe — happy path (mocked WooFi liquidity)', () => {
 
     // No `anvilClient.setNextBlockTimestamp` needed — WooFi swap has no cooldown.
     const result = await executeUnwrapToUSDe(ctx, {
-      amountSusde: UNWRAP_AMOUNT,
+      amountSusde: UNWRAP_AMOUNT.toString(),
       slippageBps: 50,
       recipient: TEST_ACCOUNT,
     });
@@ -105,7 +105,7 @@ describe('unwrapToUSDe — fork (real WooFi on Mantle mainnet)', () => {
     // WooFi on Mantle does not have a sUSDe/USDe pool — querySwap reverts.
     await expect(
       executeUnwrapToUSDe(ctx, {
-        amountSusde: UNWRAP_AMOUNT,
+        amountSusde: UNWRAP_AMOUNT.toString(),
         slippageBps: 50,
         recipient: TEST_ACCOUNT,
       }),

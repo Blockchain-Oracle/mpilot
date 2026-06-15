@@ -88,7 +88,7 @@ describe('swap action — fork integration', () => {
     const result = await provider.actions.swap.invoke({
       tokenIn: USDC,
       tokenOut: USDe,
-      amountIn: USDC_AMOUNT,
+      amountIn: USDC_AMOUNT.toString(),
       slippageBps: 100, // 1% — wide enough to tolerate fork state
       recipient: TEST_ACCOUNT,
     });
@@ -114,7 +114,7 @@ describe('swap action — fork integration', () => {
     const initialQuote = await provider.actions.quote.invoke({
       tokenIn: USDC,
       tokenOut: USDe,
-      amountIn: USDC_AMOUNT,
+      amountIn: USDC_AMOUNT.toString(),
       slippageBps: 100,
     });
     const staleBestRoute = initialQuote.bestRoute;
@@ -142,7 +142,7 @@ describe('swap action — fork integration', () => {
     const result = await provider.actions.swap.invoke({
       tokenIn: USDC,
       tokenOut: USDe,
-      amountIn: USDC_AMOUNT,
+      amountIn: USDC_AMOUNT.toString(),
       slippageBps: 100,
       recipient: TEST_ACCOUNT,
     });
@@ -179,7 +179,7 @@ describe('swap action — fork integration', () => {
       provider.actions.swap.invoke({
         tokenIn: USDC,
         tokenOut: USDe,
-        amountIn: USDC_AMOUNT,
+        amountIn: USDC_AMOUNT.toString(),
         slippageBps: 1,
         recipient: TEST_ACCOUNT,
       }),

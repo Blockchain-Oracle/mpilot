@@ -11,10 +11,12 @@ import { AttestationPayloadSchema, buildAttestationPayload } from '../attestatio
 // Wrap is implemented as a DEX swap USDe → sUSDe via WooFi (single-call, no cooldown).
 
 export const WrapToSusdeInput = z.object({
-  amountUSDe: z.coerce
-    .bigint()
-    .positive()
-    .describe('Amount of USDe to swap in base units (18 decimals)'),
+  // Decimal string of uint256 — JSON Schema has no bigint type. Internal
+  // consumers BigInt() at the EVM boundary.
+  amountUSDe: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .describe('Amount of USDe in base units (18 decimals) — decimal string'),
   slippageBps: z
     .number()
     .int()
@@ -36,7 +38,9 @@ export async function executeWrapToSusde(
   ctx: ActionContext,
   args: z.infer<typeof WrapToSusdeInput>,
 ): Promise<z.infer<typeof WrapToSusdeOutput>> {
-  const { amountUSDe, slippageBps, recipient } = args;
+  const { amountUSDe: amountUSDeStr, slippageBps, recipient } = args;
+  // amountUSDe schema is decimal string; convert at EVM boundary.
+  const amountUSDe = BigInt(amountUSDeStr);
   const { walletClient, account } = await requireWallet(ctx, 'wrapToSusde');
   const { usde, susde, woofiRouter } = ctx.addresses;
 

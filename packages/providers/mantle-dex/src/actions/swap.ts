@@ -18,7 +18,10 @@ const erc20Abi = parseAbi([
 export const SwapInput = z.object({
   tokenIn: NON_ZERO_ADDRESS.describe('ERC-20 token to sell'),
   tokenOut: NON_ZERO_ADDRESS.describe('ERC-20 token to receive'),
-  amountIn: z.coerce.bigint().positive().describe('Amount of tokenIn in base units'),
+  amountIn: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .describe('Amount of tokenIn in base units (decimal string of uint256)'),
   slippageBps: z
     .number()
     .int()
@@ -96,7 +99,9 @@ export async function executeSwap(
   ctx: ActionContext,
   args: z.infer<typeof SwapInput>,
 ): Promise<z.infer<typeof SwapOutput>> {
-  const { tokenIn, tokenOut, amountIn, slippageBps, recipient } = args;
+  const { tokenIn, tokenOut, amountIn: amountInStr, slippageBps, recipient } = args;
+  // amountIn schema is decimal string for JSON Schema compatibility.
+  const amountIn = BigInt(amountInStr);
   const { walletClient, account } = await requireWallet(ctx, 'swap');
 
   const venues = buildVenues(ctx);
