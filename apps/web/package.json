@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start --port 3000",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'no unit tests yet — see e2e in story-115'"
+    "test": "vitest run"
   },
   "dependencies": {
     "@concierge-mantle/erc8004": "workspace:*",
@@ -34,6 +34,7 @@
     "@types/node": "22.19.20",
     "@types/react": "19.2.5",
     "@types/react-dom": "19.2.3",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "4.1.8"
   }
 }

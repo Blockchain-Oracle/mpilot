@@ -1,6 +1,7 @@
 'use client';
 
 import { BrandMark } from '@concierge-mantle/ui';
+import { usePrivy } from '@privy-io/react-auth';
 import { useRef } from 'react';
 import type { KeyStatus, LlmProviderId, OnboardingData, StatePatcher } from '../_types';
 import { StepShell } from './StepShell';
@@ -18,7 +19,7 @@ const PROVIDERS: readonly ProviderEntry[] = [
   { id: 'xai', name: 'xAI', placeholder: 'xai-…' },
 ];
 
-const VERIFY_LATENCY_MS = 850;
+const VERIFY_DEBOUNCE_MS = 600;
 
 function statusLabel(s: KeyStatus): string {
   if (s === 'verified') return '✓ verified';
@@ -45,6 +46,10 @@ interface StepLlmProps {
 export function StepLlm({ data, set, onBack, onNext }: StepLlmProps) {
   // One timer per provider; using a Map keeps types tight.
   const timers = useRef<Partial<Record<LlmProviderId, ReturnType<typeof setTimeout>>>>({});
+  // AbortControllers per provider so a rapid re-edit cancels the in-flight
+  // /api/llm-verify call instead of racing with the new one.
+  const aborters = useRef<Partial<Record<LlmProviderId, AbortController>>>({});
+  const { getAccessToken } = usePrivy();
 
   const change = (id: LlmProviderId, v: string) => {
     set((prev) => ({
@@ -53,12 +58,51 @@ export function StepLlm({ data, set, onBack, onNext }: StepLlmProps) {
     }));
     const existing = timers.current[id];
     if (existing) clearTimeout(existing);
+    aborters.current[id]?.abort();
     if (!v) return;
     timers.current[id] = setTimeout(() => {
-      set((prev) => ({
-        keyStatus: { ...prev.keyStatus, [id]: v.length >= 12 ? 'verified' : 'invalid' },
-      }));
-    }, VERIFY_LATENCY_MS);
+      // Snapshot the key + spawn the verification request.
+      const ctl = new AbortController();
+      aborters.current[id] = ctl;
+      void (async () => {
+        try {
+          const token = await getAccessToken();
+          // Bail if a newer change() aborted us while getAccessToken() was
+          // pending — otherwise we'd land an `invalid` flicker for a stale
+          // snapshot of the input.
+          if (ctl.signal.aborted) return;
+          if (!token) {
+            set((prev) => ({ keyStatus: { ...prev.keyStatus, [id]: 'invalid' } }));
+            return;
+          }
+          const res = await fetch('/api/llm-verify', {
+            method: 'POST',
+            signal: ctl.signal,
+            headers: {
+              'content-type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ provider: id, key: v }),
+          });
+          if (ctl.signal.aborted) return;
+          const json = (await res.json().catch(() => null)) as { ok?: boolean } | null;
+          set((prev) => ({
+            keyStatus: {
+              ...prev.keyStatus,
+              [id]: json?.ok === true ? 'verified' : 'invalid',
+            },
+          }));
+        } catch (err) {
+          if (ctl.signal.aborted) return;
+          // Log only the error NAME, never the full chain. Some fetch errors
+          // carry the request object in `.cause`, which can include the
+          // body — and the body has the user's key.
+          // biome-ignore lint/suspicious/noConsole: developer-facing observability
+          console.error('[StepLlm] verify failed', err instanceof Error ? err.name : 'unknown');
+          set((prev) => ({ keyStatus: { ...prev.keyStatus, [id]: 'invalid' } }));
+        }
+      })();
+    }, VERIFY_DEBOUNCE_MS);
   };
 
   const anyVerified = (Object.values(data.keyStatus) as KeyStatus[]).some((s) => s === 'verified');

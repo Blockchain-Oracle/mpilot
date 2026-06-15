@@ -1,0 +1,4 @@
+# Synthetic test value in vitest spec — never matches a real provider prefix.
+# The test that uses this constant asserts the validator never echoes it in
+# the response, which is the whole point of having a synthetic literal.
+54bd80e7bb8606d382c9c3c31d8ee0dcfa3147e2:apps/web/app/api/llm-verify/_validators.test.ts:generic-api-key:10
