@@ -86,7 +86,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const { db } = getDb();
+  const { db } = await getDb();
   let agentId: string;
   try {
     // Persist the agent + keys + notification prefs in one tx so partial
@@ -96,10 +96,13 @@ export async function POST(request: Request): Promise<NextResponse> {
         .insert(agents)
         .values({
           userId,
+          smartAccountAddr: body.smartAccountAddress,
+          erc8004AgentId: BigInt(body.agentTokenId),
           ownerEoa: body.walletAddress,
           chain: body.chain,
           goalJson: { goal: body.goal, caps: body.caps ?? null },
           policyJson: body.policies ?? {},
+          activatedAt: new Date(),
         })
         .returning({ id: agents.id });
       if (!agent) throw new Error('[apps/web/agents] insert returned no row');

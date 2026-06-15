@@ -15,7 +15,7 @@ const FIXED_CREATED_AT = '2026-06-14T12:00:00Z';
 // closed SchemaId discriminator.
 function expectedFeedbackHash(
   payload: { schema: string } & Record<string, unknown>,
-  agentId: bigint,
+  agentId: string,
   chainId: 5000 | 5003 = 5003,
   createdAt: string = FIXED_CREATED_AT,
 ): `0x${string}` {
@@ -60,7 +60,7 @@ const PAYLOADS: Array<{ schema: Schema; amount: string }> = SCHEMAS.map((s, i) =
 describe('ERC-8004 end-to-end integration — live Sepolia fork', () => {
   let fork: AnvilFork;
   let ctx: ActionContext;
-  let agentId: bigint;
+  let agentId: string;
   let attestResults: AttestResult[];
 
   beforeAll(async () => {
@@ -105,7 +105,7 @@ describe('ERC-8004 end-to-end integration — live Sepolia fork', () => {
   });
 
   it('register returns agentId > 0', () => {
-    expect(agentId).toBeGreaterThan(0n);
+    expect(BigInt(agentId)).toBeGreaterThan(0n);
   });
 
   it('5 attests succeed — all txHashes are valid hex', () => {
@@ -139,7 +139,7 @@ describe('ERC-8004 end-to-end integration — live Sepolia fork', () => {
   it('readReputation: latestAttestation is non-null and has valid feedbackIndex', async () => {
     const result = await executeReadReputation(ctx, { agentId });
     expect(result.latestAttestation).not.toBeNull();
-    expect(result.latestAttestation?.feedbackIndex).toBeGreaterThanOrEqual(0n);
+    expect(BigInt(result.latestAttestation?.feedbackIndex ?? '0')).toBeGreaterThanOrEqual(0n);
   });
 
   it('readFeedback: returns 5 entries; schemas and feedbackHashes all match', async () => {

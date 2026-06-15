@@ -27,7 +27,7 @@ type Phase = 'idle' | 'running' | 'done' | 'error';
 export function StepIdentity({ onBack, onNext, set }: StepIdentityProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [agentId, setLocalAgentId] = useState<bigint | null>(null);
+  const [agentId, setLocalAgentId] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
 
   const { account } = useConciergeAccount();
@@ -55,11 +55,7 @@ export function StepIdentity({ onBack, onNext, set }: StepIdentityProps) {
       });
       setLocalAgentId(result.agentId);
       setTxHash(result.txHash);
-      // OnboardingData is JSON-serializable (it eventually round-trips
-      // through the persistence layer in r4). bigint can't survive
-      // JSON.stringify, so we stash the decimal string in shared state
-      // and keep the bigint only in component-local state.
-      set({ agentId: result.agentId.toString() });
+      set({ agentId: result.agentId });
       setPhase('done');
     } catch (err) {
       setErrorMsg(sanitizeErrorMessage(err));

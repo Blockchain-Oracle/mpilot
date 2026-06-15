@@ -155,9 +155,7 @@ export function createConciergeClient(config: ConciergeClientConfig): ConciergeC
       // when widely supported.
       const token = await config.getAccessToken();
       if (!token) throw new Error('[ConciergeClient] no access token for SSE subscribe');
-      const url = new URL(
-        `${origin}/api/sse/agents/${encodeURIComponent(agentId)}`,
-      );
+      const url = new URL(`${origin}/api/sse/agents/${encodeURIComponent(agentId)}`);
       url.searchParams.set('token', token);
       if (opts?.since) url.searchParams.set('since', opts.since);
       const es = new EventSourceImpl(url.toString());

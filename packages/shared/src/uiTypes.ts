@@ -152,9 +152,7 @@ export interface TickUpdateEnvelope {
  * covariant return types, so no cast is needed at the definition site.
  */
 export interface RuntimeValidator {
-  safeParse(
-    data: unknown,
-  ): { success: true; data: unknown } | { success: false; error: unknown };
+  safeParse(data: unknown): { success: true; data: unknown } | { success: false; error: unknown };
   parse(data: unknown): unknown;
 }
 

@@ -103,7 +103,7 @@ describe('readReputation — latestAttestation', () => {
     const result = await executeReadReputation(ctx, { agentId: AGENT_ID });
     expect(result.latestAttestation).not.toBeNull();
     expect(result.latestAttestation?.schema).toBe('concierge.lifi.bridge.sent.v1');
-    expect(result.latestAttestation?.feedbackIndex).toBe(1n);
+    expect(result.latestAttestation?.feedbackIndex).toBe('1');
   });
 
   it('uses highest feedbackIndex as latest even when entries arrive out of order', async () => {
@@ -123,7 +123,7 @@ describe('readReputation — latestAttestation', () => {
     ];
     const ctx = makeReputationCtx(outOfOrder);
     const result = await executeReadReputation(ctx, { agentId: AGENT_ID });
-    expect(result.latestAttestation?.feedbackIndex).toBe(2n);
+    expect(result.latestAttestation?.feedbackIndex).toBe('2');
     expect(result.latestAttestation?.schema).toBe('concierge.aave.v3.borrow.v1');
   });
 });
@@ -249,6 +249,6 @@ describe('readReputation — fork: live Sepolia', () => {
     expect(result.schemaCounts['concierge.aave.v3.supply.v1']).toBe(2);
     expect(result.schemaCounts['concierge.mantle-dex.agni.swap.v1']).toBe(1);
     expect(result.latestAttestation).not.toBeNull();
-    expect(result.latestAttestation?.feedbackIndex).toBeGreaterThanOrEqual(0n);
+    expect(BigInt(result.latestAttestation?.feedbackIndex ?? '0')).toBeGreaterThanOrEqual(0n);
   });
 });

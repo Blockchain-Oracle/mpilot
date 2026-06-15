@@ -68,7 +68,9 @@ describe('createConciergeClient', () => {
       chain: 'mantle-sepolia',
       createdAt: '2026-06-15T00:00:00Z',
     };
-    const fetchImpl = vi.fn(async () => jsonResponse({ agent: agentRow })) as unknown as typeof fetch;
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ agent: agentRow }),
+    ) as unknown as typeof fetch;
     expect(await makeClient(fetchImpl).getCurrentAgent()).toEqual(agentRow);
   });
 

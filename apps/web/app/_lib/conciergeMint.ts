@@ -18,7 +18,8 @@ export interface MintArgs {
 }
 
 export interface MintResult {
-  readonly agentId: bigint;
+  /** ERC-8004 agent NFT token ID as a decimal string (JSON-safe; no bigint). */
+  readonly agentId: string;
   readonly txHash: `0x${string}`;
 }
 

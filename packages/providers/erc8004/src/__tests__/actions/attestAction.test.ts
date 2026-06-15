@@ -23,7 +23,7 @@ const FIXED_CREATED_AT = '2026-06-14T12:00:00Z';
 // attestation/schema.ts's closed SchemaId discriminator.
 function expectedFeedbackHash(
   payload: { schema: string } & Record<string, unknown>,
-  agentId: bigint,
+  agentId: bigint | string,
   chainId: 5000 | 5003 = 5000,
   providerSchema?: string,
   createdAt: string = FIXED_CREATED_AT,
@@ -136,7 +136,7 @@ describe('attestAction — happy path', () => {
       createdAt: FIXED_CREATED_AT,
     });
     expect(result.txHash).toBe(TX_HASH);
-    expect(result.feedbackIndex).toBe(FEEDBACK_INDEX);
+    expect(result.feedbackIndex).toBe(FEEDBACK_INDEX.toString());
     expect(result.feedbackHash).toMatch(/^0x[0-9a-fA-F]{64}$/);
   });
 
@@ -153,7 +153,7 @@ describe('attestAction — happy path', () => {
       actionPayload: ACTION_PAYLOAD,
       createdAt: FIXED_CREATED_AT,
     });
-    expect(result.feedbackIndex).toBe(99n);
+    expect(result.feedbackIndex).toBe('99');
   });
 
   it('feedbackHash matches keccak256(canonicalize(FeedbackEnvelope)) — cross-package contract, locks C2', async () => {
@@ -340,7 +340,7 @@ describe('attestAction — fork: live Sepolia ReputationRegistry', () => {
       createdAt: FIXED_CREATED_AT,
     });
     expect(result.txHash).toMatch(/^0x[0-9a-fA-F]{64}$/);
-    expect(result.feedbackIndex).toBeGreaterThanOrEqual(0n);
+    expect(BigInt(result.feedbackIndex)).toBeGreaterThanOrEqual(0n);
     expect(result.feedbackHash).toBe(
       expectedFeedbackHash(payload, agentId, 5003, undefined, FIXED_CREATED_AT),
     );

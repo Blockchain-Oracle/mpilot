@@ -29,7 +29,7 @@ const mockAddresses: ActionContext['addresses'] = {
 const validArgs = {
   tokenIn: TOKEN_A,
   tokenOut: TOKEN_B,
-  amountIn: "1000000",
+  amountIn: '1000000',
   slippageBps: 50,
   recipient: RECIPIENT,
 };

@@ -9,7 +9,7 @@ import type { Pool } from 'pg';
 
 let cached: { db: DbClient; pool: Pool } | null = null;
 
-export function getDb(): { db: DbClient; pool: Pool } {
+export async function getDb(): Promise<{ db: DbClient; pool: Pool }> {
   if (cached) return cached;
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -17,6 +17,6 @@ export function getDb(): { db: DbClient; pool: Pool } {
       '[apps/web/db] DATABASE_URL is required. Set in apps/web/.env.local (e.g. postgresql://postgres:postgres@127.0.0.1:54322/postgres).',
     );
   }
-  cached = createDbClient(url);
+  cached = await createDbClient(url);
   return cached;
 }
