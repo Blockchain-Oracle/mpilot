@@ -88,8 +88,18 @@ export function quickChips(text: string): GoalChip[] {
     const pct = text.match(/(\d+(?:\.\d+)?)\s*%/);
     if (pct?.[1]) chips.push({ key: 'percentage', value: `${pct[1]}%`, type: 'percentage' });
   }
-  const usd = text.match(/\$\s*([\d,]+(?:\.\d+)?)\s*(?:k|m)?/i);
-  if (usd?.[1]) chips.push({ key: 'budget_usd', value: `$${usd[1]}`, type: 'currency' });
+  const usd = text.match(/\$\s*([\d,]+(?:\.\d+)?)\s*(k|m)?/i);
+  if (usd?.[1]) {
+    const suffix = usd[2]?.toLowerCase();
+    const num = usd[1].replace(/,/g, '');
+    const scaled =
+      suffix === 'k'
+        ? `${Number(num) * 1_000}`
+        : suffix === 'm'
+          ? `${Number(num) * 1_000_000}`
+          : usd[1];
+    chips.push({ key: 'budget_usd', value: `$${scaled}`, type: 'currency' });
+  }
   const cadence = text.match(/\b(daily|weekly|monthly|hourly)\b/i);
   if (cadence?.[1]) chips.push({ key: 'cadence', value: cadence[1].toLowerCase(), type: 'enum' });
   return chips;

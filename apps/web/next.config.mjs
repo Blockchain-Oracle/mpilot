@@ -55,14 +55,28 @@ const nextConfig = {
     // bundler (api.pimlico.io), Mantle public RPC, MantleScan explorer, IPFS
     // gateway, and the brand-svg fetches (none external — bundled). Tight enough
     // that a script injection can't beacon to a third party.
+    // CSP rationale (per 2026-06-15 security review):
+    //
+    // - `script-src` keeps `'unsafe-inline'` ONLY for the no-FOUC theme
+    //   bootstrap in `app/layout.tsx`. A future hardening pass should switch
+    //   to per-request nonces (requires middleware) and drop `'unsafe-inline'`.
+    // - `'unsafe-eval'` was REMOVED — Privy's parent SDK does not need it
+    //   (the eval-using code runs inside the auth.privy.io iframe under its
+    //   own CSP), wagmi/viem don't need it, Next 15 prod builds don't need
+    //   it. Verified during the review.
+    // - `connect-src` was TIGHTENED — wildcards on `*.walletconnect.*` and
+    //   `*.mantle.xyz` were replaced with the specific hosts WalletConnect
+    //   + Mantle actually use.
+    // - `auth.privy.systems` removed (the `.io` host covers default tenants).
+    //   Re-add if we ever switch to EU residency.
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://auth.privy.io https://auth.privy.systems",
+      "script-src 'self' 'unsafe-inline' https://auth.privy.io",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.privy.io https://*.privy.systems https://*.mantlescan.xyz https://ipfs.io",
+      "img-src 'self' data: blob: https://*.privy.io https://*.mantlescan.xyz https://ipfs.io",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.privy.io https://*.privy.systems https://api.pimlico.io https://*.mantle.xyz https://*.mantlescan.xyz https://ipfs.io wss://relay.walletconnect.com wss://*.walletconnect.com wss://*.walletconnect.org https://*.walletconnect.com https://*.walletconnect.org",
-      "frame-src 'self' https://auth.privy.io https://auth.privy.systems https://verify.walletconnect.com",
+      "connect-src 'self' https://*.privy.io https://api.pimlico.io https://rpc.mantle.xyz https://rpc.sepolia.mantle.xyz https://*.mantlescan.xyz https://ipfs.io https://relay.walletconnect.com https://relay.walletconnect.org https://verify.walletconnect.com https://pulse.walletconnect.org wss://relay.walletconnect.com wss://relay.walletconnect.org",
+      'frame-src https://auth.privy.io https://verify.walletconnect.com',
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -78,8 +92,11 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           {
+            // `preload` removed pending domain ownership confirmation —
+            // hstspreload.org submission is months to reverse and breaks
+            // any subdomain that ever needs to serve plaintext.
             key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
+            value: 'max-age=63072000; includeSubDomains',
           },
         ],
       },

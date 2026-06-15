@@ -16,23 +16,31 @@
  * just adds the corresponding POST.
  */
 import { NextResponse } from 'next/server';
-import type { z } from 'zod';
 import { verifyPrivyAuth } from '../../../_lib/privyServer';
 import { type AgentMeResponse, agentMeResponseSchema } from '../../../_lib/wire';
 
 export const runtime = 'nodejs'; // Privy SDK uses crypto.subtle + Node APIs.
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const user = await verifyPrivyAuth(request);
-  if (!user) {
+  let auth: Awaited<ReturnType<typeof verifyPrivyAuth>>;
+  try {
+    auth = await verifyPrivyAuth(request);
+  } catch {
+    // Config error (missing PRIVY_APP_SECRET, etc.) — fail loud as 500.
     return NextResponse.json(
-      { error: 'Missing or invalid Privy access token.', code: 'unauthorized' as const },
-      { status: 401 },
+      { error: 'Server auth misconfigured', code: 'internal_error' as const },
+      { status: 500 },
+    );
+  }
+  if (!auth.ok) {
+    const status = auth.reason === 'unavailable' ? 503 : 401;
+    return NextResponse.json(
+      { error: auth.reason, code: 'unauthorized' as const },
+      { status, headers: { 'Cache-Control': 'no-store' } },
     );
   }
   // r4 will replace this with a real `SELECT FROM agents WHERE user_id = $userId`.
   const body: AgentMeResponse = { agent: null };
-  // Validate response shape so a drift in the wire schema fails loud in dev.
   const parsed = agentMeResponseSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -40,15 +48,5 @@ export async function GET(request: Request): Promise<NextResponse> {
       { status: 500 },
     );
   }
-  return NextResponse.json(parsed.data);
+  return NextResponse.json(parsed.data, { headers: { 'Cache-Control': 'no-store' } });
 }
-
-// Defensive: future-proof the route by rejecting other methods explicitly.
-export async function POST(): Promise<NextResponse> {
-  return NextResponse.json(
-    { error: 'Use POST /api/agents to create an agent.', code: 'bad_request' as const },
-    { status: 405 },
-  );
-}
-// Compile-time check that wire schemas stay in sync.
-void (null as z.infer<typeof agentMeResponseSchema> | null);

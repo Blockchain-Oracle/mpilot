@@ -40,21 +40,55 @@ export interface VerifiedUser {
  * missing/invalid token rather than throwing — call sites decide whether to
  * respond 401 or fall through.
  */
-export async function verifyPrivyAuth(request: Request): Promise<VerifiedUser | null> {
+export type AuthError = 'unauthenticated' | 'unavailable';
+export type AuthResult =
+  | { readonly ok: true; readonly user: VerifiedUser }
+  | { readonly ok: false; readonly reason: AuthError };
+
+const MAX_TOKEN_BYTES = 4096;
+
+export async function verifyPrivyAuth(request: Request): Promise<AuthResult> {
   const header = request.headers.get('authorization');
-  if (!header) return null;
+  if (!header) return { ok: false, reason: 'unauthenticated' };
   const match = header.match(/^Bearer\s+(.+)$/i);
-  if (!match || !match[1]) return null;
+  if (!match || !match[1]) return { ok: false, reason: 'unauthenticated' };
   const token = match[1];
+  // Bound parse cost before handing to the SDK.
+  if (token.length > MAX_TOKEN_BYTES) return { ok: false, reason: 'unauthenticated' };
+
+  // Config errors (missing env vars) must surface as 500 — they're operator
+  // bugs, not auth failures. `getClient()` throws synchronously on missing
+  // env, so let it propagate; the route handler catches and 500s.
+  const client = getClient();
+
   try {
-    const claims = await getClient().utils().auth().verifyAccessToken(token);
-    // The Privy access-token claim shape: `userId` is the canonical user
-    // identifier. Type-cast guards against future Privy SDK shape drift.
+    const claims = await client.utils().auth().verifyAccessToken(token);
     const userId = (claims as { userId?: unknown }).userId;
-    if (typeof userId !== 'string' || userId.length === 0) return null;
-    return { userId };
-  } catch {
-    // Token signature failed, expired, or malformed. Treat all as unauthenticated.
-    return null;
+    if (typeof userId !== 'string' || userId.length === 0) {
+      return { ok: false, reason: 'unauthenticated' };
+    }
+    // Defense in depth: assert the token was minted for OUR Privy app.
+    // Cross-tenant userId collisions would otherwise be a silent IDOR if
+    // the deployment ever shared a Privy app secret with a sibling tenant.
+    const appId = (claims as { appId?: unknown }).appId;
+    if (typeof appId === 'string' && appId !== process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
+      return { ok: false, reason: 'unauthenticated' };
+    }
+    return { ok: true, user: { userId } };
+  } catch (err) {
+    // Distinguish: bad signature / expired / malformed → unauthenticated
+    // (401); network failure talking to Privy's JWKS → unavailable (503).
+    // The SDK throws `Error` for both today, so we name-check the message —
+    // `fetch failed`/`network` heuristics are what `@privy-io/node` surfaces.
+    const msg = err instanceof Error ? err.message.toLowerCase() : '';
+    if (
+      msg.includes('network') ||
+      msg.includes('fetch failed') ||
+      msg.includes('econnrefused') ||
+      msg.includes('etimedout')
+    ) {
+      return { ok: false, reason: 'unavailable' };
+    }
+    return { ok: false, reason: 'unauthenticated' };
   }
 }

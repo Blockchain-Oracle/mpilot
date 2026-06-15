@@ -25,9 +25,14 @@ export default function GlobalError({
 
   const reportUrl = new URL('https://github.com/Blockchain-Oracle/concierge/issues/new');
   reportUrl.searchParams.set('title', 'Web app error');
+  // Include ONLY the server-side digest in the URL body. `error.message`
+  // often contains markdown special chars + sensitive context (token
+  // fragments, request URLs) — interpolating it into a GitHub issue body is
+  // a markdown-injection sink and a PII-leak channel. Abu cross-references
+  // the digest against the server log instead.
   reportUrl.searchParams.set(
     'body',
-    `**Digest:** \`${error.digest ?? 'unknown'}\`\n\n**Message:** ${error.message}\n\n**Steps to reproduce:**\n1. \n2. \n`,
+    `**Digest:** \`${error.digest ?? 'unknown'}\`\n\n**Steps to reproduce:**\n1. \n2. \n\n**Browser + URL:** \n\n_The matching server-side stack is in the logs under this digest; don't paste the in-browser error message here, it may contain sensitive context._`,
   );
 
   return (

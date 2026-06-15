@@ -30,21 +30,49 @@ export function AuthGate({ children }: { readonly children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { data } = useQuery<AgentMeResponse | null>({
+  const { data, error: queryError } = useQuery<AgentMeResponse>({
     queryKey: ME_QUERY_KEY,
     enabled: ready && authenticated,
-    queryFn: async () => {
+    queryFn: async (): Promise<AgentMeResponse> => {
       const token = await getAccessToken();
-      if (!token) return null;
+      if (!token) throw new Error('me_fetch_no_token');
       const res = await fetch('/api/agents/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) return null;
+      if (!res.ok) {
+        throw new Error(
+          res.status === 503 ? 'me_fetch_unavailable' : `me_fetch_failed_${res.status}`,
+        );
+      }
+      const ct = res.headers.get('content-type') ?? '';
+      if (!ct.includes('application/json')) {
+        // Cloudflare/intermediary HTML pages would otherwise throw inside
+        // res.json() with no diagnostic — fail fast with a structured tag.
+        throw new Error('me_fetch_non_json');
+      }
       const json = await res.json();
       const parsed = agentMeResponseSchema.safeParse(json);
-      return parsed.success ? parsed.data : null;
+      if (!parsed.success) {
+        // Schema drift between client + server — log so it's visible
+        // (not silent like the previous `return null` path).
+        // biome-ignore lint/suspicious/noConsole: developer-facing observability
+        console.error('[AuthGate] me_schema_drift', parsed.error.issues);
+        throw new Error('me_schema_drift');
+      }
+      return parsed.data;
     },
   });
+
+  useEffect(() => {
+    if (queryError) {
+      // Surface the failure mode so an outage of `/api/agents/me` doesn't
+      // present as "infinite loading with no diagnostic." We don't toast
+      // here (no toast infra in r2.5); a console.error keeps it visible in
+      // dev + accessible to a future error reporter.
+      // biome-ignore lint/suspicious/noConsole: developer-facing observability
+      console.error('[AuthGate] /api/agents/me query failed:', queryError);
+    }
+  }, [queryError]);
 
   useEffect(() => {
     if (!ready || !authenticated || !data) return;
