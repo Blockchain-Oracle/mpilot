@@ -7,47 +7,43 @@
  * iterate fast.
  */
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { createAaveV3MantleProvider } from '@concierge-mantle/aave-v3-mantle';
-import { createMantleDexProvider } from '@concierge-mantle/mantle-dex';
-import { createMethStakingProvider } from '@concierge-mantle/meth-staking';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createErc8004Provider } from '@concierge-mantle/erc8004';
 import { toVercelAITool } from '@concierge-mantle/vercel-ai';
 import { generateText, stepCountIs } from 'ai';
 
-const SYSTEM = `You are a DeFi action planner running on Mantle (chainId 5003 Sepolia).
-You have one job: given the user's goal, call EXACTLY ONE tool that achieves it.
+const SYSTEM = `You are a DeFi action planner running on Mantle Sepolia (chainId 5003).
+Given the user's goal, call EXACTLY ONE tool that achieves it.
 Do not narrate. Do not explain. Pick the right tool with correct args and stop.
 
-Available providers: Aave V3 (supply/borrow/withdraw/setUserEMode), Mantle DEX (swap),
-mETH staking (stake/unwrap). All token amounts are integers with the token's decimals
-(USDC = 6 decimals; WMNT/WETH/mETH = 18 decimals).`;
+Available tools right now:
+- erc8004_registerAgent — mint an ERC-8004 identity NFT for the connected wallet.
+  Args: take no input fields — call with an empty object {}.
+- erc8004_attestAction — write a feedback attestation referencing an existing agent.
+  Args: agentId (bigint or decimal string), targetAgentId (the subject — defaults to the
+  same agent if attesting yourself), action (one of "supply"|"borrow"|"swap"|"stake"),
+  outcome (one of "success"|"failure"|"reverted"), valueUsd (optional number).`;
 
-export async function runScenario({ goal, walletClient, publicClient, chain, anthropicKey }) {
-  // Build providers wired to live RPC + the harness EOA.
-  const aave = createAaveV3MantleProvider({ walletClient, publicClient, chain });
-  const dex = createMantleDexProvider({ walletClient, publicClient, chain });
-  const meth = createMethStakingProvider({ walletClient, publicClient, chain });
+export async function runScenario({ goal, walletClient, publicClient, model: providedModel }) {
+  const erc8004 = createErc8004Provider({
+    walletClient,
+    publicClient,
+    chain: 'mantle-sepolia',
+  });
 
-  // Each provider exposes typed ConciergeTool actions. Flatten into a single
-  // tool set the Vercel AI SDK can hand to the model.
   const tools = {
-    aave_supply: toVercelAITool(aave.actions.supply),
-    aave_borrow: toVercelAITool(aave.actions.borrow),
-    aave_withdraw: toVercelAITool(aave.actions.withdraw),
-    aave_setUserEMode: toVercelAITool(aave.actions.setUserEMode),
-    dex_swap: toVercelAITool(dex.actions.swap),
-    meth_stake: toVercelAITool(meth.actions.stake),
+    erc8004_registerAgent: toVercelAITool(erc8004.actions.registerAgent),
+    erc8004_attestAction: toVercelAITool(erc8004.actions.attestAction),
   };
 
-  const model = createAnthropic({ apiKey: anthropicKey })('claude-sonnet-4-5');
+  const model = providedModel;
 
   const result = await generateText({
     model,
     system: SYSTEM,
     prompt: `Goal: ${goal}`,
     tools,
-    // Allow the model to chain a follow-up if a single call isn't enough
-    // (e.g. supply + setUserEMode + borrow needs 2-3 steps).
-    stopWhen: stepCountIs(5),
+    stopWhen: stepCountIs(3),
   });
 
   return {

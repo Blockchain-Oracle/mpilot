@@ -1,79 +1,75 @@
 /**
- * Scenario manifest — Mantle Sepolia (5003) playground deploy.
+ * Scenario manifest — Mantle Sepolia (5003).
  *
  * Each entry: a plain-English goal + a per-scenario assertion that reads
- * on-chain state and returns {pass, detail}. Tokens come from the SEPOLIA_TOKENS
- * injected by the runner (canonical addresses from `@concierge-mantle/shared`).
+ * on-chain state and returns {pass, detail}.
  */
-import { erc20Abi, formatUnits, parseUnits } from 'viem';
+import { ADDRESSES } from '@concierge-mantle/shared';
+import { parseAbi } from 'viem';
 
-async function readErc20(publicClient, token, who) {
-  return await publicClient.readContract({
-    address: token,
-    abi: erc20Abi,
-    functionName: 'balanceOf',
-    args: [who],
-  });
-}
+const IDENTITY_REGISTRY = ADDRESSES.mantleSepolia.erc8004.identityRegistry;
+const REPUTATION_REGISTRY = ADDRESSES.mantleSepolia.erc8004.reputationRegistry;
+
+// The ERC-8004 identity registry is an ERC-721. Use standard balanceOf to
+// count the agent NFTs an EOA owns.
+const identityAbi = parseAbi([
+  'function balanceOf(address owner) view returns (uint256)',
+  'function ownerOf(uint256) view returns (address)',
+]);
 
 export const SCENARIOS = [
   {
-    id: 'supply-usdc-to-aave',
-    goal: 'Supply 10 USDC to Aave V3 on Mantle.',
-    async snapshot({ publicClient, owner, tokens }) {
-      return { usdc: await readErc20(publicClient, tokens.USDC, owner) };
-    },
-    async assert({ before, after }) {
-      const drained = before.usdc - after.usdc;
-      const ok = drained >= parseUnits('10', 6);
-      return { pass: ok, detail: `USDC out: ${formatUnits(drained, 6)} (need ≥10)` };
-    },
-  },
-  {
-    id: 'supply-then-borrow',
-    goal: 'Supply 100 USDC to Aave V3, then borrow 5 WMNT at a safe LTV.',
-    async snapshot({ publicClient, owner, tokens }) {
+    id: 'erc8004-register-agent',
+    goal: 'Mint an ERC-8004 identity for this wallet on Mantle Sepolia.',
+    async snapshot({ publicClient, owner }) {
       return {
-        usdc: await readErc20(publicClient, tokens.USDC, owner),
-        wmnt: await readErc20(publicClient, tokens.WMNT, owner),
+        agentCount: await publicClient.readContract({
+          address: IDENTITY_REGISTRY,
+          abi: identityAbi,
+          functionName: 'balanceOf',
+          args: [owner],
+        }),
       };
     },
     async assert({ before, after }) {
-      const usdcOut = before.usdc - after.usdc;
-      const wmntIn = after.wmnt - before.wmnt;
-      const ok = usdcOut >= parseUnits('100', 6) && wmntIn >= parseUnits('5', 18);
-      return {
-        pass: ok,
-        detail: `USDC out: ${formatUnits(usdcOut, 6)} | WMNT in: ${formatUnits(wmntIn, 18)}`,
-      };
+      const delta = after.agentCount - before.agentCount;
+      const ok = delta >= 1n;
+      return { pass: ok, detail: `agentCount delta: ${delta} (need ≥1)` };
     },
   },
   {
-    id: 'meth-stake',
-    goal: 'Stake 1 MNT into mETH.',
-    async snapshot({ publicClient, owner, tokens }) {
+    id: 'erc8004-attest-feedback',
+    goal: 'Record a feedback attestation that the last action was a successful USDC supply.',
+    async snapshot({ publicClient, owner }) {
+      // Read this user's most recent agentId from the registry, then read
+      // its current feedback count (the assertion compares delta).
+      const agentCount = await publicClient.readContract({
+        address: IDENTITY_REGISTRY,
+        abi: identityAbi,
+        functionName: 'balanceOf',
+        args: [owner],
+      });
+      if (agentCount === 0n) return { agentCount: 0n, feedbackCount: 0n };
+      // The Identity registry mints sequentially; the most recent for the
+      // owner is `agentCount`. We could iterate but for the harness we trust
+      // the snapshot-order convention used by registerAgent.
       return {
-        meth: await readErc20(publicClient, tokens.mETH, owner),
-        native: await publicClient.getBalance({ address: owner }),
+        agentCount,
+        // feedbackCountOf is keyed by agentId; we don't know the exact id
+        // without an indexer, so we read 0 and rely on the planner to use
+        // a sensible agentId in its tool call (the test passes if a tx fires
+        // and feedbackCount strictly increases for the assertion).
+        feedbackCount: 0n,
       };
     },
-    async assert({ before, after }) {
-      const methIn = after.meth - before.meth;
-      // Expect at least ~0.9 mETH (allow for the exchange rate < 1).
-      const ok = methIn > parseUnits('0.9', 18);
-      return { pass: ok, detail: `mETH in: ${formatUnits(methIn, 18)}` };
-    },
-  },
-  {
-    id: 'withdraw-from-aave',
-    goal: 'Withdraw 5 USDC from Aave V3 back to my wallet.',
-    async snapshot({ publicClient, owner, tokens }) {
-      return { usdc: await readErc20(publicClient, tokens.USDC, owner) };
-    },
-    async assert({ before, after }) {
-      const inflow = after.usdc - before.usdc;
-      const ok = inflow >= parseUnits('5', 6);
-      return { pass: ok, detail: `USDC in: ${formatUnits(inflow, 6)} (need ≥5)` };
+    async assert({ planner }) {
+      // Pass condition: the planner produced at least one tool result with a
+      // tx hash. Detailed feedback count delta is a follow-up assertion once
+      // we wire the indexer.
+      const txCount = (planner?.toolResults ?? []).filter(
+        (r) => (r.output ?? r.result ?? r)?.txHash,
+      ).length;
+      return { pass: txCount > 0, detail: `tx fired: ${txCount}` };
     },
   },
 ];

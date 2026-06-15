@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.82",
+    "@ai-sdk/google": "^3.0.80",
     "@concierge-mantle/aave-v3-mantle": "workspace:*",
     "@concierge-mantle/agent": "workspace:*",
     "@concierge-mantle/erc8004": "workspace:*",
@@ -21,6 +22,8 @@
     "@concierge-mantle/ondo-usdy": "workspace:*",
     "@concierge-mantle/sdk": "workspace:*",
     "@concierge-mantle/shared": "workspace:*",
+    "@concierge-mantle/tools": "workspace:*",
+    "@concierge-mantle/vercel-ai": "workspace:*",
     "ai": "^6.0.0",
     "dotenv": "^16.4.5",
     "viem": "2.52.2"
