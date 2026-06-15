@@ -33,10 +33,26 @@ export function PrivyProviders({ children }: { readonly children: ReactNode }) {
 
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
   if (!appId) {
-    // We fail-loud in dev so a missing env var doesn't silently degrade to
-    // "wallet connect modal never appears."
-    throw new Error(
-      '[apps/web] NEXT_PUBLIC_PRIVY_APP_ID is not set. Add it to apps/web/.env.local before booting the dev server.',
+    // Render a clear in-page error rather than throwing. Throwing breaks Next.js
+    // static prerendering at build time (CI has no .env.local) and gives the
+    // developer no actionable UI in dev. The auth-dependent tree below never
+    // mounts in this branch, so wallet flows fail loud at first interaction.
+    return (
+      <div
+        role="alert"
+        style={{
+          padding: '24px',
+          margin: '24px',
+          border: '1px solid var(--danger-line, #f00)',
+          borderRadius: 8,
+          fontFamily: 'monospace',
+          fontSize: 14,
+        }}
+      >
+        <strong>NEXT_PUBLIC_PRIVY_APP_ID is not set.</strong>
+        <br />
+        Add it to <code>apps/web/.env.local</code> and restart the dev server.
+      </div>
     );
   }
 

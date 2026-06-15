@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { ConciergeAccountProvider } from './_components/ConciergeAccountContext';
 import { MinimalHeader } from './_components/MinimalHeader';
 import { StepAccount } from './_components/StepAccount';
 import { StepActivate } from './_components/StepActivate';
@@ -36,7 +37,7 @@ export default function OnboardingPage() {
   }, [step]);
 
   return (
-    <>
+    <ConciergeAccountProvider>
       <MinimalHeader stepIdx={step} />
       <main
         style={{
@@ -48,14 +49,14 @@ export default function OnboardingPage() {
       >
         <div style={{ width: '100%' }}>
           {step === 0 && <StepConnect data={data} set={patch} onNext={next} />}
-          {step === 1 && <StepAccount onBack={back} onNext={next} />}
-          {step === 2 && <StepIdentity onBack={back} onNext={next} />}
+          {step === 1 && <StepAccount onBack={back} onNext={next} set={patch} />}
+          {step === 2 && <StepIdentity onBack={back} onNext={next} set={patch} />}
           {step === 3 && <StepGoal data={data} set={patch} onBack={back} onNext={next} />}
           {step === 4 && <StepLlm data={data} set={patch} onBack={back} onNext={next} />}
           {step === 5 && <StepPolicy data={data} set={patch} onBack={back} onNext={next} />}
           {step === 6 && <StepActivate data={data} onBack={back} />}
         </div>
       </main>
-    </>
+    </ConciergeAccountProvider>
   );
 }

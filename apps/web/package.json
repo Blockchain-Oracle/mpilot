@@ -14,6 +14,10 @@
     "test": "echo 'no unit tests yet — see e2e in story-115'"
   },
   "dependencies": {
+    "@concierge-mantle/erc8004": "workspace:*",
+    "@concierge-mantle/sdk": "workspace:*",
+    "@concierge-mantle/shared": "workspace:*",
+    "@concierge-mantle/smart-account": "workspace:*",
     "@concierge-mantle/ui": "workspace:*",
     "@privy-io/react-auth": "^3.30.0",
     "@privy-io/wagmi": "^4.0.12",
