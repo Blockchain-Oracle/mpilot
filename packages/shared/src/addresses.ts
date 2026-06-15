@@ -103,8 +103,14 @@ export const ADDRESSES = deepFreeze({
       // dedicated flat DeploySepolia.s.sol (each mock as its own broadcast
       // tx; HelperConfig is 43 KB so itself exceeds the EVM code-size limit
       // and can't be deployed on-chain).
-      pool: ZERO_ADDRESS, // MockAavePool deploy pending — see follow-up
-      oracle: ZERO_ADDRESS, // MockAaveOracle deploy pending
+      // Recorded from DeploySepolia.s.sol/5003/run-latest.json (deploy 2026-06-15).
+      // The mocks were broadcast but the pool/oracle addresses were never copied
+      // back here (the tokens were) — so the runtime called the zero address and
+      // every supply/borrow/withdraw reverted. addressesProvider/protocolDataProvider
+      // are not deployed as separate mocks; the providers' supply/borrow path reads
+      // only `pool` + `oracle`, so they stay zero.
+      pool: '0xCd63789514821aF262D8A0035E665472e0A0CA8E' as Address,
+      oracle: '0xC3eA789CA07b1464904215cabE40eda01C87C1E7' as Address,
       addressesProvider: ZERO_ADDRESS,
       protocolDataProvider: ZERO_ADDRESS,
     },
@@ -212,13 +218,12 @@ export type AddressPath = LeafPath<typeof ADDRESSES.mantleMainnet> & SepoliaAddr
  */
 export const SEPOLIA_PENDING_ADDRESS_SLOTS = Object.freeze([
   // 2026-06-15 DeploySepolia.s.sol on chain 5003 populated: tokens.{USDC,USDe,
-  // sUSDe,WMNT,USDY,mETH} + conciergeRegistry. The Aave pool + oracle mock
-  // deploys need a follow-up because MockAavePool needs reserve listings.
+  // sUSDe,WMNT,USDY,mETH} + conciergeRegistry + aave.{pool,oracle} (recorded
+  // from run-latest.json). aave.{addressesProvider,protocolDataProvider} stay
+  // zero — MockAavePool serves the pool surface directly, no separate provider.
   // The DEX + Li.Fi slots stay zero — those are off-mock services we won't
   // simulate on Sepolia.
   'aave.addressesProvider',
-  'aave.oracle',
-  'aave.pool',
   'aave.protocolDataProvider',
   'lifi.diamond',
   'mantleDex.agni.factory',
