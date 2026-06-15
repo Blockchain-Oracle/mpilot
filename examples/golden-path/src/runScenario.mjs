@@ -21,7 +21,13 @@ Amounts are passed as DECIMAL STRINGS of base units (e.g. "10000000" for 10 USDC
 "1000000000000000000" for 1 WMNT at 18 decimals). Addresses are 0x… hex. If the goal mentions
 multiple actions in sequence, chain the calls.`;
 
-export async function runScenario({ goal, walletClient, publicClient, model: providedModel }) {
+export async function runScenario({
+  goal,
+  walletClient,
+  publicClient,
+  model: providedModel,
+  providerOptions,
+}) {
   const erc8004 = createErc8004Provider({
     walletClient,
     publicClient,
@@ -48,6 +54,11 @@ export async function runScenario({ goal, walletClient, publicClient, model: pro
     prompt: `Goal: ${goal}`,
     tools,
     stopWhen: stepCountIs(6),
+    // gpt-5 (a Responses-API reasoning model) defaults to reasoningEffort
+    // 'medium' and will burn its budget thinking instead of emitting the tool
+    // call — verified 2026-06-15: aave/dex scenarios produced reasoning tokens
+    // but zero on-chain action. Caller passes { openai: { reasoningEffort } }.
+    ...(providerOptions ? { providerOptions } : {}),
   });
 
   // `result.toolCalls`/`toolResults` only carry the FINAL step. Reasoning

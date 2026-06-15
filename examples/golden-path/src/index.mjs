@@ -53,12 +53,20 @@ const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const GOOGLE_KEY = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 let model;
 let modelLabel;
+// Per-provider knobs forwarded to generateText (e.g. gpt-5 reasoning effort).
+let providerOptions;
 if (OPENAI_KEY && OPENAI_KEY.startsWith('sk-')) {
-  // gpt-5: stronger multi-step tool-chaining than gpt-4o — gpt-4o intermittently
-  // emitted zero tool calls for the register→attest chain (golden-path 2026-06-15).
+  // gpt-5 is a Responses-API reasoning model (the default openai() callable
+  // already routes there). Without capping reasoningEffort it over-thinks and
+  // never emits the tool call — verified 2026-06-15. 'low' makes it act.
   const openaiModel = process.env.GOLDEN_OPENAI_MODEL ?? 'gpt-5';
   model = createOpenAI({ apiKey: OPENAI_KEY })(openaiModel);
   modelLabel = `openai ${openaiModel}`;
+  if (openaiModel.startsWith('gpt-5') || openaiModel.startsWith('o')) {
+    providerOptions = {
+      openai: { reasoningEffort: process.env.GOLDEN_REASONING_EFFORT ?? 'low' },
+    };
+  }
 } else if (ANTHROPIC_KEY && ANTHROPIC_KEY.startsWith('sk-ant-')) {
   model = createAnthropic({ apiKey: ANTHROPIC_KEY })('claude-sonnet-4-5');
   modelLabel = 'anthropic claude-sonnet-4-5';
@@ -128,6 +136,7 @@ for (let i = 0; i < SCENARIOS.length; i++) {
       publicClient,
       chain: 'mantle-sepolia',
       model,
+      providerOptions,
       tokens: SEPOLIA_TOKENS,
     });
     const dt = Date.now() - t0;
