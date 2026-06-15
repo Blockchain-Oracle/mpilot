@@ -1,0 +1,196 @@
+/*
+ * Concierge design tokens.
+ *
+ * Light + dark mode via `data-theme` on <html>. OKLCH for color accuracy +
+ * intuitive hue/chroma/lightness. Bricolage Grotesque (display), Hanken Grotesk
+ * (body), JetBrains Mono (mono).
+ *
+ * Per ADR-015 the visual layer ships from this package and apps/web dogfoods
+ * it. No raw color literals in components — read from these custom properties.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+:root,
+[data-theme="light"] {
+  /* Surfaces */
+  --paper: oklch(0.99 0 0);
+  --paper-2: oklch(0.97 0.005 250);
+  --paper-3: oklch(0.95 0.005 250);
+  --card: oklch(1 0 0);
+
+  /* Text (ink) */
+  --ink: oklch(0.18 0.02 268);
+  --ink-2: oklch(0.4 0.02 268);
+  --ink-3: oklch(0.6 0.01 268);
+
+  /* Hairlines */
+  --line: oklch(0.91 0.005 250);
+  --line-2: oklch(0.86 0.005 250);
+
+  /* Primary (indigo) */
+  --primary: oklch(0.52 0.2 268);
+  --primary-2: oklch(0.45 0.2 268);
+  --primary-soft: oklch(0.95 0.04 268);
+  --primary-line: oklch(0.85 0.08 268);
+  --on-primary: oklch(0.99 0 0);
+
+  /* Semantic */
+  --signal: oklch(0.55 0.15 152);
+  --signal-soft: oklch(0.95 0.05 152);
+  --signal-line: oklch(0.85 0.1 152);
+  --warn: oklch(0.7 0.15 70);
+  --warn-soft: oklch(0.96 0.05 70);
+  --warn-line: oklch(0.86 0.1 70);
+  --danger: oklch(0.55 0.2 25);
+  --danger-soft: oklch(0.95 0.05 25);
+  --danger-line: oklch(0.85 0.12 25);
+
+  /* Status pill colors (per ADR-017 §UX-spec status enum) */
+  --status-pending: oklch(0.85 0.01 268);
+  --status-planning: var(--primary);
+  --status-simulating: oklch(0.6 0.15 220);
+  --status-proposing: var(--primary-2);
+  --status-awaiting-approval: oklch(0.65 0.15 80);
+  --status-auto-approved: var(--signal);
+  --status-executing: oklch(0.55 0.18 268);
+  --status-confirmed: var(--signal);
+  --status-attesting: oklch(0.55 0.15 280);
+  --status-attested: oklch(0.45 0.1 268);
+  --status-failed-simulation: var(--warn);
+  --status-failed-execution: var(--danger);
+  --status-rejected-by-user: var(--ink-3);
+
+  /* Spacing — 4px base grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* Radii */
+  --r-sm: 5px;
+  --r-md: 9px;
+  --r-lg: 14px;
+  --r-full: 9999px;
+
+  /* Shadows */
+  --sh-1: 0 1px 2px oklch(0 0 0 / 0.06);
+  --sh-2: 0 4px 12px oklch(0 0 0 / 0.08);
+  --sh-3: 0 12px 32px oklch(0 0 0 / 0.12);
+
+  /* Motion */
+  --motion-fast: 150ms;
+  --motion-medium: 250ms;
+  --motion-slow: 400ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --maxw: 1180px;
+  --nav-h: 60px;
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+
+  /* Type families */
+  --sans: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --display: "Bricolage Grotesque", var(--sans);
+  --mono: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+}
+
+[data-theme="dark"] {
+  --paper: oklch(0.13 0.01 268);
+  --paper-2: oklch(0.16 0.012 268);
+  --paper-3: oklch(0.19 0.014 268);
+  --card: oklch(0.15 0.012 268);
+
+  --ink: oklch(0.96 0 0);
+  --ink-2: oklch(0.75 0.01 268);
+  --ink-3: oklch(0.55 0.01 268);
+
+  --line: oklch(0.25 0.012 268);
+  --line-2: oklch(0.32 0.012 268);
+
+  --primary: oklch(0.7 0.2 268);
+  --primary-2: oklch(0.62 0.2 268);
+  --primary-soft: oklch(0.25 0.07 268);
+  --primary-line: oklch(0.35 0.1 268);
+  --on-primary: oklch(0.99 0 0);
+
+  --signal: oklch(0.7 0.18 152);
+  --signal-soft: oklch(0.22 0.06 152);
+  --signal-line: oklch(0.32 0.1 152);
+  --warn: oklch(0.78 0.15 70);
+  --warn-soft: oklch(0.22 0.06 70);
+  --warn-line: oklch(0.32 0.1 70);
+  --danger: oklch(0.7 0.22 25);
+  --danger-soft: oklch(0.22 0.07 25);
+  --danger-line: oklch(0.32 0.12 25);
+
+  --sh-1: 0 1px 2px oklch(0 0 0 / 0.4);
+  --sh-2: 0 4px 12px oklch(0 0 0 / 0.5);
+  --sh-3: 0 12px 32px oklch(0 0 0 / 0.6);
+}
+
+/* Type-scale utility classes (consumed by apps/web onboarding wizard) */
+.ds-display {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.ds-h-sec {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+.ds-h-card {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+.ds-body {
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.ds-lede {
+  font-family: var(--sans);
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.ds-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ds-mono {
+  font-family: var(--mono);
+  font-size: 0.875rem;
+}
+.ds-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
