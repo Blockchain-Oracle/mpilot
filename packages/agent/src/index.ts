@@ -1,3 +1,21 @@
+// Re-export UI-facing types from @concierge-mantle/shared so agent consumers
+// (worker, SDK) get them via the agent barrel without depending on shared
+// directly. The types LIVE in shared because the SDK also re-exports them and
+// `agent → sdk → agent` would be a build cycle.
+export {
+  GOAL_EXAMPLES,
+  type GoalChip,
+  type GoalChipType,
+  type ISO8601,
+  ORCHESTRATED_PHASE_OF,
+  type ProposalFields,
+  type RiskFlag,
+  type RiskSeverity,
+  type SimulationOutput,
+  TICK_PHASE_TO_ORCHESTRATED_PHASE,
+  type TickActionData,
+  type TickUpdateEnvelope,
+} from '@concierge-mantle/shared';
 export {
   type AuthGate,
   type CreateChatHandlerDeps,
@@ -9,6 +27,7 @@ export {
   type SystemPromptContext,
 } from './chat/index.ts';
 export { createLock } from './lock.ts';
+export { parseGoal, quickChips } from './parseGoal.ts';
 export type { ActionSimResult, ComputeDeltaStateInput, DeltaState } from './phases/deltaState.ts';
 export { computeDeltaState } from './phases/deltaState.ts';
 export type {
@@ -98,6 +117,13 @@ export type {
   SimulatorRegistry,
 } from './phases/simulate.ts';
 export { providerActionKey, runSimulate } from './phases/simulate.ts';
+export {
+  type Publisher,
+  publishTickUpdate,
+  type Subscriber,
+  subscribeToTickUpdates,
+  tickChannel,
+} from './pubsub.ts';
 export { sanitizeError, sanitizeMessage } from './sanitize.ts';
 export { tick } from './tick.ts';
 export type {
