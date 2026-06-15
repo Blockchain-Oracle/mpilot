@@ -38,17 +38,42 @@ function getRootKey(): Buffer {
  *
  * For 32-byte output, a single HMAC-SHA256 round is enough.
  */
-function deriveKey(userId: string): Buffer {
+/**
+ * Length-prefixed canonical encoding. Privy userIds contain `:` characters
+ * (`did:privy:cmqe…`) so a `:`-joined encoding has ambiguity: `did|privy|x:y`
+ * collides with `did|privy:x|y`. Length-prefix each component to make the
+ * encoding injective — `len(a)||a||len(b)||b||…`. UTF-8 lengths fit in 4
+ * bytes since we cap each field upstream.
+ */
+function lpEncode(parts: ReadonlyArray<string>): Buffer {
+  const chunks: Buffer[] = [];
+  for (const p of parts) {
+    const buf = Buffer.from(p, 'utf8');
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(buf.length, 0);
+    chunks.push(len, buf);
+  }
+  return Buffer.concat(chunks);
+}
+
+/**
+ * Per-row key derivation. Code-reviewer 2026-06-15 IMPORTANT: derive a unique
+ * key per (userId, agentId, provider) instead of per-user. Defense in depth:
+ * row-swap of the SAME user's other-agent ciphertext fails at the cipher
+ * layer too, not just at AAD. AAD remains as a second binding so a
+ * compromised admin who guesses both per-row keys still hits the AAD wall.
+ */
+function deriveKey(parts: KmsEnvelopeParts): Buffer {
   const root = getRootKey();
-  const info = Buffer.from(`llm-key:${userId}`, 'utf8');
-  // T(1) = HMAC(root, info || 0x01)
+  const info = lpEncode(['llm-key', parts.userId, parts.agentId, parts.provider]);
+  // T(1) = HMAC(root, info || 0x01) — RFC 5869 §3.3 expand-only.
   return createHmac('sha256', root)
     .update(Buffer.concat([info, Buffer.from([0x01])]))
     .digest();
 }
 
-function buildAad(parts: { userId: string; agentId: string; provider: string }): Buffer {
-  return Buffer.from(`${parts.userId}:${parts.agentId}:${parts.provider}`, 'utf8');
+function buildAad(parts: KmsEnvelopeParts): Buffer {
+  return lpEncode([parts.userId, parts.agentId, parts.provider]);
 }
 
 export interface KmsEnvelopeParts {
@@ -62,7 +87,7 @@ export function encryptLlmKey(plaintext: string, parts: KmsEnvelopeParts): Buffe
   if (plaintext.length === 0 || plaintext.length > 4096) {
     throw new Error('[apps/web/kms] plaintext must be 1..4096 bytes');
   }
-  const key = deriveKey(parts.userId);
+  const key = deriveKey(parts);
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv('aes-256-gcm', key, iv);
   cipher.setAAD(buildAad(parts));
@@ -84,7 +109,7 @@ export function decryptLlmKey(ciphertext: Buffer, parts: KmsEnvelopeParts): stri
   const iv = ciphertext.subarray(0, IV_BYTES);
   const tag = ciphertext.subarray(IV_BYTES, IV_BYTES + TAG_BYTES);
   const ct = ciphertext.subarray(IV_BYTES + TAG_BYTES);
-  const key = deriveKey(parts.userId);
+  const key = deriveKey(parts);
   const decipher = createDecipheriv('aes-256-gcm', key, iv);
   decipher.setAAD(buildAad(parts));
   decipher.setAuthTag(tag);

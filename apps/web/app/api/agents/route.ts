@@ -53,10 +53,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
   if (!auth.ok) {
-    const status = auth.reason === 'unavailable' ? 503 : 401;
-    return NextResponse.json({ error: 'unauthorized', code: 'unauthorized' as const }, { status });
+    const isUnavailable = auth.reason === 'unavailable';
+    return NextResponse.json(
+      {
+        error: isUnavailable ? 'auth temporarily unavailable' : 'unauthorized',
+        code: isUnavailable ? ('service_unavailable' as const) : ('unauthorized' as const),
+      },
+      { status: isUnavailable ? 503 : 401 },
+    );
   }
   const userId = auth.user.userId;
+  // Security review LOW finding (2026-06-15): assert ownerEoa correlates with
+  // the authenticated user. We currently can't query Privy's linked-wallets
+  // server-side without an extra fetch, so we log mismatches for triage and
+  // bind the row to verified `userId`, not the client-supplied wallet.
 
   let body: z.infer<typeof createAgentSchema>;
   try {
