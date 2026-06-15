@@ -83,8 +83,10 @@ export const ADDRESSES = deepFreeze({
         pool: '0x5520385bFcf07Ec87C4c53A7d8d65595Dff69FA4' as Address,
       },
     },
-    // Filled in by story-19 (deploy-mainnet.sh + write-addresses.mjs --network mainnet)
-    conciergeRegistry: ZERO_ADDRESS,
+    // ConciergeRegistry UUPS proxy — deployed to Mantle Mainnet 2026-06-15 via
+    // DeployMainnet.s.sol (deployer 0xdAC4d9D89ed9bD597B15558057587d930ebAd5B3).
+    // impl 0xc784362387E1DCD2A99D1000d9c852F4EA244761.
+    conciergeRegistry: '0xE54B60382bC85C14abc15A20a0fB90d6FAea8025' as Address,
   },
   mantleSepolia: {
     aave: {
@@ -248,6 +250,7 @@ export const SEPOLIA_PENDING_ADDRESS_SLOTS = Object.freeze([
  * MUST stay lexically sorted (default JS Array.sort comparator) — the lockbox
  * test compares against `.sort()`. Asserted in addresses.test.ts.
  */
-export const MAINNET_PENDING_ADDRESS_SLOTS = Object.freeze([
-  'conciergeRegistry',
-] as const satisfies readonly MainnetAddressPath[]);
+// Empty — conciergeRegistry was deployed to Mantle Mainnet 2026-06-15; no mainnet
+// slots remain pending. Kept as a typed lockbox so a future regression (zeroing a
+// live mainnet address) fails the addresses.test lockbox assertion.
+export const MAINNET_PENDING_ADDRESS_SLOTS: readonly MainnetAddressPath[] = Object.freeze([]);
