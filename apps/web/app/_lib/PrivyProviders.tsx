@@ -20,16 +20,18 @@
  */
 import { PrivyProvider } from '@privy-io/react-auth';
 import { WagmiProvider } from '@privy-io/wagmi';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { AuthGate } from './AuthGate';
+import { createAppQueryClient } from './queryClient';
 import { mantleSepolia, SUPPORTED_CHAINS, wagmiConfig } from './wagmi';
 
 export function PrivyProviders({ children }: { readonly children: ReactNode }) {
   // Per @tanstack/react-query Next.js guidance: instantiate the client once
   // per mount so React Strict Mode (double-mount in dev) doesn't share state
   // across instances.
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => createAppQueryClient());
 
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
   if (!appId) {
@@ -78,7 +80,9 @@ export function PrivyProviders({ children }: { readonly children: ReactNode }) {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={wagmiConfig}>{children}</WagmiProvider>
+        <WagmiProvider config={wagmiConfig}>
+          <AuthGate>{children}</AuthGate>
+        </WagmiProvider>
       </QueryClientProvider>
     </PrivyProvider>
   );

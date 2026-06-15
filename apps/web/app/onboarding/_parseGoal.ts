@@ -62,9 +62,7 @@ export function parseGoal(text: string): readonly GoalChip[] {
   return chips;
 }
 
-export const GOAL_EXAMPLES: readonly string[] = [
-  'Max stablecoin yield, never breach 70% Aave LTV, keep $200 USDC liquid',
-  'Grow mETH staking rewards, keep health factor above 2.0',
-  'Depeg-resistant treasury: rotate into the safest RWA yield, $500 always liquid',
-  'Autopay 5 USDC/day from idle yield, keep $100 liquid',
-];
+// Re-export the canonical SDK list so the wizard, dashboard's edit-goal page,
+// docs site, and skill all show the same 6 personas. Local examples were
+// drifting; SDK is the source of truth.
+export { GOAL_EXAMPLES } from '@concierge-mantle/sdk';

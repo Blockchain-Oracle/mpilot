@@ -93,6 +93,40 @@ export const tokens = {
 
 ---
 
+## Returning-user gate (LOCKED — added 2026-06-15)
+
+Onboarding is a one-time event. The wizard MUST NOT run for users who already have a deployed smart account + minted agent on their connected wallet.
+
+**Mechanism.** On every authenticated page load `<AuthGate>` (root client component, wrapped inside `<PrivyProviders>`) calls `GET /api/agents/me` with the Privy access token. Route shape:
+
+```
+GET /api/agents/me
+  Authorization: Bearer <privy_access_token>
+  → 200 { agent: null }              // first-time user
+  → 200 { agent: { id, smartAccountAddress, agentTokenId, status, ... } }
+  → 401                              // missing / invalid token
+```
+
+The server verifies the token via `@privy-io/node`'s `verifyAccessToken` and uses the verified `userId` as the ownership key — NEVER trusts a wallet address or user id from the request body or headers. This is the canonical server-side identity boundary for every authenticated route.
+
+**Routing decisions.**
+
+| `data.agent` shape | Current path | Action |
+|---|---|---|
+| `null` | `/` | `router.replace('/onboarding')` |
+| `null` | `/onboarding/*` | no-op (already in wizard) |
+| `{smartAccountAddress, agentTokenId: null}` (mid-wizard) | any | `router.replace('/onboarding')` (resume at identity step) |
+| `{status: 'active'}` | `/` or `/onboarding/*` | `router.replace('/app')` |
+| `{status: 'active'}` | `/app/*` or `/agent/*` | no-op |
+
+Landing always renders immediately; the gate runs only the redirect *side-effect*, never gates the *render*, so first-paint stays fast.
+
+**Why not middleware?** Next.js Edge middleware cannot read Privy's client-side session. Verified via Context7 and confirmed in the project plan — the gate is intentionally a client component, after hydration.
+
+**Logout.** `useLogout` wraps Privy's `logout()` and calls `queryClient.removeQueries({ queryKey: ['me'] })` (NOT `clear()` — would nuke wagmi's cache). `<ConciergeAccountContext>` resets on the next mount.
+
+---
+
 ## Demo shape rule
 
 The 90-second judge walkthrough (per `PRD.md` § Demo moment) lives on these routes in this order:
