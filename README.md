@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/banner-dark.svg">
-    <img alt="mPilot — the autonomous yield agent for Mantle" src="./assets/banner.svg" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Blockchain-Oracle/mpilot/main/assets/banner-dark.svg">
+    <img alt="mPilot — the autonomous yield agent for Mantle" src="https://raw.githubusercontent.com/Blockchain-Oracle/mpilot/main/assets/banner.svg" width="100%">
   </picture>
 </p>
 
@@ -45,7 +45,7 @@ It's not a chatbot with a wallet. It takes real actions across **7 Mantle protoc
 ## How it works (one picture)
 
 <p align="center">
-  <img alt="mPilot architecture" src="./assets/architecture.svg" width="92%">
+  <img alt="mPilot architecture" src="https://raw.githubusercontent.com/Blockchain-Oracle/mpilot/main/assets/architecture.svg" width="92%">
 </p>
 
 ## The AI × RWA angle
@@ -73,7 +73,7 @@ Every other agent in this space is a single website. mPilot's core is a **compos
 ## Live on Mantle mainnet ✅
 
 <p align="center">
-  <img alt="mPilot mainnet deployment" src="./assets/mainnet-card.svg" width="68%">
+  <img alt="mPilot mainnet deployment" src="https://raw.githubusercontent.com/Blockchain-Oracle/mpilot/main/assets/mainnet-card.svg" width="68%">
 </p>
 
 | | Address / proof |
@@ -116,8 +116,8 @@ pnpm --filter @mpilot/web dev   # start the web app at http://localhost:3000
 |---|---|
 | ▶️ **2-min demo video** | _add link_ |
 | 🌐 **Live app** | _add link_ |
-| 🖼️ Architecture | [`assets/architecture.svg`](./assets/architecture.svg) |
-| 🖼️ Deployment cards | [`assets/mainnet-card.svg`](./assets/mainnet-card.svg) · [`assets/testnet-card.svg`](./assets/testnet-card.svg) |
+| 🖼️ Architecture | [`assets/architecture.svg`](https://raw.githubusercontent.com/Blockchain-Oracle/mpilot/main/assets/architecture.svg) |
+| 🖼️ Deployment cards | [`assets/mainnet-card.svg`](https://raw.githubusercontent.com/Blockchain-Oracle/mpilot/main/assets/mainnet-card.svg) · [`assets/testnet-card.svg`](https://raw.githubusercontent.com/Blockchain-Oracle/mpilot/main/assets/testnet-card.svg) |
 
 ## Honest limitations & what's next
 
