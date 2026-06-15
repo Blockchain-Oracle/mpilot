@@ -2,9 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { quickChips } from '../parseGoal.ts';
 
 describe('quickChips', () => {
-  it('extracts a percentage', () => {
+  it('extracts a percentage as max_ltv when ltv keyword is nearby', () => {
     expect(quickChips('keep LTV under 70%')).toEqual([
       { key: 'max_ltv', value: '70%', type: 'percentage' },
+    ]);
+  });
+  it('labels a generic percentage when no ltv context', () => {
+    expect(quickChips('target 8% APR')).toEqual([
+      { key: 'percentage', value: '8%', type: 'percentage' },
     ]);
   });
   it('extracts a USD budget', () => {

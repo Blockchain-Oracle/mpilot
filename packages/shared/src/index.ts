@@ -40,6 +40,9 @@ export {
   type RiskFlag,
   type RiskSeverity,
   type SimulationOutput,
+  TICK_PHASE_TO_ORCHESTRATED_PHASE,
   type TickActionData,
   type TickUpdateEnvelope,
+  tickActionDataSchema,
+  tickUpdateEnvelopeSchema,
 } from './uiTypes.ts';

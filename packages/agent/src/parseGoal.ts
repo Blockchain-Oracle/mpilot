@@ -37,6 +37,12 @@ export async function parseGoal({
 }): Promise<ReadonlyArray<GoalChip>> {
   const trimmed = text.trim();
   if (trimmed.length === 0) return [];
+  // Cap raw user input to bound LLM cost + context. 2000 chars is more than
+  // enough for a multi-clause goal; longer text is almost certainly accidental
+  // paste or attempted prompt-injection padding.
+  if (trimmed.length > 2000) {
+    throw new Error(`[parseGoal] Goal exceeds 2000 char limit (got ${trimmed.length}).`);
+  }
 
   const shotsBlock = examples?.length
     ? `\nExamples:\n${examples
@@ -69,8 +75,19 @@ export async function parseGoal({
  */
 export function quickChips(text: string): GoalChip[] {
   const chips: GoalChip[] = [];
-  const pct = text.match(/(\d+(?:\.\d+)?)\s*%/);
-  if (pct?.[1]) chips.push({ key: 'max_ltv', value: `${pct[1]}%`, type: 'percentage' });
+  // Only label as `max_ltv` when the percent sits near an LTV keyword; a bare
+  // `8%` in `"target 8% APR"` becomes a generic `percentage` chip the wizard
+  // can re-key once the LLM returns the proper extraction.
+  const ltv = text.match(
+    /(\d+(?:\.\d+)?)\s*%\s*(?:max\s*)?ltv|ltv\s*(?:of\s*|under\s*|<=?\s*)?(\d+(?:\.\d+)?)\s*%/i,
+  );
+  if (ltv) {
+    const val = ltv[1] ?? ltv[2];
+    if (val) chips.push({ key: 'max_ltv', value: `${val}%`, type: 'percentage' });
+  } else {
+    const pct = text.match(/(\d+(?:\.\d+)?)\s*%/);
+    if (pct?.[1]) chips.push({ key: 'percentage', value: `${pct[1]}%`, type: 'percentage' });
+  }
   const usd = text.match(/\$\s*([\d,]+(?:\.\d+)?)\s*(?:k|m)?/i);
   if (usd?.[1]) chips.push({ key: 'budget_usd', value: `$${usd[1]}`, type: 'currency' });
   const cadence = text.match(/\b(daily|weekly|monthly|hourly)\b/i);

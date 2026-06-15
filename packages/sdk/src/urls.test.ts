@@ -22,11 +22,21 @@ describe('mantleScanTxUrl', () => {
   it('throws on unsupported chain', () => {
     expect(() => mantleScanTxUrl(TX, 1)).toThrow(/Unsupported chainId/);
   });
+  it('throws on malformed tx hash (defense vs. path-segment injection)', () => {
+    expect(() => mantleScanTxUrl('0xdeadbeef/../etc' as `0x${string}`, SEPOLIA)).toThrow(
+      /tx\/feedback hash/,
+    );
+  });
 });
 
 describe('mantleScanAddressUrl', () => {
   it('routes address to the right host', () => {
     expect(mantleScanAddressUrl(ADDR, MAINNET)).toBe(`https://mantlescan.xyz/address/${ADDR}`);
+  });
+  it('throws on malformed address', () => {
+    expect(() => mantleScanAddressUrl('0xnotanaddress' as `0x${string}`, MAINNET)).toThrow(
+      /Expected 20-byte/,
+    );
   });
 });
 
@@ -37,11 +47,19 @@ describe('attestationMantleScanUrl', () => {
 });
 
 describe('attestationIpfsUrl', () => {
-  it('builds a gateway link', () => {
-    expect(attestationIpfsUrl('bafy123')).toBe('https://ipfs.io/ipfs/bafy123');
+  const CIDV0 = 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG';
+  const CIDV1 = 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi';
+  it('accepts CIDv0 Qm…', () => {
+    expect(attestationIpfsUrl(CIDV0)).toBe(`https://ipfs.io/ipfs/${CIDV0}`);
   });
-  it('rejects suspicious CIDs', () => {
+  it('accepts CIDv1 base32 b…', () => {
+    expect(attestationIpfsUrl(CIDV1)).toBe(`https://ipfs.io/ipfs/${CIDV1}`);
+  });
+  it('rejects path traversal', () => {
     expect(() => attestationIpfsUrl('../etc/passwd')).toThrow(/shape check/);
+  });
+  it('rejects short non-CID strings', () => {
+    expect(() => attestationIpfsUrl('bafy123')).toThrow(/shape check/);
   });
 });
 

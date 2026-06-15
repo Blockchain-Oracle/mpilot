@@ -96,6 +96,57 @@ describe('subscribeToTickUpdates', () => {
     expect(updates).toHaveLength(0);
   });
 
+  it('calls onParseError on structurally-valid JSON that fails the envelope schema', async () => {
+    let handler: ((channel: string, message: string) => void) | null = null;
+    const sub: Subscriber = {
+      subscribe: vi.fn(async () => undefined),
+      unsubscribe: vi.fn(async () => undefined),
+      on: vi.fn((event, listener) => {
+        if (event === 'message') handler = listener;
+      }),
+    };
+    const errors: { raw: string; err: unknown }[] = [];
+    const updates: unknown[] = [];
+    await subscribeToTickUpdates(sub, {
+      userId: 'u',
+      agentId: 'a',
+      onUpdate: (env) => updates.push(env),
+      onParseError: (raw, err) => errors.push({ raw, err }),
+    });
+    // Parses as JSON but missing required fields — must NOT reach onUpdate.
+    handler!('user:u:ticks:a', JSON.stringify({ unrelated: true }));
+    expect(updates).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+  });
+
+  it('rejects envelopes carrying malformed hex (defense vs. publisher compromise)', async () => {
+    let handler: ((channel: string, message: string) => void) | null = null;
+    const sub: Subscriber = {
+      subscribe: vi.fn(async () => undefined),
+      unsubscribe: vi.fn(async () => undefined),
+      on: vi.fn((event, listener) => {
+        if (event === 'message') handler = listener;
+      }),
+    };
+    const updates: unknown[] = [];
+    await subscribeToTickUpdates(sub, {
+      userId: 'u',
+      agentId: 'a',
+      onUpdate: (env) => updates.push(env),
+    });
+    handler!(
+      'user:u:ticks:a',
+      JSON.stringify({
+        userId: 'u',
+        agentId: 'a',
+        tickId: 't1',
+        data: { phase: 'execute', userOpHash: 'javascript:alert(1)' },
+        at: '2026-06-15T00:00:00.000Z',
+      }),
+    );
+    expect(updates).toHaveLength(0);
+  });
+
   it('calls onParseError instead of throwing on malformed JSON', async () => {
     let handler: ((channel: string, message: string) => void) | null = null;
     const sub: Subscriber = {

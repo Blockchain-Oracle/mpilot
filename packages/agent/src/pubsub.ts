@@ -1,4 +1,96 @@
 import type { TickActionData, TickUpdateEnvelope } from '@concierge-mantle/shared';
+import { z } from 'zod';
+
+// Inlined runtime validator for `TickUpdateEnvelope`. The same Zod schema
+// exists in `@concierge-mantle/shared/uiTypes` but tsup's DTS pipeline can't
+// reliably re-export Zod schemas across package boundaries (emits `undefined`
+// in the .d.ts). Keep this local copy in sync with the shared definition —
+// adding a phase / proposal kind there requires updating here too.
+const hex32 = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
+const addr = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
+const id = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
+const proposalFieldsLocal = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('aave-supply'),
+    asset: addr,
+    amount: z.string(),
+    expectedApr: z.string(),
+  }),
+  z.object({
+    kind: z.literal('aave-borrow'),
+    asset: addr,
+    amount: z.string(),
+    resultingHealthFactor: z.string(),
+  }),
+  z.object({
+    kind: z.literal('dex-swap'),
+    inputToken: addr,
+    outputToken: addr,
+    inputAmount: z.string(),
+    minOutputAmount: z.string(),
+    slippageBps: z.number().int().min(0).max(10_000),
+  }),
+  z.object({ kind: z.literal('ethena-stake'), amount: z.string() }),
+  z.object({ kind: z.literal('ondo-mint'), amount: z.string() }),
+  z.object({ kind: z.literal('meth-stake'), amount: z.string() }),
+  z.object({
+    kind: z.literal('lifi-bridge'),
+    fromChainId: z.number().int().positive(),
+    toChainId: z.number().int().positive(),
+    token: addr,
+    amount: z.string(),
+  }),
+  z.object({ kind: z.literal('erc8004-attest'), subject: z.string(), payload: z.unknown() }),
+]);
+const tickActionDataLocal = z.discriminatedUnion('phase', [
+  z.object({ phase: z.literal('plan'), reasoning: z.string().max(16_384) }),
+  z.object({
+    phase: z.literal('simulate'),
+    simulation: z.object({
+      expectedUsdDelta: z.string().max(64),
+      healthFactorAfter: z.string().max(64).optional(),
+      riskFlags: z
+        .array(
+          z.object({ severity: z.enum(['info', 'warn', 'danger']), message: z.string().max(2048) }),
+        )
+        .max(32),
+      rawJson: z.unknown(),
+    }),
+  }),
+  z.object({
+    phase: z.literal('propose'),
+    proposalId: z.string().max(128),
+    fields: proposalFieldsLocal,
+  }),
+  z.object({
+    phase: z.literal('execute'),
+    userOpHash: hex32,
+    txHash: hex32.optional(),
+    revertReason: z.string().max(2048).optional(),
+  }),
+  z.object({
+    phase: z.literal('record'),
+    feedbackHash: hex32,
+    cid: z
+      .string()
+      .regex(/^[A-Za-z0-9]+$/)
+      .max(128),
+    attestedAt: z.string().max(64),
+  }),
+  z.object({
+    phase: z.literal('decide'),
+    outcome: z.enum(['auto-approved', 'awaiting-user', 'rejected']),
+    approvedBy: addr.optional(),
+    approvalDeadline: z.string().max(64).optional(),
+  }),
+]);
+const envelopeLocal = z.object({
+  userId: id,
+  agentId: id,
+  tickId: z.string().max(128),
+  data: tickActionDataLocal,
+  at: z.string().max(64),
+});
 
 /**
  * Minimal pub/sub interface the agent runtime depends on. Implemented by
@@ -7,7 +99,7 @@ import type { TickActionData, TickUpdateEnvelope } from '@concierge-mantle/share
  * this shape; we depend only on what we use.
  */
 export interface Publisher {
-  publish(channel: string, message: string): Promise<number | unknown>;
+  publish(channel: string, message: string): Promise<unknown>;
 }
 
 export interface Subscriber {
@@ -76,12 +168,24 @@ export async function subscribeToTickUpdates(
   const channel = tickChannel(args.userId, args.agentId);
   const handler = (incoming: string, message: string): void => {
     if (incoming !== channel) return;
+    // Redis is shared infra; a compromised publisher could emit anything. Run
+    // every payload through the Zod schema before routing to the UI. The
+    // earlier `JSON.parse(...) as TickUpdateEnvelope` cast was a silent-failure
+    // trap — malformed payloads would surface as undefined-narrowed switches
+    // in the dashboard rather than throw.
+    let raw: unknown;
     try {
-      const parsed = JSON.parse(message) as TickUpdateEnvelope;
-      args.onUpdate(parsed);
+      raw = JSON.parse(message);
     } catch (err) {
       args.onParseError?.(message, err);
+      return;
     }
+    const parsed = envelopeLocal.safeParse(raw);
+    if (!parsed.success) {
+      args.onParseError?.(message, parsed.error);
+      return;
+    }
+    args.onUpdate(parsed.data as TickUpdateEnvelope);
   };
   subscriber.on('message', handler);
   await subscriber.subscribe(channel);

@@ -22,8 +22,14 @@
 export type OrchestratedPhase = 'plan' | 'simulate' | 'propose' | 'execute' | 'record';
 
 import type { Hex } from 'viem';
+import { z } from 'zod';
 
 export type ISO8601 = string;
+
+/** Runtime guard for hex32 (tx hash, feedback hash, etc.). */
+const HEX32 = /^0x[0-9a-fA-F]{64}$/;
+const ADDR = /^0x[0-9a-fA-F]{40}$/;
+const ID = /^[A-Za-z0-9_-]{1,128}$/;
 
 /** Severity ladder for risk flags surfaced by the simulator. */
 export type RiskSeverity = 'info' | 'warn' | 'danger';
@@ -130,13 +136,135 @@ export interface TickUpdateEnvelope {
   readonly at: ISO8601;
 }
 
-/** Quick sanity helper for SSE consumers narrowing back to OrchestratedPhase. */
-export const ORCHESTRATED_PHASE_OF: Readonly<Record<TickActionData['phase'], OrchestratedPhase>> = {
+/**
+ * Runtime-validated schemas for `TickActionData` + `TickUpdateEnvelope`. Pub/sub
+ * crosses an untrusted boundary (Redis is shared infra; a compromised publisher
+ * could emit anything). Subscribers MUST `safeParse` envelopes before routing
+ * to the UI — a `JSON.parse(...) as TickUpdateEnvelope` cast is a silent-failure
+ * trap (malformed payloads would render as undefined-narrowed switches).
+ */
+const hex32 = z.string().regex(HEX32);
+const addr = z.string().regex(ADDR);
+
+const riskFlagSchema = z.object({
+  severity: z.enum(['info', 'warn', 'danger']),
+  message: z.string().max(2048),
+});
+
+const simulationOutputSchema = z.object({
+  expectedUsdDelta: z.string().max(64),
+  healthFactorAfter: z.string().max(64).optional(),
+  riskFlags: z.array(riskFlagSchema).max(32),
+  rawJson: z.unknown(),
+});
+
+const proposalFieldsSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('aave-supply'),
+    asset: addr,
+    amount: z.string(),
+    expectedApr: z.string(),
+  }),
+  z.object({
+    kind: z.literal('aave-borrow'),
+    asset: addr,
+    amount: z.string(),
+    resultingHealthFactor: z.string(),
+  }),
+  z.object({
+    kind: z.literal('dex-swap'),
+    inputToken: addr,
+    outputToken: addr,
+    inputAmount: z.string(),
+    minOutputAmount: z.string(),
+    slippageBps: z.number().int().min(0).max(10_000),
+  }),
+  z.object({ kind: z.literal('ethena-stake'), amount: z.string() }),
+  z.object({ kind: z.literal('ondo-mint'), amount: z.string() }),
+  z.object({ kind: z.literal('meth-stake'), amount: z.string() }),
+  z.object({
+    kind: z.literal('lifi-bridge'),
+    fromChainId: z.number().int().positive(),
+    toChainId: z.number().int().positive(),
+    token: addr,
+    amount: z.string(),
+  }),
+  z.object({
+    kind: z.literal('erc8004-attest'),
+    subject: z.string(),
+    payload: z.unknown(),
+  }),
+]);
+
+// Explicit type annotation: tsup's DTS pipeline can't track the inferred type
+// of nested z.discriminatedUnion across an exported barrel — without this it
+// emits `declare const tickActionDataSchema: undefined<...>` and downstream
+// consumers see it as `possibly undefined`. Use `ZodTypeAny` to dodge the
+// exactOptionalPropertyTypes mismatch between the Zod-inferred shape and the
+// manual TickActionData interface (Zod widens `prop?: T` to `prop?: T | undefined`).
+export const tickActionDataSchema: z.ZodTypeAny = z.discriminatedUnion('phase', [
+  z.object({ phase: z.literal('plan'), reasoning: z.string().max(16_384) }),
+  z.object({ phase: z.literal('simulate'), simulation: simulationOutputSchema }),
+  z.object({
+    phase: z.literal('propose'),
+    proposalId: z.string().max(128),
+    fields: proposalFieldsSchema,
+  }),
+  z.object({
+    phase: z.literal('execute'),
+    userOpHash: hex32,
+    txHash: hex32.optional(),
+    revertReason: z.string().max(2048).optional(),
+  }),
+  z.object({
+    phase: z.literal('record'),
+    feedbackHash: hex32,
+    cid: z
+      .string()
+      .regex(/^[A-Za-z0-9]+$/)
+      .max(128),
+    attestedAt: z.string().max(64),
+  }),
+  z.object({
+    phase: z.literal('decide'),
+    outcome: z.enum(['auto-approved', 'awaiting-user', 'rejected']),
+    approvedBy: addr.optional(),
+    approvalDeadline: z.string().max(64).optional(),
+  }),
+]);
+// We can't `satisfies z.ZodType<TickActionData>` here: Zod 4 widens optional /
+// readonly properties relative to the manual interface, so the constraint
+// rejects a structurally-correct schema. The schemas validate the right shape
+// at runtime (covered by pubsub tests); the manual interface remains the
+// public TS contract.
+
+export const tickUpdateEnvelopeSchema: z.ZodTypeAny = z.object({
+  userId: z.string().regex(ID),
+  agentId: z.string().regex(ID),
+  tickId: z.string().max(128),
+  data: tickActionDataSchema,
+  at: z.string().max(64),
+});
+
+/**
+ * Map UI-emitted `TickActionData.phase` to the in-loop `OrchestratedPhase`.
+ *
+ * **Lossy** for `'decide'`, which is out-of-loop in the orchestrator. We pin
+ * it to `'propose'` for ordering purposes only — consumers that need the
+ * actual ledger key for phase accounting (ADR-014) MUST handle `'decide'`
+ * separately rather than reading from this map. The name is deliberately
+ * verbose so the lossiness is impossible to miss at the call site.
+ */
+export const TICK_PHASE_TO_ORCHESTRATED_PHASE: Readonly<
+  Record<TickActionData['phase'], OrchestratedPhase>
+> = {
   plan: 'plan',
   simulate: 'simulate',
   propose: 'propose',
   execute: 'execute',
   record: 'record',
-  // `decide` is out-of-loop in the orchestrator; map to 'propose' for ordering.
   decide: 'propose',
 };
+
+/** @deprecated use `TICK_PHASE_TO_ORCHESTRATED_PHASE` — name made the lossy `decide` mapping invisible. */
+export const ORCHESTRATED_PHASE_OF = TICK_PHASE_TO_ORCHESTRATED_PHASE;
