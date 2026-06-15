@@ -49,7 +49,11 @@ export async function POST(request: Request): Promise<NextResponse> {
   let auth: Awaited<ReturnType<typeof verifyPrivyAuth>>;
   try {
     auth = await verifyPrivyAuth(request);
-  } catch {
+  } catch (err) {
+    // Server-side auth misconfig (bad Privy secret, network blip). Log for
+    // triage — without this the 500 is undiagnosable.
+    // biome-ignore lint/suspicious/noConsole: server-side observability
+    console.error('[apps/web/agents] auth verification threw', err);
     return NextResponse.json(
       { error: 'Server auth misconfigured', code: 'internal_error' as const },
       { status: 500 },
@@ -89,7 +93,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const { db } = await getDb();
+  let db: Awaited<ReturnType<typeof getDb>>['db'];
+  try {
+    ({ db } = await getDb());
+  } catch (err) {
+    // DB connect failure (bad DATABASE_URL, PG down). Without this the route
+    // would reject with an opaque 500 and no triage line.
+    // biome-ignore lint/suspicious/noConsole: server-side observability
+    console.error('[apps/web/agents] db connect failed', err);
+    return NextResponse.json(
+      { error: 'create failed', code: 'internal_error' as const },
+      { status: 500 },
+    );
+  }
   let agentId: string;
   try {
     // Persist the agent + keys + notification prefs in one tx so partial
@@ -146,13 +162,21 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   // Best-effort side-effects — failure here doesn't fail the create (the
-  // agent + keys are already persisted).
+  // agent + keys are already persisted). We DO report each outcome in the
+  // response so the client can surface "created but not yet started".
+  let firstTickQueued = false;
   try {
     await enqueueFirstTick(agentId);
+    firstTickQueued = true;
   } catch (err) {
+    // A failed enqueue means the agent is persisted but DORMANT — it will
+    // never tick. That's a user-visible defect, so log at error level (not
+    // warn) and report `firstTickQueued: false` so the client can retry.
     // biome-ignore lint/suspicious/noConsole: server-side observability
-    console.warn('[apps/web/agents] enqueue first tick failed', err);
+    console.error('[apps/web/agents] enqueue first tick failed — agent is dormant', err);
   }
+
+  let welcomeEmailSent = false;
   if (body.notification?.email) {
     try {
       await sendWelcomeEmail({
@@ -165,11 +189,12 @@ export async function POST(request: Request): Promise<NextResponse> {
             ? 'https://mantlescan.xyz'
             : 'https://sepolia.mantlescan.xyz',
       });
+      welcomeEmailSent = true;
     } catch (err) {
       // biome-ignore lint/suspicious/noConsole: server-side observability
       console.warn('[apps/web/agents] welcome email failed', err);
     }
   }
 
-  return NextResponse.json({ agentId }, { status: 201 });
+  return NextResponse.json({ agentId, firstTickQueued, welcomeEmailSent }, { status: 201 });
 }
