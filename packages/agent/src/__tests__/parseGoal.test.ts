@@ -17,6 +17,16 @@ describe('quickChips', () => {
       { key: 'budget_usd', value: '$5000', type: 'currency' },
     ]);
   });
+  it('expands $5k to $5000', () => {
+    expect(quickChips('park $5k in stables')).toEqual([
+      { key: 'budget_usd', value: '$5000', type: 'currency' },
+    ]);
+  });
+  it('expands $2m to $2000000', () => {
+    expect(quickChips('budget $2m')).toEqual([
+      { key: 'budget_usd', value: '$2000000', type: 'currency' },
+    ]);
+  });
   it('extracts cadence', () => {
     expect(quickChips('rebalance weekly please')).toEqual([
       { key: 'cadence', value: 'weekly', type: 'enum' },
