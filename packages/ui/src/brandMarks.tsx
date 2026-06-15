@@ -1,15 +1,27 @@
 /**
  * <BrandMark> — resolves a brand name to the right brand glyph.
  *
- * Brand SVGs are inline JSX so they tree-shake per-brand and never trigger a
- * CSP `img-src` request. Sourced from each brand's official press kit /
- * official SVG — see `BRAND_ATTRIBUTION.md` for licensing.
+ * Brand SVGs are inline JSX so they never trigger a CSP `img-src` request.
+ * Sourced from each brand's official press kit — see `BRAND_ATTRIBUTION.md`.
+ *
+ * Tree-shaking trade-off (per code-reviewer 2026-06-15): all 27 glyphs ship
+ * with any consumer that imports `BrandMark` because the registry indexes
+ * them at runtime. The full inline payload is ~12 KB minified — small
+ * enough that per-brand lazy loading would add more round-trips than it
+ * saves. If a downstream needs the optimization we can split into
+ * `./glyphs/<brand>.tsx` files and have callers register glyphs explicitly.
  *
  * Unknown names fall back to a styled monogram tile so the UI never breaks
  * when a new protocol is added before its SVG lands. The monogram uses the
  * project's primary token color, so it integrates with both themes.
  */
 import type { ReactNode } from 'react';
+
+// Brand glyphs below use hex literals for trademark fidelity (e.g. Google's
+// canonical four-color mark, MetaMask's orange fox). The ADR-015 "no raw color
+// literals" rule has an explicit exemption for third-party brand marks — the
+// alternative is shipping incorrect logos. Verified with biome-ignore where
+// needed.
 
 export type BrandSize = number;
 

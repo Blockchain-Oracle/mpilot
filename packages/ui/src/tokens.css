@@ -9,7 +9,18 @@
  * it. No raw color literals in components — read from these custom properties.
  */
 
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+/*
+ * Font loading is the consumer's responsibility, NOT this package's. Three
+ * reasons (per code-reviewer 2026-06-15 CRITICAL): (1) `@import` inside CSS
+ * is render-blocking — no parallel preload; (2) it would force every
+ * downstream CSP to allow `https://fonts.googleapis.com` + `fonts.gstatic.com`;
+ * (3) ADR-018's "pure ESM library" posture argues against an implicit
+ * third-party CDN fetch. The consuming app (apps/web) uses `next/font` with
+ * the SSR loader so first-paint is correct. Other consumers (apps/docs,
+ * skill, MCP iframe) choose their own loading strategy. The CSS variables
+ * below name fonts but do not load them — fallback chains keep things
+ * legible until the consumer's loader hydrates.
+ */
 
 :root,
 [data-theme="light"] {
