@@ -90,21 +90,32 @@ export const ADDRESSES = deepFreeze({
     aave: {
       // Aave V3 has NO Sepolia deployment per research/concierge/03-providers/aave-v3-mantle.md.
       // Concierge mocks Aave on Sepolia via story-14 (MockAavePool) + story-16 (MockAaveOracle).
-      // Addresses below are filled in by story-192 (Sepolia playground deploy).
-      pool: ZERO_ADDRESS,
-      oracle: ZERO_ADDRESS,
+      // Sepolia playground — DeploySepolia.s.sol run 2026-06-15 (deployer
+      // 0xdAC4d9D89ed9bD597B15558057587d930ebAd5B3 / chain 5003 / commit
+      // golden-path). The mocks (MockAavePool, MockAaveOracle, MockERC20s)
+      // implement the same surface as the mainnet contracts the providers
+      // call into, so the same provider code runs against both networks.
+      //
+      // Note: a previous DeployAll.s.sol run logged different addresses but
+      // had a real bug — HelperConfig.getConfig() was invoked from outside
+      // vm.startBroadcast(), so the nested mock CREATE opcodes ran in the
+      // forge simulation VM and no code landed on Sepolia. Fixed via a
+      // dedicated flat DeploySepolia.s.sol (each mock as its own broadcast
+      // tx; HelperConfig is 43 KB so itself exceeds the EVM code-size limit
+      // and can't be deployed on-chain).
+      pool: ZERO_ADDRESS, // MockAavePool deploy pending — see follow-up
+      oracle: ZERO_ADDRESS, // MockAaveOracle deploy pending
       addressesProvider: ZERO_ADDRESS,
       protocolDataProvider: ZERO_ADDRESS,
     },
     tokens: {
-      // Mock token addresses land in story-15 (MockERC20s for sUSDe/USDC/USDY/mETH).
-      USDC: ZERO_ADDRESS,
-      USDe: ZERO_ADDRESS,
-      sUSDe: ZERO_ADDRESS,
-      WMNT: ZERO_ADDRESS,
+      USDC: '0x86382E5A95E9eb4faC10Aa1C280c6F7171b82c8b' as Address,
+      USDe: '0x52Dc0f64A19C7F5C6806A4Ec56c61880e621320A' as Address,
+      sUSDe: '0xd286d52fBD02a28116008cA7DcB23438B8dBac52' as Address,
+      WMNT: '0xa26cf0E6B69da6dda8B62dd164b0aE1b57D296B8' as Address,
       WETH: ZERO_ADDRESS,
-      USDY: ZERO_ADDRESS,
-      mETH: ZERO_ADDRESS,
+      USDY: '0x316a890fFd27813a46eE50E4091A474E87eDFaF6' as Address,
+      mETH: '0xF152c9C31AecDFf991A6836fD3Fa01608803Fb01' as Address,
     },
     erc8004: {
       // Real Mantle Sepolia ERC-8004 deployment per research/concierge/03-providers/erc8004.md:14.
@@ -134,8 +145,8 @@ export const ADDRESSES = deepFreeze({
         pool: ZERO_ADDRESS,
       },
     },
-    // Filled in by story-18 (DeployAll.s.sol + write-addresses.mjs)
-    conciergeRegistry: ZERO_ADDRESS,
+    // ConciergeRegistry UUPS proxy on Sepolia — DeploySepolia.s.sol 2026-06-15.
+    conciergeRegistry: '0x5e73931A99E1D6868F60e4dCCd3774655EFeB7dD' as Address,
   },
 } as const);
 
@@ -200,11 +211,15 @@ export type AddressPath = LeafPath<typeof ADDRESSES.mantleMainnet> & SepoliaAddr
  * compares against `.sort()`. Asserted in index.test.ts.
  */
 export const SEPOLIA_PENDING_ADDRESS_SLOTS = Object.freeze([
+  // 2026-06-15 DeploySepolia.s.sol on chain 5003 populated: tokens.{USDC,USDe,
+  // sUSDe,WMNT,USDY,mETH} + conciergeRegistry. The Aave pool + oracle mock
+  // deploys need a follow-up because MockAavePool needs reserve listings.
+  // The DEX + Li.Fi slots stay zero — those are off-mock services we won't
+  // simulate on Sepolia.
   'aave.addressesProvider',
   'aave.oracle',
   'aave.pool',
   'aave.protocolDataProvider',
-  'conciergeRegistry',
   'lifi.diamond',
   'mantleDex.agni.factory',
   'mantleDex.agni.quoterV2',
@@ -216,13 +231,7 @@ export const SEPOLIA_PENDING_ADDRESS_SLOTS = Object.freeze([
   'mantleDex.merchantMoe.lbRouter',
   'mantleDex.woofi.pool',
   'mantleDex.woofi.router',
-  'tokens.USDC',
-  'tokens.USDY',
-  'tokens.USDe',
   'tokens.WETH',
-  'tokens.WMNT',
-  'tokens.mETH',
-  'tokens.sUSDe',
 ] as const satisfies readonly SepoliaAddressPath[]);
 
 /**
