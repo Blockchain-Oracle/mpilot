@@ -10,12 +10,26 @@
 // SEPOLIA_PENDING_ADDRESS_SLOTS / MAINNET_PENDING_ADDRESS_SLOTS are the programmatic
 // guards for `ConciergeRegistry.*()` zero-address placeholders — SDK-only consumers
 // must be able to detect pending slots without reading the README.
+// UI-facing tick + proposal types — derived from the designer prototype's
+// actual data bindings. The web app, MCP iframe cards, skill, and docs site
+// all consume these shapes. Re-exported here so SDK consumers get them
+// without depending on @concierge-mantle/shared directly.
 export {
   type AddressPath,
+  GOAL_EXAMPLES,
+  type GoalChip,
+  type GoalChipType,
+  type ISO8601,
   MAINNET_PENDING_ADDRESS_SLOTS,
   type MainnetAddressPath,
+  type ProposalFields,
+  type RiskFlag,
+  type RiskSeverity,
   SEPOLIA_PENDING_ADDRESS_SLOTS,
   type SepoliaAddressPath,
+  type SimulationOutput,
+  type TickActionData,
+  type TickUpdateEnvelope,
 } from '@concierge-mantle/shared';
 export {
   bigintSafeStringify,
@@ -58,3 +72,12 @@ export {
   isConciergeErrorType,
 } from './errors.ts';
 export { ConciergeRegistry } from './registry.ts';
+// Chain-aware URL helpers (MantleScan tx/address, IPFS attestations, agent share).
+export {
+  agentShareUrl,
+  attestationIpfsUrl,
+  attestationMantleScanUrl,
+  mantleScanAddressUrl,
+  mantleScanTxUrl,
+  type SupportedChainId,
+} from './urls.ts';

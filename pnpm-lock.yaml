@@ -151,6 +151,9 @@ importers:
       '@concierge-mantle/sdk':
         specifier: workspace:*
         version: link:../sdk
+      '@concierge-mantle/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@concierge-mantle/tools':
         specifier: workspace:*
         version: link:../tools

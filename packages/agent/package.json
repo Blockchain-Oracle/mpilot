@@ -32,6 +32,7 @@
     "@ai-sdk/provider": "3.0.10",
     "@concierge-mantle/llm": "workspace:*",
     "@concierge-mantle/sdk": "workspace:*",
+    "@concierge-mantle/shared": "workspace:*",
     "@concierge-mantle/tools": "workspace:*",
     "@concierge-mantle/vercel-ai": "workspace:*",
     "ai": "6.0.199",
