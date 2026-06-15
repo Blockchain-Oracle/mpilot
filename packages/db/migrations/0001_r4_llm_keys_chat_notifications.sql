@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS "notification_prefs" (
 	"on_emergency_stop" boolean DEFAULT true NOT NULL,
 	"on_welcome" boolean DEFAULT true NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "notification_prefs_email_shape" CHECK ("notification_prefs"."email" ~* '^[^s@]+@[^s@]+.[^s@]+$')
+	CONSTRAINT "notification_prefs_email_shape" CHECK ("notification_prefs"."email" ~* '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$')
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "pin_receipts" (
