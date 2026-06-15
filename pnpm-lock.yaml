@@ -45,6 +45,18 @@ importers:
 
   apps/web:
     dependencies:
+      '@concierge-mantle/erc8004':
+        specifier: workspace:*
+        version: link:../../packages/providers/erc8004
+      '@concierge-mantle/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      '@concierge-mantle/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@concierge-mantle/smart-account':
+        specifier: workspace:*
+        version: link:../../packages/smart-account
       '@concierge-mantle/ui':
         specifier: workspace:*
         version: link:../../packages/ui

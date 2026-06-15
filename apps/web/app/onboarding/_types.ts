@@ -42,6 +42,10 @@ export interface OnboardingData {
   readonly walletAddress: `0x${string}` | null;
   /** Whether the connected wallet is Privy-embedded or an external one (MetaMask/WalletConnect). */
   readonly walletKind: 'embedded' | 'external' | null;
+  /** Deployed smart-account address (set by r2 — StepAccount). */
+  readonly smartAccountAddress: `0x${string}` | null;
+  /** ERC-8004 agent token id (set by r2 — StepIdentity). */
+  readonly agentId: bigint | null;
   readonly goal: string;
   readonly overrides: Readonly<Record<string, string>>;
   readonly keys: Readonly<Record<LlmProviderId, string>>;
@@ -54,6 +58,8 @@ export const INITIAL_DATA: OnboardingData = {
   wallet: null,
   walletAddress: null,
   walletKind: null,
+  smartAccountAddress: null,
+  agentId: null,
   goal: '',
   overrides: {},
   keys: { anthropic: '', openai: '', google: '', xai: '' },
